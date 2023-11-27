@@ -5,19 +5,20 @@ channels:
   - pytorch
   # - fastai
 dependencies:
-  - python>=3.6
+  - python>=3.9
   - pip
   # BASICS
-  - numpy
-  - scipy
-  - pandas
-  - tqdm
-  - click
-  - ipython
+  - numpy==1.25.2
+  - scikit-image==0.18.3
+  # - scipy
+  # - pandas
+  # - tqdm
+  # - click
+  # - ipython
   # VISUALIZATION
   - matplotlib
-  - ipympl  # interactive matplotlib plots
-  - seaborn
+  # - ipympl  # interactive matplotlib plots
+  # - seaborn
   # - altair
   # - yellowbrick
   # ML, STATS & DEEP LEARNING
@@ -39,6 +40,12 @@ dependencies:
   # - snakeviz
   - pip:
      - -e .  # install git checkout of trusted_datapaper_ds in editable mode
+     - monai==0.6.0 #instaling many dependencies including torch==2.1.1+cu121 and many others
+     - natsort
+     - open3d==0.17.0
+     - connected-components-3d==3.9.1
+     - simpleitk==2.3.1
+     - nibabel==3.2.2
      # add here only pip-packages that are not available in conda/conda-forge! E.g.:
      # - icecream
      # - jax
@@ -47,13 +54,14 @@ dependencies:
      # - neptune-client
      # - neptune-contrib
 
+
   # DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file)
-  - jupyterlab
-  - pytest
-  - pytest-cov
-  - tox
-  - pre_commit
-  - nbdime
-  - nbstripout
-  - sphinx
-  - recommonmark
+  # - jupyterlab
+  # - pytest
+  # - pytest-cov
+  # - tox
+  # - pre_commit
+  # - nbdime
+  # - nbstripout
+  # - sphinx
+  # - recommonmark
