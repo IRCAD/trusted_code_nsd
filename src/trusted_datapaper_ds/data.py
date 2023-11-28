@@ -23,13 +23,19 @@ References:
 import argparse
 import logging
 import os
+import re
 import sys
+from os.path import join
 
+import cc3d
 import nibabel as nib
 import numpy as np
+import open3d as o3d
 import SimpleITK as sitk
 import torch
 import torch.nn.functional as F
+from monai.transforms import AsDiscrete
+from skimage import measure
 
 from trusted_datapaper_ds import __version__
 
@@ -48,25 +54,47 @@ _logger = logging.getLogger(__name__)
 
 
 class Image:
-    def __init__(self, imgpath) -> None:
-        """load a .nii.gz file and set its basic useful infos
-        Args:
-        imgpath (str): .nii.gz image file path
+    """
+    Represents a medical image.
 
-        Returns:
-        Image object: SimpleITK.Image
+    Attributes:
+        path (str): The path to the image file (.nii.gz).
+        itkimg (SimpleITK.Image): The SimpleITK image object.
+        nibimg (nibabel.Nifti1Image): The NiBabel image object.
+        modality (str): The modality of the image (e.g., "US", "CT").
+        basename (str): The base name of the image file.
+        size (np.ndarray): The size of the image (width, height, depth).
+        origin (np.ndarray): The origin of the image in voxel coordinates.
+        orientation (np.ndarray): The orientation of the image as a 3x3 matrix.
+        spacing (np.ndarray): The voxel spacing of the image.
+        nibaffine (np.ndarray): The affine transform of the image.
+        nparray (np.ndarray): The NumPy array representation of the image data.
+    """
+
+    def __init__(self, imgpath) -> None:
         """
+        Initializes an Image object from an image file (.nii.gz).
+
+        Args:
+            imgpath (str): The path to the image file (.nii.gz).
+        """
+
         assert imgpath[-7:] == ".nii.gz"
 
         self.path = imgpath
+        self.basename = os.path.basename(self.path)
         self.itkimg = sitk.ReadImage(self.path)
         self.nibimg = nib.load(self.path)
+
+        # Determine the modality of the image
         self.modality = None
-        self.basename = os.path.basename(self.path)
+
         if "US" in self.basename:
             self.modality = "US"
         if "CT" in self.basename:
             self.modality = "CT"
+
+        # Extract image information
         self.size = np.array(self.itkimg.GetSize())
         self.origin = np.array(self.itkimg.GetOrigin())
         self.orientation = np.array(self.itkimg.GetDirection()).reshape((3, 3))
@@ -74,17 +102,59 @@ class Image:
         self.nibaffine = self.nibimg.affine
         self.nparray = self.nibimg.get_fdata()
 
-    def resize(self, newsize, interpolmode, resized_nibimg_path=None):
-        assert interpolmode == "trilinear"
+    def setmodality(self, modality):
+        assert modality in ["US", "CT"], "trusted modalities are US or CT"
+        if self.modality is None:
+            self.modality = modality
+        else:
+            print(
+                "The modality ",
+                self.modality,
+                " has already been found. Check the data used",
+            )
+        return
+
+    def getmodality(self):
+        print("The modality ", self.modality, " has been found.")
+        if self.modality is None:
+            print("Please set the modality to 'US' or 'CT' with .setmodality(modality)")
+        return self.modality
+
+    def setsuffix(self, suffix=None):
+        if suffix is None:
+            if self.modality is None:
+                print(
+                    "Please, before, set the modality to 'US' or 'CT' with .setmodality(modality)"
+                )
+            else:
+                suffix = "_img" + self.modality + ".nii.gz"
+                self.suffix = suffix
+        else:
+            self.suffix = suffix
+        return
+
+    def resize(self, newsize, interpolmode="trilinear", resized_nibimg_path=None):
+        """
+        Resizes the image to the specified new size.
+
+        Args:
+            newsize (tuple): The new size of the image (width, height, depth).
+            interpolmode (str): The interpolation mode to use for resizing ("trilinear" is recommended).
+            resized_nibimg_path (str, optional): The path to save the resized NiBabel image (optional).
+
+        Returns:
+            np.ndarray: The resized NumPy array representation of the image data.
+        """
 
         resized_nparray = F.interpolate(
             torch.unsqueeze(torch.unsqueeze(torch.from_numpy(self.nparray), 0), 0),
             size=newsize,
             mode=interpolmode,
-            align_corners=True,
+            align_corners=interpolmode == "trilinear",
         )
         resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
 
+        # Save the resized NiBabel image if specified
         if resized_nibimg_path is not None:
             resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
             nib.save(resized_nibimg, resized_nibimg_path)
@@ -93,24 +163,275 @@ class Image:
 
 
 class Mask(Image):
-    def resize(self, newsize, interpolmode, resized_nibimg_path=None):
-        assert interpolmode == "nearest"
+    def __init__(self, imgpath, annotatorID=None):
+        super().__init__(imgpath)
+        self.annotatorID = annotatorID
 
+    def resize(self, newsize, interpolmode="trilinear", resized_nibimg_path=None):
+        """
+        Resizes the image to the specified new size.
+
+        Args:
+            ...
+        Returns:
+            ...
+        """
         resized_nparray = F.interpolate(
             torch.unsqueeze(torch.unsqueeze(torch.from_numpy(self.nparray), 0), 0),
             size=newsize,
             mode=interpolmode,
-            align_corners=False,
+            align_corners=interpolmode == "trilinear",
         )
+        transform = AsDiscrete(threshold_values=True, logit_thresh=0.5)
+        resized_nparray = transform(resized_nparray)
         resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
 
+        # Save the resized NiBabel image if specified
         if resized_nibimg_path is not None:
             resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
             nib.save(resized_nibimg, resized_nibimg_path)
 
         return resized_nparray
 
-    def tomesh():
+    def setsuffix(self, suffix=None):
+        if suffix is None:
+            if self.modality is None:
+                print(
+                    "Please, before, set the modality to 'US' or 'CT' with .setmodality(modality)"
+                )
+            else:
+                suffix = "_mask" + self.modality + ".nii.gz"
+                self.suffix = suffix
+        else:
+            self.suffix = suffix
+        return
+
+    def to_mesh_and_pcd(
+        self,
+        mesh_dirname=None,
+        pcd_dirname=None,
+        ok_with_suffix=False,
+        mask_cleaning=True,
+    ):
+        assert (
+            self.modality is not None
+        ), "Please set the modality to 'US' or 'CT' with self.setmodality(modality)"
+
+        if not ok_with_suffix:
+            self.setsuffix()
+            print("NOTE:")
+            print(
+                "The suffix is the part of the basename (including the annotator ID) after the individual name"
+            )
+            print("Example of individual name:'01L' for US or '01' for CT ")
+            print("Actually the suffix is: ", self.suffix)
+            print("Make sure it is what you must have.")
+            print("Or, set the appropriate suffix with self.setsuffix(suffix).")
+            print(
+                "Then set the argument 'ok_with_suffix' to True when running self.tomesh()"
+            )
+        else:
+            self.setsuffix()
+            a = re.search(self.suffix, self.basename).start()
+            individual_name = self.basename[:a]
+
+            affine = self.nibaffine
+            new_affine = np.linalg.solve(np.sign(affine), affine)
+            sign_affine = np.sign(affine)
+            sign_affine[sign_affine == 0.0] = 1.0
+            sign_new_affine = np.sign(new_affine)
+            sign_new_affine[sign_new_affine == 0.0] = 1.0
+            self.mesh_spacing_and_location = np.diag(new_affine)[:3] @ np.sign(
+                affine[:3, :3]
+            )
+
+            print("*** Meshing individual ", individual_name, " ***")
+            out = cc3d.connected_components(self.nparray)
+            bins_origin = np.bincount(out.flatten())
+            bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
+            ind0 = 0
+            bins_copy.remove(bins_origin[ind0])
+            ind1 = np.where(bins_origin == max(bins_copy))[0][0]
+            bins_copy.remove(bins_origin[ind1])
+
+            if self.modality == "CT":
+                ind2 = np.where(bins_origin == max(bins_copy))[0][0]
+                bins_copy.remove(bins_origin[ind2])
+                out1 = out.copy()
+                out1[out1 != ind1] = 0
+                out2 = out.copy()
+                out2[out2 != ind2] = 0
+                out1[out1 > 0] = 1
+                out2[out2 > 0] = 1
+                out_both = out1 + out2
+                del out
+                (
+                    vertexsCT1,
+                    faceCT1,
+                    normalsCT1,
+                    valuesCT1,
+                ) = measure.marching_cubes_lewiner(
+                    out1, spacing=self.mesh_spacing_and_location, step_size=1
+                )
+                (
+                    vertexsCT2,
+                    faceCT2,
+                    normalsCT2,
+                    valuesCT2,
+                ) = measure.marching_cubes_lewiner(
+                    out2, spacing=self.mesh_spacing_and_location, step_size=1
+                )
+
+                o3d_CT_1 = o3d.geometry.TriangleMesh()
+                o3d_CT_1.triangles = o3d.utility.Vector3iVector(faceCT1)
+                o3d_CT_1.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                o3d_CT_2 = o3d.geometry.TriangleMesh()
+                o3d_CT_2.triangles = o3d.utility.Vector3iVector(faceCT2)
+                o3d_CT_2.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+                x_center1 = np.asarray(o3d_CT_1.get_center())[0]
+                x_center2 = np.asarray(o3d_CT_2.get_center())[0]
+
+                if x_center1 < x_center2:
+                    o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                    o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT1)
+                    o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                    o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                    o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT2)
+                    o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+                if x_center1 > x_center2:
+                    o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                    o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT1)
+                    o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                    o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                    o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT2)
+                    o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+                o3d_pcdCT_L = o3d.geometry.PointCloud()
+                o3d_pcdCT_L.points = o3d.utility.Vector3dVector(
+                    np.asarray(o3d_meshCT_L.vertices)
+                )
+
+                o3d_pcdCT_R = o3d.geometry.PointCloud()
+                o3d_pcdCT_R.points = o3d.utility.Vector3dVector(
+                    np.asarray(o3d_meshCT_R.vertices)
+                )
+
+                if mesh_dirname is not None:
+                    if self.annotatorID is None:
+                        meshL_path = join(
+                            mesh_dirname, individual_name + "L" + "meshfaceCT.obj"
+                        )
+                        meshR_path = join(
+                            mesh_dirname, individual_name + "R" + "meshfaceCT.obj"
+                        )
+                    else:
+                        meshL_path = join(
+                            mesh_dirname,
+                            individual_name + "L" + self.annotatorID + "meshfaceCT.obj",
+                        )
+                        meshR_path = join(
+                            mesh_dirname,
+                            individual_name + "R" + self.annotatorID + "meshfaceCT.obj",
+                        )
+
+                    o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
+                    o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
+
+                if pcd_dirname is not None:
+                    if self.annotatorID is None:
+                        pcdL_path = join(
+                            pcd_dirname, individual_name + "L" + "pcdCT.txt"
+                        )
+                        pcdR_path = join(
+                            pcd_dirname, individual_name + "R" + "pcdCT.txt"
+                        )
+                    else:
+                        pcdL_path = join(
+                            pcd_dirname,
+                            individual_name + "L" + self.annotatorID + "pcdCT.txt",
+                        )
+                        pcdR_path = join(
+                            pcd_dirname,
+                            individual_name + "R" + self.annotatorID + "pcdCT.txt",
+                        )
+
+                    np.savetxt(
+                        pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", "
+                    )
+                    np.savetxt(
+                        pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", "
+                    )
+
+                print("case done")
+                return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R
+
+            if self.modality == "US":
+                out1 = out.copy()
+                out1[out1 != ind1] = 0
+                out1[out1 > 0] = 1
+                out_both = out1
+                del out
+                (
+                    vertexsUS,
+                    faceUS,
+                    normalsUS,
+                    valuesUS,
+                ) = measure.marching_cubes_lewiner(
+                    out1, spacing=self.mesh_spacing_and_location, step_size=1
+                )
+                o3d_meshUS = o3d.geometry.TriangleMesh()
+                o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
+                o3d_meshUS.vertices = o3d.utility.Vector3dVector(vertexsUS)
+
+                o3d_pcdUS = o3d.geometry.PointCloud()
+                o3d_pcdUS.points = o3d.utility.Vector3dVector(
+                    np.asarray(o3d_meshUS.vertices)
+                )
+
+                if mesh_dirname is not None:
+                    if self.annotatorID is None:
+                        mesh_path = join(
+                            mesh_dirname, individual_name + "meshfaceUS.obj"
+                        )
+                    else:
+                        mesh_path = join(
+                            mesh_dirname,
+                            individual_name + self.annotatorID + "meshfaceUS.obj",
+                        )
+
+                    o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
+
+                if pcd_dirname is not None:
+                    if self.annotatorID is None:
+                        pcd_path = join(pcd_dirname, individual_name + "pcdUS.txt")
+                    else:
+                        pcd_path = join(
+                            pcd_dirname,
+                            individual_name + self.annotatorID + "pcdUS.txt",
+                        )
+
+                    np.savetxt(
+                        pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", "
+                    )
+
+                print("case done")
+                return o3d_meshUS, o3d_pcdUS
+
+            """mask_cleaning"""
+            if mask_cleaning:
+                mask_cleaned_nib = nib.Nifti1Image(out_both, self.affine)
+                nib.save(mask_cleaned_nib, self.path)
+                print("cleaning done")
+
+    def split(self):
+        return
+
+    def topcd():
         return
 
 
