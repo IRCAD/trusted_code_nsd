@@ -12,26 +12,38 @@ from trusted_datapaper_ds import data as dt
 #################################################################################
 #################################################################################
 
-# # import skimage
-# imgpath = (
-#     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
-#     "US_images/01L_imgUS.nii.gz"
-# )
+""" US Image or Mask initialization """
+USimgpath = (
+    "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
+    "US_images/01L_imgUS.nii.gz"
+)
+trusted_USimg = dt.Image(USimgpath)
 
-# imgpath = "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"\
-#     "US_masks/GT_estimated_masksUS/01R_maskUS.nii.gz"
+USmaskpath = (
+    "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
+    "US_masks/GT_estimated_masksUS/01R_maskUS.nii.gz"
+)
+trusted_USmask = dt.Mask(USmaskpath)
 
-imgpath = (
+""" CT Image or Mask initialization """
+CTimgpath = (
+    "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/"
+    "CT_images/01_imgCT.nii.gz"
+)
+trusted_CTimg = dt.Image(CTimgpath)
+
+CTmaskpath = (
     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/"
     "CT_masks/GT_estimated_masksCT/02_maskCT.nii.gz"
 )
+trusted_CTmask = dt.Mask(CTmaskpath)
 
-resized_nibimg_path = "/home/wndzimbong/Bureau/01R_maskUS_resized.nii.gz"
-
-trusted_mask = dt.Mask(imgpath)
-
-"""resize"""
-# resized_nparray = trusted_mask.resize(newsize=[128,128,128], resized_nibimg_path=resized_nibimg_path)
+"""resize (resizee_dir must be created)"""
+# resized_dirname = "/home/wndzimbong/Bureau"
+# resized_nparray = trusted_USimg.resize(newsize=[128,128,128], resized_dirname=resized_dirname)
+# resized_nparray = trusted_USmask.resize(newsize=[128,128,128], resized_dirname=resized_dirname)
+# resized_nparray = trusted_CTimg.resize(newsize=[128,128,128], resized_dirname=resized_dirname)
+# resized_nparray = trusted_CTmask.resize(newsize=[128,128,128], resized_dirname=resized_dirname)
 
 """get/set modality"""
 # trusted_mask.setmodality("CT")
@@ -41,54 +53,45 @@ trusted_mask = dt.Mask(imgpath)
 # trusted_mask.setsuffix()
 # print(trusted_mask.suffix)
 
-"""tomesh"""
+"""to_mesh_and_pcd (mesh_dir and pcd_dir must be created)"""
 # mesh_dirname = "/home/wndzimbong/Bureau"
 # pcd_dirname = "/home/wndzimbong/Bureau"
-# o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = trusted_mask.to_mesh_and_pcd(mesh_dirname=None,
-#                                                                                    pcd_dirname=None,
+# o3d_meshUS, o3d_pcdUS = trusted_USmask.to_mesh_and_pcd(mesh_dirname=mesh_dirname,
+#                                                     pcd_dirname=pcd_dirname,
+#                                                     ok_with_suffix=True,
+#                                                     mask_cleaning=False)
+
+# o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = trusted_CTmask.to_mesh_and_pcd(mesh_dirname=mesh_dirname,
+#                                                                                    pcd_dirname=pcd_dirname,
 #                                                                                    ok_with_suffix=True,
 #                                                                                    mask_cleaning=False)
 
+""" split CT """
+# split_dirname = "/home/wndzimbong/Bureau"
+# nparrayL, nparrayR = trusted_CTmask.split(split_dirname=split_dirname)
 
-# path = imgpath
-# basename = os.path.basename(path)
-# itkimg = sitk.ReadImage(path)
-# nibimg = nib.load(path)
+""" shift_origin """
+# shifted_dirname = "/home/wndzimbong/Bureau"
+# img_itk_shifed = trusted_CTimg.shift_origin(shifted_dirname=shifted_dirname)
+# mask_itk_shifed = trusted_CTmask.shift_origin(shifted_dirname=shifted_dirname)
 
-# # Determine the modality of the image
-# modality = None
-# if "US" in basename:
-#     modality = "US"
-# if "CT" in basename:
-#     modality = "CT"
+""" staple masks fusion """
+USmaskpath1 = (
+    "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
+    "US_masks/Annotator1/01R1_maskUS.nii.gz"
+)
+trusted_USmask1 = dt.Mask(USmaskpath1)
 
-# '''Extract image information'''
-# size = np.array(itkimg.GetSize())
-# origin = np.array(itkimg.GetOrigin())
-# orientation = np.array(itkimg.GetDirection()).reshape((3, 3))
-# spacing = np.array(itkimg.GetSpacing())
-# nibaffine = nibimg.affine
-# nparray = nibimg.get_fdata()
+USmaskpath2 = (
+    "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
+    "US_masks/Annotator2/01R2_maskUS.nii.gz"
+)
+trusted_USmask2 = dt.Mask(USmaskpath2)
 
-# '''Reisizing'''
-# newsize = [128,128,128]
-# interpolmode = "trilinear"
-# resized_nparray = F.interpolate(
-#     torch.unsqueeze(torch.unsqueeze(torch.from_numpy(nparray), 0), 0),
-#     size=newsize,
-#     mode=interpolmode,
-#     align_corners=interpolmode=="trilinear",
-# )
-# transform = AsDiscrete(threshold_values=True, logit_thresh=0.5)
-# resized_nparray = transform(resized_nparray)
-# resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
-
-# print("unique values in: ", np.unique(resized_nparray))
-
-# # Save the resized NiBabel image if specified
-# if resized_nibimg_path is not None:
-#     resized_nibimg = nib.Nifti1Image(resized_nparray, nibaffine)
-#     nib.save(resized_nibimg, resized_nibimg_path)
+list_of_trusted_masks = [trusted_USmask1, trusted_USmask2]
+dt.fuse_masks(
+    list_of_trusted_masks, trusted_img=trusted_USimg, resizing=[128, 128, 128]
+)
 
 
 # python src/trusted_datapaper_ds/__draft__.py

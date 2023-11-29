@@ -133,19 +133,19 @@ class Image:
             self.suffix = suffix
         return
 
-    def resize(self, newsize, interpolmode="trilinear", resized_nibimg_path=None):
+    def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
         """
         Resizes the image to the specified new size.
 
         Args:
-            newsize (tuple): The new size of the image (width, height, depth).
-            interpolmode (str): The interpolation mode to use for resizing ("trilinear" is recommended).
-            resized_nibimg_path (str, optional): The path to save the resized NiBabel image (optional).
+            newsize (tuple): New size of the image (width, height, depth).
+            interpolmode (str): Interpolation mode to use for resizing ("trilinear" is recommended).
+            resized_dirname (str, optional): Path to the folder where the resized images are saved (optional).
 
         Returns:
             np.ndarray: The resized NumPy array representation of the image data.
         """
-
+        print("Image resizing: ", self.basename)
         resized_nparray = F.interpolate(
             torch.unsqueeze(torch.unsqueeze(torch.from_numpy(self.nparray), 0), 0),
             size=newsize,
@@ -154,12 +154,56 @@ class Image:
         )
         resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
 
-        # Save the resized NiBabel image if specified
-        if resized_nibimg_path is not None:
+        # Save the resized image if specified
+        if resized_dirname is not None:
+            resized_nibimg_path = join(resized_dirname, self.basename)
             resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
             nib.save(resized_nibimg, resized_nibimg_path)
+            print("resized image saved as: ", resized_nibimg_path)
 
         return resized_nparray
+
+    def shift_origin(self, new_origin=[0, 0, 0], shifted_dirname=None):
+        assert self.modality == "CT", "Needed only for CT volume"
+
+        print("CT data origin shifting to ", new_origin, " for ", self.basename)
+        self.setsuffix()
+        a = re.search(self.suffix, self.basename).start()
+        self.individual_name = self.basename[:a]
+
+        itk_nparray = sitk.GetArrayFromImage(self.itkimg)
+        itk_ref_img = sitk.GetImageFromArray(itk_nparray)
+
+        itk_ref_img.SetSpacing(self.spacing)
+        itk_ref_img.SetDirection(self.orientation.flatten().tolist())
+        itk_ref_img.SetOrigin(new_origin)
+
+        tx = sitk.AffineTransform(3)
+        tx.SetMatrix(np.eye(3).flatten().tolist())
+
+        if "img" in self.suffix:
+            interpolator = sitk.sitkLinear
+        elif "mask" in self.suffix:
+            interpolator = sitk.sitkNearestNeighbor
+        else:
+            raise ValueError(
+                "The suffix file basename must content 'img' or 'mask'. Use self.setsuffix(suffix)."
+            )
+
+        itk_shifed = sitk.Resample(
+            itk_ref_img,
+            itk_ref_img,
+            tx,
+            interpolator=interpolator,
+            defaultPixelValue=0.0,
+        )
+
+        if shifted_dirname is not None:
+            itk_shifed_path = join(shifted_dirname, self.basename)
+            sitk.WriteImage(itk_shifed, itk_shifed_path)
+            print("itk_shifed data saved as: ", itk_shifed_path)
+
+        return itk_shifed
 
 
 class Mask(Image):
@@ -167,7 +211,7 @@ class Mask(Image):
         super().__init__(imgpath)
         self.annotatorID = annotatorID
 
-    def resize(self, newsize, interpolmode="trilinear", resized_nibimg_path=None):
+    def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
         """
         Resizes the image to the specified new size.
 
@@ -176,6 +220,7 @@ class Mask(Image):
         Returns:
             ...
         """
+        print("Mask resizing: ", self.basename)
         resized_nparray = F.interpolate(
             torch.unsqueeze(torch.unsqueeze(torch.from_numpy(self.nparray), 0), 0),
             size=newsize,
@@ -186,10 +231,12 @@ class Mask(Image):
         resized_nparray = transform(resized_nparray)
         resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
 
-        # Save the resized NiBabel image if specified
-        if resized_nibimg_path is not None:
+        # Save the resized image if specified
+        if resized_dirname is not None:
+            resized_nibimg_path = join(resized_dirname, self.basename)
             resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
             nib.save(resized_nibimg, resized_nibimg_path)
+            print("resized mask saved as: ", resized_nibimg_path)
 
         return resized_nparray
 
@@ -204,6 +251,7 @@ class Mask(Image):
                 self.suffix = suffix
         else:
             self.suffix = suffix
+        print("suffix ", self.suffix, "has been set")
         return
 
     def to_mesh_and_pcd(
@@ -233,7 +281,7 @@ class Mask(Image):
         else:
             self.setsuffix()
             a = re.search(self.suffix, self.basename).start()
-            individual_name = self.basename[:a]
+            self.individual_name = self.basename[:a]
 
             affine = self.nibaffine
             new_affine = np.linalg.solve(np.sign(affine), affine)
@@ -241,11 +289,9 @@ class Mask(Image):
             sign_affine[sign_affine == 0.0] = 1.0
             sign_new_affine = np.sign(new_affine)
             sign_new_affine[sign_new_affine == 0.0] = 1.0
-            self.mesh_spacing_and_location = np.diag(new_affine)[:3] @ np.sign(
-                affine[:3, :3]
-            )
+            self.mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
 
-            print("*** Meshing individual ", individual_name, " ***")
+            print("*** mesh and pcd creation for: ", self.basename, " ***")
             out = cc3d.connected_components(self.nparray)
             bins_origin = np.bincount(out.flatten())
             bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
@@ -271,7 +317,7 @@ class Mask(Image):
                     normalsCT1,
                     valuesCT1,
                 ) = measure.marching_cubes_lewiner(
-                    out1, spacing=self.mesh_spacing_and_location, step_size=1
+                    out1, spacing=self.mesh_orientation, step_size=1
                 )
                 (
                     vertexsCT2,
@@ -279,7 +325,7 @@ class Mask(Image):
                     normalsCT2,
                     valuesCT2,
                 ) = measure.marching_cubes_lewiner(
-                    out2, spacing=self.mesh_spacing_and_location, step_size=1
+                    out2, spacing=self.mesh_orientation, step_size=1
                 )
 
                 o3d_CT_1 = o3d.geometry.TriangleMesh()
@@ -324,48 +370,58 @@ class Mask(Image):
                 if mesh_dirname is not None:
                     if self.annotatorID is None:
                         meshL_path = join(
-                            mesh_dirname, individual_name + "L" + "meshfaceCT.obj"
+                            mesh_dirname, self.individual_name + "L" + "meshfaceCT.obj"
                         )
                         meshR_path = join(
-                            mesh_dirname, individual_name + "R" + "meshfaceCT.obj"
+                            mesh_dirname, self.individual_name + "R" + "meshfaceCT.obj"
                         )
                     else:
                         meshL_path = join(
                             mesh_dirname,
-                            individual_name + "L" + self.annotatorID + "meshfaceCT.obj",
+                            self.individual_name
+                            + "L"
+                            + self.annotatorID
+                            + "meshfaceCT.obj",
                         )
                         meshR_path = join(
                             mesh_dirname,
-                            individual_name + "R" + self.annotatorID + "meshfaceCT.obj",
+                            self.individual_name
+                            + "R"
+                            + self.annotatorID
+                            + "meshfaceCT.obj",
                         )
 
                     o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
+                    print("o3d_meshCT_L saved as: ", meshL_path)
                     o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
+                    print("o3d_meshCT_R saved as: ", meshR_path)
 
                 if pcd_dirname is not None:
                     if self.annotatorID is None:
                         pcdL_path = join(
-                            pcd_dirname, individual_name + "L" + "pcdCT.txt"
+                            pcd_dirname, self.individual_name + "L" + "pcdCT.txt"
                         )
                         pcdR_path = join(
-                            pcd_dirname, individual_name + "R" + "pcdCT.txt"
+                            pcd_dirname, self.individual_name + "R" + "pcdCT.txt"
                         )
                     else:
                         pcdL_path = join(
                             pcd_dirname,
-                            individual_name + "L" + self.annotatorID + "pcdCT.txt",
+                            self.individual_name + "L" + self.annotatorID + "pcdCT.txt",
                         )
                         pcdR_path = join(
                             pcd_dirname,
-                            individual_name + "R" + self.annotatorID + "pcdCT.txt",
+                            self.individual_name + "R" + self.annotatorID + "pcdCT.txt",
                         )
 
                     np.savetxt(
                         pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", "
                     )
+                    print("pcdCT_L_txt saved as: ", pcdL_path)
                     np.savetxt(
                         pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", "
                     )
+                    print("pcdCT_R_txt saved as: ", pcdR_path)
 
                 print("case done")
                 return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R
@@ -382,7 +438,7 @@ class Mask(Image):
                     normalsUS,
                     valuesUS,
                 ) = measure.marching_cubes_lewiner(
-                    out1, spacing=self.mesh_spacing_and_location, step_size=1
+                    out1, spacing=self.mesh_orientation, step_size=1
                 )
                 o3d_meshUS = o3d.geometry.TriangleMesh()
                 o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
@@ -396,28 +452,29 @@ class Mask(Image):
                 if mesh_dirname is not None:
                     if self.annotatorID is None:
                         mesh_path = join(
-                            mesh_dirname, individual_name + "meshfaceUS.obj"
+                            mesh_dirname, self.individual_name + "meshfaceUS.obj"
                         )
                     else:
                         mesh_path = join(
                             mesh_dirname,
-                            individual_name + self.annotatorID + "meshfaceUS.obj",
+                            self.individual_name + self.annotatorID + "meshfaceUS.obj",
                         )
 
                     o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
+                    print("o3d_meshUS saved as: ", mesh_path)
 
                 if pcd_dirname is not None:
                     if self.annotatorID is None:
-                        pcd_path = join(pcd_dirname, individual_name + "pcdUS.txt")
+                        pcd_path = join(pcd_dirname, self.individual_name + "pcdUS.txt")
                     else:
                         pcd_path = join(
                             pcd_dirname,
-                            individual_name + self.annotatorID + "pcdUS.txt",
+                            self.individual_name + self.annotatorID + "pcdUS.txt",
                         )
-
                     np.savetxt(
                         pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", "
                     )
+                    print("pcdUS_txt saved as: ", pcd_path)
 
                 print("case done")
                 return o3d_meshUS, o3d_pcdUS
@@ -428,16 +485,112 @@ class Mask(Image):
                 nib.save(mask_cleaned_nib, self.path)
                 print("cleaning done")
 
-    def split(self):
-        return
+    def split(self, split_dirname=None):
+        assert self.modality == "CT", "Applicable only on a CT mask"
 
-    def topcd():
-        return
+        print("*** CT mask splitting for: ", self.basename, " ***")
+
+        self.setsuffix()
+        a = re.search(self.suffix, self.basename).start()
+        self.individual_name = self.basename[:a]
+
+        len0 = self.nparray.shape[0]
+        mid0 = int(len0 / 2)
+
+        nparrayR = np.zeros_like(self.nparray)
+        nparrayR[:mid0, :, :] = self.nparray[:mid0, :, :].copy()
+
+        nparrayL = np.zeros_like(self.nparray)
+        nparrayL[mid0:, :, :] = self.nparray[mid0:, :, :].copy()
+
+        if split_dirname is not None:
+            splitR_path = join(
+                split_dirname,
+                self.basename.replace(self.individual_name, self.individual_name + "R"),
+            )
+            splitR_nib = nib.Nifti1Image(nparrayR, self.nibaffine)
+            nib.save(splitR_nib, splitR_path)
+            print("splitR_nib saved as: ", splitR_path)
+
+            splitL_path = join(
+                split_dirname,
+                self.basename.replace(self.individual_name, self.individual_name + "L"),
+            )
+            splitL_nib = nib.Nifti1Image(nparrayL, self.nibaffine)
+            nib.save(splitL_nib, splitL_path)
+            print("splitL_nib saved as: ", splitL_path)
+
+        return nparrayL, nparrayR
 
 
 class Landmarks:
     def __init__(self) -> None:
         pass
+
+
+class Mesh:
+    def __init__(self) -> None:
+        pass
+
+
+def fuse_masks(
+    list_of_trusted_masks: list[Mask],
+    trusted_img: Image,
+    resizing=None,
+    npmaxflow_lamda=2.5,
+):
+    print("*** masks fusion with staple+maxflow ***")
+
+    seg_stack = []
+
+    for trusted_mask in list_of_trusted_masks:
+        # STAPLE requires we cast into int16 arrays
+        # trusted_mask_int16 = sitk.GetImageFromArray(trusted_mask.nparray.astype(np.int16))
+
+        itk_int16 = sitk.Cast(trusted_mask.itkimg, sitk.sitkInt16)
+        seg_stack.append(itk_int16)
+
+    # Run STAPLE algorithm
+    itk_STAPLE_prob = sitk.STAPLE(seg_stack, 1.0)  # 1.0 specifies the foreground value
+
+    # convert back to numpy array
+    nparray_itkprob = sitk.GetArrayFromImage(itk_STAPLE_prob)
+    nparray_itkimg = sitk.GetArrayFromImage(trusted_img.itkimg)
+
+    nparray_itkprob = np.asarray(nparray_itkprob, np.float32)
+    nparray_itkimg = np.asarray(nparray_itkimg, np.float32)
+
+    if resizing is not None:
+        resized_nparray_itkprob = F.interpolate(
+            torch.unsqueeze(torch.unsqueeze(torch.from_numpy(nparray_itkprob), 0), 0),
+            size=resizing,
+            mode="nearest",
+        )
+        resized_nparray_itkimg = F.interpolate(
+            torch.unsqueeze(torch.unsqueeze(torch.from_numpy(nparray_itkimg), 0), 0),
+            size=resizing,
+            mode="trilinear",
+            align_corners=True,
+        )
+
+        nparray_itkprob = (
+            torch.squeeze(torch.squeeze(resized_nparray_itkprob, 0), 0)
+        ).numpy()
+        nparray_itkimg = (
+            torch.squeeze(torch.squeeze(resized_nparray_itkimg, 0), 0)
+        ).numpy()
+
+    nparray_itkprob = np.asarray(nparray_itkprob, np.float32)
+    nparray_itkimg = np.asarray(nparray_itkimg, np.float32)
+
+    print(nparray_itkprob.shape)
+    print(nparray_itkimg.shape)
+
+    return
+
+
+def fuse_landmarks():
+    return
 
 
 # ---- CLI ----
