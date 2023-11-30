@@ -15,7 +15,7 @@ from trusted_datapaper_ds import data as dt
 """ US Image or Mask initialization """
 USimgpath = (
     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/"
-    "US_images/01L_imgUS.nii.gz"
+    "US_images/01R_imgUS.nii.gz"
 )
 trusted_USimg = dt.Image(USimgpath)
 
@@ -34,7 +34,7 @@ trusted_CTimg = dt.Image(CTimgpath)
 
 CTmaskpath = (
     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/"
-    "CT_masks/GT_estimated_masksCT/02_maskCT.nii.gz"
+    "CT_masks/GT_estimated_masksCT/01_maskCT.nii.gz"
 )
 trusted_CTmask = dt.Mask(CTmaskpath)
 
@@ -89,8 +89,12 @@ USmaskpath2 = (
 trusted_USmask2 = dt.Mask(USmaskpath2)
 
 list_of_trusted_masks = [trusted_USmask1, trusted_USmask2]
+fused_dirname = "/home/wndzimbong/Bureau"
 dt.fuse_masks(
-    list_of_trusted_masks, trusted_img=trusted_USimg, resizing=[128, 128, 128]
+    list_of_trusted_masks,
+    trusted_img=trusted_USimg,
+    resizing=[512, 384, 384],
+    fused_dirname=fused_dirname,
 )
 
 

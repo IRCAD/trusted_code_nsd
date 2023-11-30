@@ -28,13 +28,22 @@ import sys
 from os.path import join
 
 import cc3d
+import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
+import numpymaxflow as maxflow
 import open3d as o3d
 import SimpleITK as sitk
 import torch
 import torch.nn.functional as F
-from monai.transforms import AsDiscrete
+from monai.transforms import (
+    AddChannel,
+    AsDiscrete,
+    Compose,
+    NormalizeIntensity,
+    Resize,
+    ToTensor,
+)
 from skimage import measure
 
 from trusted_datapaper_ds import __version__
@@ -538,8 +547,11 @@ def fuse_masks(
     trusted_img: Image,
     resizing=None,
     npmaxflow_lamda=2.5,
+    fused_dirname=None,
 ):
-    print("*** masks fusion with staple+maxflow ***")
+    print(
+        "*** Fusion of masks with staple (from Sitk) + maxflow (from numpymaxflow) ***"
+    )
 
     seg_stack = []
 
@@ -555,48 +567,119 @@ def fuse_masks(
 
     # convert back to numpy array
     nparray_itkprob = sitk.GetArrayFromImage(itk_STAPLE_prob)
-    nparray_itkimg = sitk.GetArrayFromImage(trusted_img.itkimg)
 
-    nparray_itkprob = np.asarray(nparray_itkprob, np.float32)
-    nparray_itkimg = np.asarray(nparray_itkimg, np.float32)
+    nparray_nibprob = np.transpose(nparray_itkprob)
+    del nparray_itkprob
+    nparray_nibimg = trusted_img.nparray
 
+    # Data resizing to increase the running speed, if needed
     if resizing is not None:
-        resized_nparray_itkprob = F.interpolate(
-            torch.unsqueeze(torch.unsqueeze(torch.from_numpy(nparray_itkprob), 0), 0),
-            size=resizing,
-            mode="nearest",
+        transform0 = monai_resiz(new_size=resizing)
+        nparray_nibimg = transform0(nparray_nibimg)
+        nparray_nibprob = transform0(nparray_nibprob)
+
+        nparray_nibimg = (torch.squeeze(nparray_nibimg, 0)).numpy()
+        nparray_nibprob = (torch.squeeze(nparray_nibprob, 0)).numpy()
+
+    # Image intensity normalization (good for maxflow)
+    transform1 = monai_normaliz()
+    nparray_nibimg = transform1(nparray_nibimg)
+    nparray_nibimg = (torch.squeeze(nparray_nibimg, 0)).numpy()
+
+    # Run numpy maxflow
+    fP = nparray_nibprob  # NOTE: these fP give the same results
+    bP = 1.0 - fP
+    Prob = np.asarray([bP, fP])
+    sigma = np.std(nparray_nibimg)
+    connectivity = 6
+    nparray_nibimg = np.expand_dims(nparray_nibimg, axis=0)
+
+    nparray_nib_fused = maxflow.maxflow(
+        nparray_nibimg, Prob, npmaxflow_lamda, sigma, connectivity
+    )
+    nparray_nib_fused = np.squeeze(nparray_nib_fused, axis=0)
+    nparray_nib_fused = np.asarray(nparray_nib_fused, np.float32)
+
+    # Turn back to the initial nparray_itk_true_shape, if a resizing has been done
+    if resizing is not None:
+        new_size = [
+            int(trusted_img.size[0]),
+            int(trusted_img.size[1]),
+            int(trusted_img.size[2]),
+        ]
+        transform2 = monai_resiz(new_size=new_size)
+        nparray_nib_fused = transform2(nparray_nib_fused)
+        nparray_nib_fused = (torch.squeeze(nparray_nib_fused, 0)).numpy()
+
+    # Discretization of the fused mask
+    nparray_nib_fused[nparray_nib_fused <= 0.5] = 0.0
+    nparray_nib_fused[nparray_nib_fused > 0.5] = 1.0
+
+    fused_nib = nib.Nifti1Image(nparray_nib_fused, trusted_img.nibaffine)
+
+    if fused_dirname is not None:
+        img_suffix = "_img" + trusted_img.modality + ".nii.gz"
+        a = re.search(img_suffix, trusted_img.basename).start()
+        individual_name = trusted_img.basename[:a]
+
+        fused_path = join(
+            fused_dirname, individual_name + "_mask" + trusted_img.modality + ".nii.gz"
         )
-        resized_nparray_itkimg = F.interpolate(
-            torch.unsqueeze(torch.unsqueeze(torch.from_numpy(nparray_itkimg), 0), 0),
-            size=resizing,
-            mode="trilinear",
-            align_corners=True,
-        )
+        nib.save(fused_nib, fused_path)
+        print("fused_nib saved as: ", fused_path)
 
-        nparray_itkprob = (
-            torch.squeeze(torch.squeeze(resized_nparray_itkprob, 0), 0)
-        ).numpy()
-        nparray_itkimg = (
-            torch.squeeze(torch.squeeze(resized_nparray_itkimg, 0), 0)
-        ).numpy()
-
-    nparray_itkprob = np.asarray(nparray_itkprob, np.float32)
-    nparray_itkimg = np.asarray(nparray_itkimg, np.float32)
-
-    print(nparray_itkprob.shape)
-    print(nparray_itkimg.shape)
-
-    return
+    return fused_nib
 
 
 def fuse_landmarks():
     return
 
 
-# ---- CLI ----
-# The functions defined in this section are wrappers around the main Python
-# API allowing them to be called directly from the terminal as a CLI
-# executable/script.
+def plot_arrays(arrays):
+    # Create a figure and subplots
+    fig, axes = plt.subplots(1, len(arrays), figsize=(15, 5))
+
+    # Plot each image on a separate subplot
+    for i, array in enumerate(arrays):
+        axes[i].imshow(array)
+        axes[i].set_title(f"Image {i + 1}")
+
+    # Adjust layout and show the plot
+    plt.tight_layout()
+    plt.show()
+
+
+def monai_resiz(new_size=None):
+    transform = Compose(
+        [
+            AddChannel(),
+            Resize(spatial_size=new_size),
+            ToTensor(),
+        ]
+    )
+    return transform
+
+
+def monai_normaliz():
+    transform = Compose(
+        [
+            AddChannel(),
+            NormalizeIntensity(nonzero=True, channel_wise=True),
+            ToTensor(),
+        ]
+    )
+    return transform
+
+
+def monai_asdiscrete():
+    transform = Compose(
+        [
+            AddChannel(),
+            AsDiscrete(threshold_values=True, logit_thresh=0.5),
+            ToTensor(),
+        ]
+    )
+    return transform
 
 
 def parse_args(args):
