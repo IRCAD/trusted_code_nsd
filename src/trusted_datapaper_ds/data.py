@@ -127,7 +127,7 @@ class Image:
         print("The modality ", self.modality, " has been found.")
         if self.modality is None:
             print("Please set the modality to 'US' or 'CT' with .setmodality(modality)")
-        return self.modality
+        return
 
     def setsuffix(self, suffix=None):
         if suffix is None:
@@ -533,13 +533,56 @@ class Mask(Image):
 
 
 class Landmarks:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, ldkspath) -> None:
+        assert ldkspath[-4:] == ".txt"
+        self.path = ldkspath
+        self.basename = os.path.basename(self.path)
+        self.nparray = np.loadtxt(self.path)
+
+        # Determine the modality of the image
+        self.modality = None
+
+        if "US" in self.basename:
+            self.modality = "US"
+        if "CT" in self.basename:
+            self.modality = "CT"
+
+    def to_o3d(self, ply_dirname=None):
+        if len(self.nparray.shape) == 1:
+            self.nparray = self.nparray.reshape(1, self.nparray.shape[0])
+
+        o3dldks = o3d.geometry.PointCloud()
+        o3dldks.points = o3d.utility.Vector3dVector(self.nparray)
+
+        plymark_path = join(ply_dirname, self.basename)
+        o3d.io.write_point_cloud(plymark_path.replace(".txt", ".ply"), o3dldks)
+        return o3dldks
 
 
 class Mesh:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, meshpath) -> None:
+        assert meshpath[-4:] == ".obj"
+        self.path = meshpath
+        self.basename = os.path.basename(self.path)
+        self.o3dmesh = o3d.io.read_triangle_mesh(self.path)
+
+        # Determine the modality of the image
+        self.modality = None
+
+        if "US" in self.basename:
+            self.modality = "US"
+        if "CT" in self.basename:
+            self.modality = "CT"
+
+    def to_nparraypcd(self):
+        nparray = np.array(self.o3dmesh.vertices)
+        return nparray
+
+    def to_o3dpcd(self):
+        nparray = self.to_nparraypcd()
+        o3dpcd = o3d.geometry.PointCloud()
+        o3dpcd.points = o3d.utility.Vector3dVector(nparray)
+        return o3dpcd
 
 
 def fuse_masks(
@@ -631,8 +674,37 @@ def fuse_masks(
     return fused_nib
 
 
-def fuse_landmarks():
-    return
+def fuse_landmarks(
+    list_of_trusted_ldks: list[Landmarks],
+    fused_dirname=None,
+):
+    print("*** Fusion of landmarks ***")
+    sum_nparray = np.zeros((7, 3))
+
+    i = 0
+    for trusted_ldks in list_of_trusted_ldks:
+        sum_nparray += trusted_ldks.nparray
+        i += 1
+
+    fused_nparray = sum_nparray / i
+
+    if fused_dirname is not None:
+        ldks_suffix = "_ldk" + list_of_trusted_ldks[0].modality + ".txt"
+        a = re.search(ldks_suffix, list_of_trusted_ldks[0].basename).start()
+        individual_name = list_of_trusted_ldks[0].basename[: a - 1]
+
+        fused_path = join(
+            fused_dirname,
+            individual_name + "_ldk" + list_of_trusted_ldks[0].modality + ".txt",
+        )
+        np.savetxt(fused_path, fused_nparray)
+
+    return fused_nparray
+
+
+# def pcd_voxelization():
+
+#     return mask_nib
 
 
 def plot_arrays(arrays):
@@ -649,11 +721,15 @@ def plot_arrays(arrays):
     plt.show()
 
 
-def monai_resiz(new_size=None):
+def monai_resiz(new_size=None, resize_mode="trilinear"):
     transform = Compose(
         [
             AddChannel(),
-            Resize(spatial_size=new_size),
+            Resize(
+                spatial_size=new_size,
+                mode=resize_mode,
+                align_corners=resize_mode == "trilinear",
+            ),
             ToTensor(),
         ]
     )

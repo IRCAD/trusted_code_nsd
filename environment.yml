@@ -39,7 +39,7 @@ dependencies:
   # - dask
   # - snakeviz
   - pip:
-     - -e .  # install git checkout of trusted_datapaper_ds in editable mode
+    #  - -e .  # install git checkout of trusted_datapaper_ds in editable mode
      - monai==0.6.0 #instaling many dependencies including torch==2.1.1+cu121 and many others
      - natsort
      - open3d==0.17.0
