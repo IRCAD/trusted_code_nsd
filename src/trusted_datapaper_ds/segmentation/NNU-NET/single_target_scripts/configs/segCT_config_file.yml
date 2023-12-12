@@ -1,0 +1,38 @@
+
+
+
+data_location: "/home/wndzimbong/2022_2023/DOUBLE_ANNOTATION_DATA"
+
+nnunet_data: "nnunet_seg_1tg_ctdata128"
+modality: "ct"
+channel_names:
+          0: "CT"
+# The labels to be used. The background must always be represented by '0' pixels, as recommended by nnUNet.
+labels:
+    "background": 0
+    "kidney": 1
+
+# The image file's extension
+file_ending: ".nii.gz"
+# The description of the task.
+description: "kidney seg"
+# NnUNet image reader that will be used.
+image_reader_writer: "NibabelIOWithReorient"
+# The dataset reference.
+reference: "none"
+# The dataset ID.
+dataset_id: 15
+# The name of the dataset.
+task_name: "kidney128_seg_1tg"
+# The image prefix
+img_prefix: "kidney_"
+# The channel names are required by nnUNet for image file name formatting
+channel: "0000"
+
+fold:
+#  # CT #
+   cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
+   cv2: ['47', '01', '74', '14', '33', '24', '72', '51', '64']
+   cv3: ['05', '57', '43', '94', '131', '11', '54', '12', '15', '17']
+   cv4: ['21', '03', '97', '27', '23', '09', '61', '32', '53', '119']
+   cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']

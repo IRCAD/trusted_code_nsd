@@ -1,0 +1,72 @@
+## Clone the repo (trusted_datapaper_ds)
+## cd trusted_datapaper_ds
+
+About the conda environement, I recommand to create one, and install the packages following the same order
+with me, to avoid some confilcts.
+
+
+*** ENVIRONEMENT SETTING ***
+
+## conda create -n trusted_env python=3.9
+## conda activate trusted_env
+## pip install --upgrade pip
+
+## pip install lxml
+## pip install nnunetv2   # This one will install also many dependencies, then avoid me to have to install them
+## pip install git+https://github.com/MIC-DKFZ/acvl_utils.git
+## pip install git+https://github.com/MIC-DKFZ/dynamic-network-architectures.git
+## pip install git+https://github.com/julien-blanchon/hiddenlayer.git
+## pip install git+https://github.com/Project-MONAI/MONAI#egg=monai
+## pip install torchvision torchaudio
+## pip install PyYAML
+## pip install natsort
+## pip install vtk
+## pip install jupyterlab
+## pip install open3d
+## pip install fire
+## pip install opencv-contrib-python
+## pip install plyfile
+## pip install numpymaxflow
+
+# DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file):
+## pip install pytest
+## pip install pytest-cov
+## pip install tox
+## pip install pre_commit
+## pip install nbdime
+## pip install nbstripout
+## pip install sphinx
+## pip install recommonmark
+
+# Install the package trusted-datapaper-ds (current directory) in editable (development) mode.
+pip install -e .
+
+
+*** DATA PROCESSING ***
+
+
+
+*** SEGMENTATION ***
+#### Training
+
+#### Inference
+
+
+### Evaluation
+
+
+### Analysis
+
+
+
+*** REGISTRATION ***
+#### Inference
+
+
+### Evaluation
+
+
+### Analysis
+
+
+*** ALL THE PIPELINE RUNNING ***

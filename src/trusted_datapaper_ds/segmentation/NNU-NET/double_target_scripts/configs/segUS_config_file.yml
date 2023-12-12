@@ -1,0 +1,48 @@
+
+
+
+data_location: "/home/wndzimbong/2022_2023/DOUBLE_ANNOTATION_DATA"
+
+nnunet_data: "nnunet_seg_2tg_usdata128"
+modality: "us"
+channel_names:
+          0: "US"
+# The labels to be used. The background must always be represented by '0' pixels, as recommended by nnUNet.
+labels:
+    "background": 0
+    "kidney": 1
+
+# The image file's extension
+file_ending: ".nii.gz"
+# The description of the task.
+description: "kidney seg"
+# NnUNet image reader that will be used.
+image_reader_writer: "NibabelIOWithReorient"
+# The dataset reference.
+reference: "none"
+# The dataset ID.
+dataset_id: 05
+# The name of the dataset.
+task_name: "kidney128_seg_2tg"
+# The image prefix
+img_prefix: "kidney_"
+# The channel names are required by nnUNet for image file name formatting
+channel: "0000"
+
+fold:
+
+  # US #
+    cv1: ['a84R', 'a84L', 'a116R', 'a116L', 'a114R', 'a98R', 'a98L', 'a118R', 'a118L', 'a04L', 'a44R', 'a44L',
+          'b84R', 'b84L', 'b116R', 'b116L', 'b114R', 'b98R', 'b98L', 'b118R', 'b118L', 'b04L', 'b44R', 'b44L']
+
+    cv2: ['a47R', 'a01R', 'a01L', 'a74R', 'a14R', 'a14L', 'a33L', 'a72L', 'a51R', 'a51L',
+          'b47R', 'b01R', 'b01L', 'b74R', 'b14R', 'b14L', 'b33L', 'b72L', 'b51R', 'b51L']
+
+    cv3: ['a05R', 'a57R', 'a57L', 'a43R', 'a43L', 'a94R', 'a131L', 'a11R', 'a11L', 'a54R', 'a12L', 'a15R', 'a17L',
+          'b05R', 'b57R', 'b57L', 'b43R', 'b43L', 'b94R', 'b131L', 'b11R', 'b11L', 'b54R', 'b12L', 'b15R', 'b17L']
+
+    cv4: ['a21R', 'a21L', 'a03R', 'a03L', 'a97R', 'a97L', 'a27R', 'a27L', 'a23R', 'a23L', 'a53L', 'a119R',
+          'b21R', 'b21L', 'b03R', 'b03L', 'b97R', 'b97L', 'b27R', 'b27L', 'b23R', 'b23L', 'b53L', 'b119R']
+
+    cv5: ['a125R', 'a125L', 'a20R', 'a42R', 'a99R', 'a02R', 'a02L', 'a87R', 'a87L', 'a37R', 'a38R', 'a38L',
+          'b125R', 'b125L', 'b20R', 'b42R', 'b99R', 'b02R', 'b02L', 'b87R', 'b87L', 'b37R', 'b38R', 'b38L']

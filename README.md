@@ -19,13 +19,13 @@ A longer description of your project goes here...
 
 In order to set up the necessary environment:
 
-1. review and uncomment what you need in `environment.yml` and create an environment `trusted_datapaper_ds` with the help of [conda]:
+1. review and uncomment what you need in `environment.yml` and create an environment `trusted` with the help of [conda]:
    ```
    conda env create -f environment.yml
    ```
 2. activate the new environment with:
    ```
-   conda activate trusted_datapaper_ds
+   conda activate trusted
    ```
 
 > **_NOTE:_**  The conda environment will have trusted_datapaper_ds installed in editable mode.

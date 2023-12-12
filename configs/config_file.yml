@@ -1,0 +1,52 @@
+individual: "01"
+k_side: "R"
+annotator1: "1"  # don't use this when thinking to the ground truth
+annotator2: "2"  # don't use this when thinking to the ground truth
+
+data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
+
+usimgfol: "US_DATA/US_images/"
+usma1fol: "US_DATA/US_masks/Annotator1/"
+usma2fol: "US_DATA/US_masks/Annotator2/"
+usmagtfol: "US_DATA/US_masks/GT_estimated_masksUS/"
+usme1fol: "US_DATA/US_meshes/Annotator1/"
+usme2fol: "US_DATA/US_meshes/Annotator2/"
+usmegtfol: "US_DATA/US_meshes/GT_estimated_meshesUS/"
+usld1fol: "US_DATA/US_landmarks/Annotator1/"
+usld2fol: "US_DATA/US_landmarks/Annotator2/"
+usldgtfol: "US_DATA/US_landmarks/GT_estimated_ldksUS/"
+
+ctimgfol: "CT_DATA/CT_images/"
+ctma1fol: "CT_DATA/CT_masks/Annotator1/"
+ctma2fol: "CT_DATA/CT_masks/Annotator2/"
+ctmagtfol: "CT_DATA/CT_masks/GT_estimated_masksCT/"
+ctme1fol: "CT_DATA/CT_meshes/Annotator1/"
+ctme2fol: "CT_DATA/CT_meshes/Annotator2/"
+ctmegtfol: "CT_DATA/CT_meshes/GT_estimated_meshesCT/"
+ctld1fol: "CT_DATA/CT_landmarks/Annotator1/"
+ctld2fol: "CT_DATA/CT_landmarks/Annotator2/"
+ctldgtfol: "CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
+
+usimg_end: "_imgUS.nii.gz"
+usma_end: "_maskUS.nii.gz"
+usme_end: "meshfaceUS.obj"
+usld_end: "_ldkUS.txt"
+
+ctimg_end: "_imgCT.nii.gz"
+ctma_end: "_maskCT.nii.gz"
+ctme_end: "meshfaceCT.obj"
+ctld_end: "_ldkCT.txt"
+
+ctfold:
+   cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
+   cv2: ['47', '01', '74', '14', '33', '24', '72', '51', '64']
+   cv3: ['05', '57', '43', '94', '131', '11', '54', '12', '15', '17']
+   cv4: ['21', '03', '97', '27', '23', '09', '61', '32', '53', '119']
+   cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']
+
+usfold:
+    cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
+    cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
+    cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
+    cv4: ['21R', '21L', '03R', '03L', '97R', '97L', '27R', '27L', '23R', '23L', '53L', '119R']
+    cv5: ['125R', '125L', '20R', '42R', '99R', '02R', '02L', '87R', '87L', '37R', '38R', '38L']

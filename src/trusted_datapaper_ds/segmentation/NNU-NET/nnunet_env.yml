@@ -1,0 +1,44 @@
+name: nnunet
+channels:
+  - mjirik
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - matplotlib==3.5.2 (OK)
+  - pandas=1.4.3 (OK)
+  - python=3.9.0 (OK)
+  - pip=23.1.2 (OK)
+  - scikit-learn==1.2.2 (OK)
+  - scipy=1.11.0 (OK)
+  - pip:
+     - torch (OK)
+     - torchvision (OK)
+     - torchaudio (OK)
+     - git+https://github.com/Project-MONAI/MONAI#egg=monai (OK)
+     - fire (OK)
+     - nibabel (OK)
+     - scikit-image>=0.19.0 (OK)
+     - git+https://github.com/MIC-DKFZ/acvl_utils.git (OK)
+     - git+https://github.com/MIC-DKFZ/dynamic-network-architectures.git (OK)
+     - nnunetv2 (OK)
+     - git+https://github.com/julien-blanchon/hiddenlayer.git (OK)
+     - numpy==1.25.0 (OK)
+     - pyyaml (OK)
+     - opencv-contrib-python==4.6.0.66 (OK)
+     - SimpleITK (OK)
+     - open3d==0.16.0 (OK)
+     - vtk==9.2.6 (OK)
+     - plyfile==0.7.4 (OK)
+     - natsort (OK)
+
+  # DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file)
+  - jupyterlab
+  - pytest
+  - pytest-cov
+  - tox
+  - pre_commit
+  - nbdime
+  - nbstripout
+  - sphinx
+  - recommonmark

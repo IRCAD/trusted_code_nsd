@@ -4,10 +4,10 @@ console script. To run this script uncomment the following lines in the
 ``[options.entry_points]`` section in ``setup.cfg``::
 
     console_scripts =
-         fibonacci = trusted.skeleton:run
+         trusted = trusted_datapaper_ds.data:run
 
 Then run ``pip install .`` (or ``pip install -e .`` for editable mode)
-which will install the command ``fibonacci`` inside your current environment.
+which will install the command ``trusted`` inside your current environment.
 
 Besides console scripts, the header (i.e. until ``_logger``...) of this file can
 also be used as template for Python modules.
@@ -20,11 +20,9 @@ References:
     - https://pip.pypa.io/en/stable/reference/pip_install
 """
 
-import argparse
 import logging
 import os
 import re
-import sys
 from os.path import join
 
 import cc3d
@@ -37,16 +35,14 @@ import SimpleITK as sitk
 import torch
 import torch.nn.functional as F
 from monai.transforms import (
-    AddChannel,
     AsDiscrete,
     Compose,
+    EnsureChannelFirst,
     NormalizeIntensity,
     Resize,
     ToTensor,
 )
 from skimage import measure
-
-from trusted_datapaper_ds import __version__
 
 __author__ = "William NDZIMBONG"
 __copyright__ = "William NDZIMBONG"
@@ -95,13 +91,19 @@ class Image:
         self.itkimg = sitk.ReadImage(self.path)
         self.nibimg = nib.load(self.path)
 
-        # Determine the modality of the image
+        # Set the modality (US or CT)
         self.modality = None
-
         if "US" in self.basename:
             self.modality = "US"
         if "CT" in self.basename:
             self.modality = "CT"
+
+        # Set the type (Image or Mask)
+        self.type = None
+        if "img" in self.basename:
+            self.type = "trustedImage"
+        if "mask" in self.basename:
+            self.type = "trustedMask"
 
         # Extract image information
         self.size = np.array(self.itkimg.GetSize())
@@ -724,7 +726,7 @@ def plot_arrays(arrays):
 def monai_resiz(new_size=None, resize_mode="trilinear"):
     transform = Compose(
         [
-            AddChannel(),
+            EnsureChannelFirst(),
             Resize(
                 spatial_size=new_size,
                 mode=resize_mode,
@@ -739,7 +741,7 @@ def monai_resiz(new_size=None, resize_mode="trilinear"):
 def monai_normaliz():
     transform = Compose(
         [
-            AddChannel(),
+            EnsureChannelFirst(),
             NormalizeIntensity(nonzero=True, channel_wise=True),
             ToTensor(),
         ]
@@ -750,100 +752,9 @@ def monai_normaliz():
 def monai_asdiscrete():
     transform = Compose(
         [
-            AddChannel(),
+            EnsureChannelFirst(),
             AsDiscrete(threshold_values=True, logit_thresh=0.5),
             ToTensor(),
         ]
     )
     return transform
-
-
-def parse_args(args):
-    """Parse command line parameters
-
-    Args:
-      args (List[str]): command line parameters as list of strings
-          (for example  ``["--help"]``).
-
-    Returns:
-      :obj:`argparse.Namespace`: command line parameters namespace
-    """
-    parser = argparse.ArgumentParser(description="Just a Fibonacci demonstration")
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"trusted_datapaper_ds {__version__}",
-    )
-    parser.add_argument(dest="n", help="n-th Fibonacci number", type=int, metavar="INT")
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        dest="loglevel",
-        help="set loglevel to INFO",
-        action="store_const",
-        const=logging.INFO,
-    )
-    parser.add_argument(
-        "-vv",
-        "--very-verbose",
-        dest="loglevel",
-        help="set loglevel to DEBUG",
-        action="store_const",
-        const=logging.DEBUG,
-    )
-    return parser.parse_args(args)
-
-
-def setup_logging(loglevel):
-    """Setup basic logging
-
-    Args:
-      loglevel (int): minimum loglevel for emitting messages
-    """
-    logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    logging.basicConfig(
-        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
-    )
-
-
-# def main(args):
-#     """Wrapper allowing :func:`fib` to be called with string arguments in a CLI fashion
-
-#     Instead of returning the value from :func:`fib`, it prints the result to the
-#     ``stdout`` in a nicely formatted message.
-
-#     Args:
-#       args (List[str]): command line parameters as list of strings
-#           (for example  ``["--verbose", "42"]``).
-#     """
-#     args = parse_args(args)
-#     setup_logging(args.loglevel)
-#     _logger.debug("Starting crazy calculations...")
-#     print(f"The {args.n}-th Fibonacci number is {fib(args.n)}")
-#     _logger.info("Script ends here")
-
-
-def main(args):
-    return
-
-
-def run():
-    """Calls :func:`main` passing the CLI arguments extracted from :obj:`sys.argv`
-
-    This function can be used as entry point to create console scripts with setuptools.
-    """
-    main(sys.argv[1:])
-
-
-if __name__ == "__main__":
-    # ^  This is a guard statement that will prevent the following code from
-    #    being executed in the case someone imports this file instead of
-    #    executing it as a script.
-    #    https://docs.python.org/3/library/__main__.html
-
-    # After installing your project with pip, users can also run your Python
-    # modules as scripts via the ``-m`` flag, as defined in PEP 338::
-
-    # python -m trusted_datapaper_ds.data 42
-
-    run()
