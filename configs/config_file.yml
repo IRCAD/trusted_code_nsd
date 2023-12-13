@@ -5,6 +5,7 @@ annotator2: "2"  # don't use this when thinking to the ground truth
 
 data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
 
+# data_location: "~/TRUSTED_submission/"
 usimgfol: "US_DATA/US_images/"
 usma1fol: "US_DATA/US_masks/Annotator1/"
 usma2fol: "US_DATA/US_masks/Annotator2/"

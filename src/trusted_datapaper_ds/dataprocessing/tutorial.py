@@ -1,5 +1,11 @@
 """
-Here you can see examples of running common data processings you could have to do with the TRUSTED dataset
+Here you can see some examples (NOT EXHAUSTIVE) of
+running common data processings you could have to do with the TRUSTED dataset.
+Based on them, you could run those you want.
+
+# Example of command to run the tutorial ####
+# python src/trusted_datapaper_ds/dataprocessing/tutorial.py --config_path configs/config_file.yml
+
 """
 import os
 from os.path import join
@@ -14,26 +20,29 @@ def main(
     resizing,
     CTmask_to_mesh_and_pcd,
     USmask_to_mesh_and_pcd,
-    splitCTmask,
+    splitCTmask1,
+    splitCTmaskgt,
     shift_origin,
-    fuse_mask,
+    fuse_USmask,
+    fuse_CTmask,
+    fuse_landmark,
+    mesh_to_pcd,
 ):
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
         data = yaml.safe_load(yaml_file)
 
-    # Image or Mask resizing ###
+    # Image or Mask resizing (here a US image) ###
     # Note: "resized_dirname" is the directory to save the resized data.
     #       You have to set it, if you want to save.
     if resizing:
+        resized_dirname = "/home/wndzimbong/Bureau"
         fpath = join(
             data["data_location"],
             data["usimgfol"],
             data["individual"] + data["k_side"] + data["usimg_end"],
         )
         newsize = [128, 128, 128]
-        resized_dirname = None
-
         base = os.path.basename(fpath)
         if "img" in base:
             data = dt.Image(fpath)
@@ -41,23 +50,22 @@ def main(
             data = dt.Mask(fpath)
         else:
             TypeError("Type no supported by our resize function")
-
         resized_nparray = data.resize(newsize=newsize, resized_dirname=resized_dirname)
         print(type(resized_nparray))
 
-    # Convert CT ground truth Mask to Mesh and PCD ###
+    # Convert Mask to Mesh and PCD (here a CT ground truth) ###
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     #       You have to set it, if you want to save.
     if CTmask_to_mesh_and_pcd:
+        mesh_dirname = "/home/wndzimbong/Bureau"
+        pcd_dirname = "/home/wndzimbong/Bureau"
         maskpath = join(
             data["data_location"],
-            data["ctimgfol"],
+            data["ctmagtfol"],
             data["individual"] + data["ctma_end"],
         )
         ctmask = dt.Mask(maskpath)
-        mesh_dirname = None
-        pcd_dirname = None
         o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = ctmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
@@ -65,19 +73,19 @@ def main(
             mask_cleaning=False,
         )
 
-    # Convert US ground truth Mask to Mesh and PCD ###
+    # Convert Mask to Mesh and PCD (here a US ground truth)###
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     #       You have to set it, if you want to save.
     if USmask_to_mesh_and_pcd:
+        mesh_dirname = "/home/wndzimbong/Bureau"
+        pcd_dirname = "/home/wndzimbong/Bureau"
         maskpath = join(
             data["data_location"],
-            data["usimgfol"],
+            data["usmagtfol"],
             data["individual"] + data["k_side"] + data["usma_end"],
         )
         usmask = dt.Mask(maskpath)
-        mesh_dirname = None
-        pcd_dirname = None
         o3d_meshUS, o3d_pcdUS = usmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
@@ -85,36 +93,54 @@ def main(
             mask_cleaning=False,
         )
 
-    # Split CT mask from annotator 1 ###
-    # Note: "split_dirname" is the directory to save the splitted data.
+    # Split CT mask (here from annotator 1) ###
+    # Note: "split_dirname" is the directory to save the split data.
     #       You have to set it, if you want to save.
-    if splitCTmask:
+    # Important Note: add the "_" (like in the example ) in the annotator CT mask names
+    if splitCTmask1:
+        split_dirname = "/home/wndzimbong/Bureau"
         maskpath = join(
             data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["annotator1"] + data["ctma_end"],
+            data["ctma1fol"],
+            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
         )
         ctmask = dt.Mask(maskpath)
-        split_dirname = None
         nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
 
-    # Shift the origin of a CT image or mask ###
+    # Split CT mask (here from ground truth) ###
+    # Note: "split_dirname" is the directory to save the split data.
+    #       You have to set it, if you want to save.
+    # Important Note: add the "_" (like in the example ) in the annotator CT mask names
+    if splitCTmaskgt:
+        split_dirname = "/home/wndzimbong/Bureau"
+        maskpath = join(
+            data["data_location"],
+            data["ctmagtfol"],
+            data["individual"] + data["ctma_end"],
+        )
+        ctmask = dt.Mask(maskpath)
+        nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
+
+    # Shift the origin of an image or mask (here a CT image) ###
     # Note: "shifted_dirname" is the directory to save the shifted data.
     #       You have to set it, if you want to save.
     if shift_origin:
+        shifted_dirname = "/home/wndzimbong/Bureau"
         imgpath = join(
             data["data_location"],
             data["ctimgfol"],
             data["individual"] + data["ctimg_end"],
         )
         ctimg = dt.Image(imgpath)
-        shifted_dirname = None
         img_itk_shifted = ctimg.shift_origin(shifted_dirname=shifted_dirname)
         print(type(img_itk_shifted))
 
-    # fuse CT masks from two annotator
-    if fuse_mask:
-        fused_dirname = None
+    # Fuse masks from annotator1 and annotator2 (here a CT mask) ###
+    # Note: "fused_dirname" is the directory to save the fused mask.
+    #       You have to set it, if you want to save.
+    # Important Note: add the "_" (like in the example ) in the annotator CT mask names
+    if fuse_CTmask:
+        fused_dirname = "/home/wndzimbong/Bureau"
         imgpath = join(
             data["data_location"],
             data["ctimgfol"],
@@ -122,30 +148,102 @@ def main(
         )
         mask1path = join(
             data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["annotator1"] + data["ctma_end"],
+            data["ctma1fol"],
+            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
         )
         mask2path = join(
             data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["annotator2"] + data["ctma_end"],
+            data["ctma2fol"],
+            data["individual"] + "_" + data["annotator2"] + data["ctma_end"],
         )
         img = dt.Image(imgpath)
         mask1 = dt.Mask(mask1path)
         mask2 = dt.Mask(mask2path)
-        list_of_trusted_masks = [mask1, mask2]
+        list_of_masks = [mask1, mask2]
 
         fused_nib = dt.fuse_masks(
-            list_of_trusted_masks,
+            list_of_trusted_masks=list_of_masks,
             trusted_img=img,
+            img_intensity_scaling="normal",  # "normal" or "scale"
+            resizing=None,  # I reduce the data shape to increase the speed of the process. Can be None
+            fused_dirname=fused_dirname,
+        )
+        print(type(fused_nib))
+
+    # Fuse masks from annotator1 and annotator2 (here a US mask) ###
+    # Note: "fused_dirname" is the directory to save the fused mask.
+    #       You have to set it, if you want to save.
+    if fuse_USmask:
+        fused_dirname = "/home/wndzimbong/Bureau"
+        imgpath = join(
+            data["data_location"],
+            data["usimgfol"],
+            data["individual"] + data["k_side"] + data["usimg_end"],
+        )
+        mask1path = join(
+            data["data_location"],
+            data["usma1fol"],
+            data["individual"] + data["k_side"] + data["annotator1"] + data["usma_end"],
+        )
+        mask2path = join(
+            data["data_location"],
+            data["usma2fol"],
+            data["individual"] + data["k_side"] + data["annotator2"] + data["usma_end"],
+        )
+        img = dt.Image(imgpath)
+        mask1 = dt.Mask(mask1path)
+        mask2 = dt.Mask(mask2path)
+        list_of_masks = [mask1, mask2]
+
+        fused_nib = dt.fuse_masks(
+            list_of_trusted_masks=list_of_masks,
+            trusted_img=img,
+            img_intensity_scaling="normal",  # "normal" or "scale"
             resizing=[
                 512,
                 384,
                 384,
-            ],  # I reduce the data shape to increase the speed of the process
+            ],  # I reduce the data shape to increase the speed of the process. Can be None
             fused_dirname=fused_dirname,
         )
         print(type(fused_nib))
+
+    # Fuse landmarks from annotator1 and annotator2 (here CT la,ndmarks) ###
+    # Note: "fused_dirname" is the directory to save the fused mask.
+    #       You have to set it, if you want to save.
+    if fuse_landmark:
+        fused_dirname = "/home/wndzimbong/Bureau"
+        ldk1path = join(
+            data["data_location"],
+            data["ctld1fol"],
+            data["individual"] + data["k_side"] + data["annotator1"] + data["ctld_end"],
+        )
+        ldk2path = join(
+            data["data_location"],
+            data["ctld2fol"],
+            data["individual"] + data["k_side"] + data["annotator2"] + data["ctld_end"],
+        )
+        ldks1 = dt.Landmarks(ldk1path)
+        ldks2 = dt.Landmarks(ldk2path)
+        list_of_ldks = [ldks1, ldks2]
+        fused_nparray = dt.fuse_landmarks(
+            list_of_trusted_ldks=list_of_ldks,
+            fused_dirname=fused_dirname,
+        )
+        print(type(fused_nparray))
+
+    # Read a mesh and convert the vertices into pcd as numpy.array or like open3d pcd object (here a US mesh)
+    if mesh_to_pcd:
+        meshpath = join(
+            data["data_location"],
+            data["usmegtfol"],
+            data["individual"] + data["k_side"] + data["usme_end"],
+        )
+        mesh = dt.Mesh(meshpath)
+        nparraypcd = mesh.to_nparraypcd()
+        o3dpcd = mesh.to_o3dpcd()
+        print(type(nparraypcd), nparraypcd.shape)
+        print(type(o3dpcd))
 
     return
 
@@ -154,154 +252,27 @@ if __name__ == "__main__":
     resizing = 0
     CTmask_to_mesh_and_pcd = 0
     USmask_to_mesh_and_pcd = 0
-    splitCTmask = 0
+    splitCTmask1 = 0
+    splitCTmaskgt = 0
     shift_origin = 0
-    fuse_mask = 0
+    fuse_CTmask = 0
+    fuse_USmask = 0
+    fuse_landmark = 0
+    mesh_to_pcd = 1
 
     main(
         resizing,
         CTmask_to_mesh_and_pcd,
         USmask_to_mesh_and_pcd,
-        splitCTmask,
+        splitCTmask1,
+        splitCTmaskgt,
         shift_origin,
-        fuse_mask,
+        fuse_CTmask,
+        fuse_USmask,
+        fuse_landmark,
+        mesh_to_pcd,
     )
 
 
-# USimgpath = join(data['data_location'], data["usimgfol"], data["individual"]+data["k_side"]+data["usimg_end"])
-# USimgpath = join(data['data_location'], data["usimgfol"], data["individual"]+data["k_side"]+data["usimg_end"])
-
-
-# USmaskpath1 = "~/US_DATA/US_masks/Annotator1/01R1_maskUS.nii.gz"
-# trusted_USmask1 = dt.Mask(USmaskpath1)
-
-# USmaskpath2 = "~/US_DATA/US_masks/Annotator2/01R2_maskUS.nii.gz"
-# trusted_USmask2 = dt.Mask(USmaskpath2)
-
-# USmaskpath = "~/US_DATA/US_masks/GT_estimated_masksUS/01R_maskUS.nii.gz"
-# trusted_USmask = dt.Mask(USmaskpath)
-
-
-# """ CT Image or Mask reading file and class initialization """
-# CTimgpath = "~/CT_DATA/CT_images/01_imgCT.nii.gz"
-# trusted_CTimg = dt.Image(CTimgpath)
-
-# CTmaskpath = "~/CT_DATA/CT_masks/GT_estimated_masksCT/01_maskCT.nii.gz"
-# trusted_CTmask = dt.Mask(CTmaskpath)
-
-# CTmaskpath1 = "~/CT_DATA/CT_masks/Annotator1/01_1_maskCT.nii.gz"
-# trusted_CTmask1 = dt.Mask(CTmaskpath1)
-
-# CTmaskpath2 = "~/CT_DATA/CT_masks/Annotator2/01_2_maskCT.nii.gz"
-# trusted_CTmask2 = dt.Mask(CTmaskpath2)
-
-
-# """ Mesh reading file and class initialization """
-# USmeshpath1 = "~/US_DATA/US_meshes/Annotator1/01R1meshfaceUS.obj"
-# trusted_USmesh1 = dt.Mesh(USmeshpath1)
-# USmeshpath2 = "~/US_DATA/US_meshes/Annotator2/01R2meshfaceUS.obj"
-# trusted_USmesh2 = dt.Mesh(USmeshpath2)
-
-# CTmeshpath1 = "~/CT_DATA/CT_meshes/Annotator1/01R1meshfaceCT.obj"
-# trusted_CTmesh1 = dt.Mesh(CTmeshpath1)
-# CTmeshpath2 = "~/CT_DATA/CT_meshes/Annotator2/01R2meshfaceCT.obj"
-# trusted_CTmesh2 = dt.Mesh(CTmeshpath2)
-
-
-# """ Landmarks set reading file and class initialization """
-# USldkspath1 = "~/US_DATA/US_landmarks/Annotator1/01R1_ldkUS.txt"
-# trusted_USldks1 = dt.Landmarks(USldkspath1)
-# USldkspath2 = "~/US_DATA/US_landmarks/Annotator2/01R2_ldkUS.txt"
-# trusted_USldks2 = dt.Landmarks(USldkspath2)
-
-# CTldkspath1 = "~/CT_DATA/CT_landmarks/Annotator1/01R1_ldkCT.txt"
-# trusted_CTldks1 = dt.Landmarks(CTldkspath1)
-# CTldkspath2 = "~/CT_DATA/CT_landmarks/Annotator2/01R2_ldkCT.txt"
-# trusted_CTldks2 = dt.Landmarks(CTldkspath2)
-
-
-# """ Image or mask resizing (resized_dir must be created) """
-# resizedUS_dirname = "~/US_DATA/US_masks/resized_GT_masksUS"
-# resized_nparray = trusted_USimg.resize(newsize=[128,128,128], resized_dirname=resizedUS_dirname)
-# resizedCT_dirname = "~/CT_DATA/CT_masks/resized_GT_masksCT"
-# resized_nparray = trusted_CTimg.resize(newsize=[128,128,128], resized_dirname=resizedCT_dirname)
-
-
-"""to_mesh_and_pcd (mesh_dir and pcd_dir must be created)"""
-# mesh_dirname = "/home/wndzimbong/Bureau"
-# pcd_dirname = "/home/wndzimbong/Bureau"
-# o3d_meshUS, o3d_pcdUS = trusted_USmask.to_mesh_and_pcd(mesh_dirname=mesh_dirname,
-#                                                     pcd_dirname=pcd_dirname,
-#                                                     ok_with_suffix=True,
-#                                                     mask_cleaning=False)
-
-# o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = trusted_CTmask.to_mesh_and_pcd(mesh_dirname=mesh_dirname,
-#                                                                                    pcd_dirname=pcd_dirname,
-#                                                                                    ok_with_suffix=True,
-#                                                                                    mask_cleaning=False)
-
-""" split CT """
-# split_dirname = "/home/wndzimbong/Bureau"
-# nparrayL, nparrayR = trusted_CTmask.split(split_dirname=split_dirname)
-
-""" shift_origin """
-# shifted_dirname = "/home/wndzimbong/Bureau"
-# img_itk_shifed = trusted_CTimg.shift_origin(shifted_dirname=shifted_dirname)
-# mask_itk_shifed = trusted_CTmask.shift_origin(shifted_dirname=shifted_dirname)
-
-""" staple masks fusion """
-# list_of_trusted_masks = [trusted_USmask1, trusted_USmask2]
-# fused_dirname = "/home/wndzimbong/Bureau"
-# fused_nib = dt.fuse_masks(
-#     list_of_trusted_masks,
-#     trusted_img=trusted_USimg,
-#     resizing=[512, 384, 384],
-#     # resizing=[128, 128, 128],
-#     fused_dirname=fused_dirname,
-# )
-# print(type(fused_nib))
-# print(dir(fused_nib))
-
-
-""" Landmarks fusion """
-# list_of_trusted_ldks = [trusted_USldks1, trusted_USldks2]
-# fused_dirname = "/home/wndzimbong/Bureau"
-# fused_nparray = dt.fuse_landmarks(
-#     list_of_trusted_ldks,
-#     fused_dirname=fused_dirname,
-# )
-# print(fused_nparray)
-
-
-""" Mesh initialization """
-# USmeshpath1 = (
-#     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/" \
-#     "US_meshes/Annotator1/01R1meshfaceUS.obj"
-# )
-# trusted_USmesh1 = dt.Mesh(USmeshpath1)
-# USmeshpath2 = (
-#     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/" \
-#     "US_meshes/Annotator2/01R2meshfaceUS.obj"
-# )
-# trusted_USmesh2 = dt.Mesh(USmeshpath2)
-
-# CTmeshpath1 = (
-#     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/" \
-#     "CT_meshes/Annotator1/01R1meshfaceCT.obj"
-# )
-# trusted_CTmesh1 = dt.Mesh(CTmeshpath1)
-# CTmeshpath2 = (
-#     "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/" \
-#     "CT_meshes/Annotator2/01R2meshfaceCT.obj"
-# )
-# trusted_CTmesh2 = dt.Mesh(CTmeshpath2)
-
-
-# US2nparraypcd = trusted_USmesh2.to_nparraypcd()
-# print(dir(trusted_USmesh2))
-
-# US2o3dpcd = trusted_USmesh2.to_o3dpcd()
-# print(dir(US2o3dpcd))
-
-
-# python src/trusted_datapaper_ds/__draft__.py
+# Example of command to run the tutorial ####
+# python src/trusted_datapaper_ds/dataprocessing/tutorial.py --config_path configs/config_file.yml

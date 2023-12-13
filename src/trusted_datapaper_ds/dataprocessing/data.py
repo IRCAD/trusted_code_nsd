@@ -34,14 +34,7 @@ import open3d as o3d
 import SimpleITK as sitk
 import torch
 import torch.nn.functional as F
-from monai.transforms import (
-    AsDiscrete,
-    Compose,
-    EnsureChannelFirst,
-    NormalizeIntensity,
-    Resize,
-    ToTensor,
-)
+from monai.transforms import AsDiscrete, NormalizeIntensity, ScaleIntensity
 from skimage import measure
 
 __author__ = "William NDZIMBONG"
@@ -504,6 +497,12 @@ class Mask(Image):
         self.setsuffix()
         a = re.search(self.suffix, self.basename).start()
         self.individual_name = self.basename[:a]
+        if "_" in self.individual_name:
+            b = re.search("_", self.individual_name).start()
+            annotator = self.individual_name[b + 1]
+            self.individual_name = self.individual_name[:b]
+        else:
+            annotator = ""
 
         len0 = self.nparray.shape[0]
         mid0 = int(len0 / 2)
@@ -516,16 +515,14 @@ class Mask(Image):
 
         if split_dirname is not None:
             splitR_path = join(
-                split_dirname,
-                self.basename.replace(self.individual_name, self.individual_name + "R"),
+                split_dirname, self.individual_name + "R" + annotator + self.suffix
             )
             splitR_nib = nib.Nifti1Image(nparrayR, self.nibaffine)
             nib.save(splitR_nib, splitR_path)
             print("splitR_nib saved as: ", splitR_path)
 
             splitL_path = join(
-                split_dirname,
-                self.basename.replace(self.individual_name, self.individual_name + "L"),
+                split_dirname, self.individual_name + "L" + annotator + self.suffix
             )
             splitL_nib = nib.Nifti1Image(nparrayL, self.nibaffine)
             nib.save(splitL_nib, splitL_path)
@@ -590,6 +587,7 @@ class Mesh:
 def fuse_masks(
     list_of_trusted_masks: list[Mask],
     trusted_img: Image,
+    img_intensity_scaling="normal",  # "normal" or "scale"
     resizing=None,
     npmaxflow_lamda=2.5,
     fused_dirname=None,
@@ -602,37 +600,39 @@ def fuse_masks(
 
     for trusted_mask in list_of_trusted_masks:
         # STAPLE requires we cast into int16 arrays
-        # trusted_mask_int16 = sitk.GetImageFromArray(trusted_mask.nparray.astype(np.int16))
-
         itk_int16 = sitk.Cast(trusted_mask.itkimg, sitk.sitkInt16)
         seg_stack.append(itk_int16)
 
-    # Run STAPLE algorithm
+    # Run STAPLE algorithm ###
     itk_STAPLE_prob = sitk.STAPLE(seg_stack, 1.0)  # 1.0 specifies the foreground value
 
-    # convert back to numpy array
     nparray_itkprob = sitk.GetArrayFromImage(itk_STAPLE_prob)
-
     nparray_nibprob = np.transpose(nparray_itkprob)
     del nparray_itkprob
     nparray_nibimg = trusted_img.nparray
 
     # Data resizing to increase the running speed, if needed
     if resizing is not None:
-        transform0 = monai_resiz(new_size=resizing)
-        nparray_nibimg = transform0(nparray_nibimg)
-        nparray_nibprob = transform0(nparray_nibprob)
+        nparray_nibimg = resiz_nparray(
+            nparray_nibimg, resizing, interpolmode="trilinear"
+        )
+        nparray_nibprob = resiz_nparray(
+            nparray_nibprob, resizing, interpolmode="trilinear"
+        )
 
-        nparray_nibimg = (torch.squeeze(nparray_nibimg, 0)).numpy()
-        nparray_nibprob = (torch.squeeze(nparray_nibprob, 0)).numpy()
+    # Normalise intensity of nparray_nibimg
+    if img_intensity_scaling == "normal":
+        norm = NormalizeIntensity(nonzero=True, channel_wise=True)
+    if img_intensity_scaling == "scale":
+        norm = ScaleIntensity()
+    nparray_nibimg = norm(nparray_nibimg)
 
-    # Image intensity normalization (good for maxflow)
-    transform1 = monai_normaliz()
-    nparray_nibimg = transform1(nparray_nibimg)
-    nparray_nibimg = (torch.squeeze(nparray_nibimg, 0)).numpy()
+    # convert values into np.float32
+    nparray_nibimg = np.asarray(nparray_nibimg, np.float32)
+    nparray_nibprob = np.asarray(nparray_nibprob, np.float32)
 
     # Run numpy maxflow
-    fP = nparray_nibprob  # NOTE: these fP give the same results
+    fP = nparray_nibprob
     bP = 1.0 - fP
     Prob = np.asarray([bP, fP])
     sigma = np.std(nparray_nibimg)
@@ -645,16 +645,17 @@ def fuse_masks(
     nparray_nib_fused = np.squeeze(nparray_nib_fused, axis=0)
     nparray_nib_fused = np.asarray(nparray_nib_fused, np.float32)
 
-    # Turn back to the initial nparray_itk_true_shape, if a resizing has been done
+    # Turn back to the initial shape, if a resizing has been done
     if resizing is not None:
-        new_size = [
+        init_size = [
             int(trusted_img.size[0]),
             int(trusted_img.size[1]),
             int(trusted_img.size[2]),
         ]
-        transform2 = monai_resiz(new_size=new_size)
-        nparray_nib_fused = transform2(nparray_nib_fused)
-        nparray_nib_fused = (torch.squeeze(nparray_nib_fused, 0)).numpy()
+        nparray_nib_fused = resiz_nparray(
+            nparray_nib_fused, init_size, interpolmode="trilinear"
+        )
+        nparray_nibprob = np.asarray(nparray_nibprob, np.float32)
 
     # Discretization of the fused mask
     nparray_nib_fused[nparray_nib_fused <= 0.5] = 0.0
@@ -704,11 +705,6 @@ def fuse_landmarks(
     return fused_nparray
 
 
-# def pcd_voxelization():
-
-#     return mask_nib
-
-
 def plot_arrays(arrays):
     # Create a figure and subplots
     fig, axes = plt.subplots(1, len(arrays), figsize=(15, 5))
@@ -723,38 +719,20 @@ def plot_arrays(arrays):
     plt.show()
 
 
-def monai_resiz(new_size=None, resize_mode="trilinear"):
-    transform = Compose(
-        [
-            EnsureChannelFirst(),
-            Resize(
-                spatial_size=new_size,
-                mode=resize_mode,
-                align_corners=resize_mode == "trilinear",
-            ),
-            ToTensor(),
-        ]
+def resiz_nparray(input_nparray, newsize, interpolmode="trilinear"):
+    """
+    Resizes a numpy array into a specified new size.
+
+    Args:
+        ...
+    Returns:
+        ...
+    """
+    resized_nparray = F.interpolate(
+        torch.unsqueeze(torch.unsqueeze(torch.from_numpy(input_nparray), 0), 0),
+        size=newsize,
+        mode=interpolmode,
+        align_corners=interpolmode == "trilinear",
     )
-    return transform
-
-
-def monai_normaliz():
-    transform = Compose(
-        [
-            EnsureChannelFirst(),
-            NormalizeIntensity(nonzero=True, channel_wise=True),
-            ToTensor(),
-        ]
-    )
-    return transform
-
-
-def monai_asdiscrete():
-    transform = Compose(
-        [
-            EnsureChannelFirst(),
-            AsDiscrete(threshold_values=True, logit_thresh=0.5),
-            ToTensor(),
-        ]
-    )
-    return transform
+    resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
+    return resized_nparray
