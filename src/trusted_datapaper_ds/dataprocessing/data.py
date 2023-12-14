@@ -84,19 +84,12 @@ class Image:
         self.itkimg = sitk.ReadImage(self.path)
         self.nibimg = nib.load(self.path)
 
-        # Set the modality (US or CT)
-        self.modality = None
-        if "US" in self.basename:
-            self.modality = "US"
-        if "CT" in self.basename:
-            self.modality = "CT"
+        self.modality = "CT" if "CT" in self.basename else "US"
 
-        # Set the type (Image or Mask)
-        self.type = None
-        if "img" in self.basename:
-            self.type = "trustedImage"
-        if "mask" in self.basename:
-            self.type = "trustedMask"
+        self.suffix = f"_img{self.modality}.nii.gz"
+
+        a = re.search(self.suffix, self.basename).start()
+        self.individual_name = self.basename[:a]
 
         # Extract image information
         self.size = np.array(self.itkimg.GetSize())
@@ -105,37 +98,6 @@ class Image:
         self.spacing = np.array(self.itkimg.GetSpacing())
         self.nibaffine = self.nibimg.affine
         self.nparray = self.nibimg.get_fdata()
-
-    def setmodality(self, modality):
-        assert modality in ["US", "CT"], "trusted modalities are US or CT"
-        if self.modality is None:
-            self.modality = modality
-        else:
-            print(
-                "The modality ",
-                self.modality,
-                " has already been found. Check the data used",
-            )
-        return
-
-    def getmodality(self):
-        print("The modality ", self.modality, " has been found.")
-        if self.modality is None:
-            print("Please set the modality to 'US' or 'CT' with .setmodality(modality)")
-        return
-
-    def setsuffix(self, suffix=None):
-        if suffix is None:
-            if self.modality is None:
-                print(
-                    "Please, before, set the modality to 'US' or 'CT' with .setmodality(modality)"
-                )
-            else:
-                suffix = "_img" + self.modality + ".nii.gz"
-                self.suffix = suffix
-        else:
-            self.suffix = suffix
-        return
 
     def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
         """
@@ -171,9 +133,6 @@ class Image:
         assert self.modality == "CT", "Needed only for CT volume"
 
         print("CT data origin shifting to ", new_origin, " for ", self.basename)
-        self.setsuffix()
-        a = re.search(self.suffix, self.basename).start()
-        self.individual_name = self.basename[:a]
 
         itk_nparray = sitk.GetArrayFromImage(self.itkimg)
         itk_ref_img = sitk.GetImageFromArray(itk_nparray)
@@ -190,9 +149,7 @@ class Image:
         elif "mask" in self.suffix:
             interpolator = sitk.sitkNearestNeighbor
         else:
-            raise ValueError(
-                "The suffix file basename must content 'img' or 'mask'. Use self.setsuffix(suffix)."
-            )
+            raise ValueError("The suffix file basename must content 'img' or 'mask'.")
 
         itk_shifed = sitk.Resample(
             itk_ref_img,
@@ -210,10 +167,46 @@ class Image:
         return itk_shifed
 
 
-class Mask(Image):
-    def __init__(self, imgpath, annotatorID=None):
-        super().__init__(imgpath)
-        self.annotatorID = annotatorID
+class Mask:
+    def __init__(self, maskpath, annotatorID):
+        """
+        Initializes an Mask object from an mask file (.nii.gz).
+
+        Args:
+            maskpath (str): The pathmask to the mask file (.nii.gz).
+        """
+
+        assert maskpath[-7:] == ".nii.gz"
+
+        self.path = maskpath
+        self.basename = os.path.basename(self.path)
+        self.itkmask = sitk.ReadImage(self.path)
+        self.nibmask = nib.load(self.path)
+        self.modality = "CT" if "CT" in self.basename else "US"
+
+        self.suffix = "_mask" + self.modality + ".nii.gz"
+
+        if annotatorID == "gt":
+            self.annotatorID = ""
+            b = self.suffix
+        else:
+            self.annotatorID = str(annotatorID)
+            if self.modality == "CT":
+                b = "_" + self.annotatorID + self.suffix
+            else:
+                b = self.annotatorID + self.suffix
+
+        a = re.search(b, self.basename).start()
+
+        self.individual_name = self.basename[:a]
+
+        # Extract image information
+        self.size = np.array(self.itkmask.GetSize())
+        self.origin = np.array(self.itkmask.GetOrigin())
+        self.orientation = np.array(self.itkmask.GetDirection()).reshape((3, 3))
+        self.spacing = np.array(self.itkmask.GetSpacing())
+        self.nibaffine = self.nibmask.affine
+        self.nparray = self.nibmask.get_fdata()
 
     def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
         """
@@ -244,265 +237,182 @@ class Mask(Image):
 
         return resized_nparray
 
-    def setsuffix(self, suffix=None):
-        if suffix is None:
-            if self.modality is None:
-                print(
-                    "Please, before, set the modality to 'US' or 'CT' with .setmodality(modality)"
-                )
-            else:
-                suffix = "_mask" + self.modality + ".nii.gz"
-                self.suffix = suffix
-        else:
-            self.suffix = suffix
-        print("suffix ", self.suffix, "has been set")
-        return
-
     def to_mesh_and_pcd(
         self,
         mesh_dirname=None,
         pcd_dirname=None,
-        ok_with_suffix=False,
         mask_cleaning=True,
     ):
-        assert (
-            self.modality is not None
-        ), "Please set the modality to 'US' or 'CT' with self.setmodality(modality)"
+        affine = self.nibaffine
+        new_affine = np.linalg.solve(np.sign(affine), affine)
+        sign_affine = np.sign(affine)
+        sign_affine[sign_affine == 0.0] = 1.0
+        sign_new_affine = np.sign(new_affine)
+        sign_new_affine[sign_new_affine == 0.0] = 1.0
+        self.mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
 
-        if not ok_with_suffix:
-            self.setsuffix()
-            print("NOTE:")
-            print(
-                "The suffix is the part of the basename (including the annotator ID) after the individual name"
+        print("*** mesh and pcd creation for: ", self.basename, " ***")
+        out = cc3d.connected_components(self.nparray)
+        bins_origin = np.bincount(out.flatten())
+        bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
+        ind0 = 0
+        bins_copy.remove(bins_origin[ind0])
+        ind1 = np.where(bins_origin == max(bins_copy))[0][0]
+        bins_copy.remove(bins_origin[ind1])
+
+        if self.modality == "CT":
+            ind2 = np.where(bins_origin == max(bins_copy))[0][0]
+            bins_copy.remove(bins_origin[ind2])
+            out1 = out.copy()
+            out1[out1 != ind1] = 0
+            out2 = out.copy()
+            out2[out2 != ind2] = 0
+            out1[out1 > 0] = 1
+            out2[out2 > 0] = 1
+            out_both = out1 + out2
+            del out
+            (
+                vertexsCT1,
+                faceCT1,
+                normalsCT1,
+                valuesCT1,
+            ) = measure.marching_cubes(
+                out1, spacing=self.mesh_orientation, step_size=1, method="lewiner"
             )
-            print("Example of individual name:'01L' for US or '01' for CT ")
-            print("Actually the suffix is: ", self.suffix)
-            print("Make sure it is what you must have.")
-            print("Or, set the appropriate suffix with self.setsuffix(suffix).")
-            print(
-                "Then set the argument 'ok_with_suffix' to True when running self.tomesh()"
+            (
+                vertexsCT2,
+                faceCT2,
+                normalsCT2,
+                valuesCT2,
+            ) = measure.marching_cubes(
+                out2, spacing=self.mesh_orientation, step_size=1, method="lewiner"
             )
-        else:
-            self.setsuffix()
-            a = re.search(self.suffix, self.basename).start()
-            self.individual_name = self.basename[:a]
 
-            affine = self.nibaffine
-            new_affine = np.linalg.solve(np.sign(affine), affine)
-            sign_affine = np.sign(affine)
-            sign_affine[sign_affine == 0.0] = 1.0
-            sign_new_affine = np.sign(new_affine)
-            sign_new_affine[sign_new_affine == 0.0] = 1.0
-            self.mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
+            o3d_CT_1 = o3d.geometry.TriangleMesh()
+            o3d_CT_1.triangles = o3d.utility.Vector3iVector(faceCT1)
+            o3d_CT_1.vertices = o3d.utility.Vector3dVector(vertexsCT1)
 
-            print("*** mesh and pcd creation for: ", self.basename, " ***")
-            out = cc3d.connected_components(self.nparray)
-            bins_origin = np.bincount(out.flatten())
-            bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
-            ind0 = 0
-            bins_copy.remove(bins_origin[ind0])
-            ind1 = np.where(bins_origin == max(bins_copy))[0][0]
-            bins_copy.remove(bins_origin[ind1])
+            o3d_CT_2 = o3d.geometry.TriangleMesh()
+            o3d_CT_2.triangles = o3d.utility.Vector3iVector(faceCT2)
+            o3d_CT_2.vertices = o3d.utility.Vector3dVector(vertexsCT2)
 
-            if self.modality == "CT":
-                ind2 = np.where(bins_origin == max(bins_copy))[0][0]
-                bins_copy.remove(bins_origin[ind2])
-                out1 = out.copy()
-                out1[out1 != ind1] = 0
-                out2 = out.copy()
-                out2[out2 != ind2] = 0
-                out1[out1 > 0] = 1
-                out2[out2 > 0] = 1
-                out_both = out1 + out2
-                del out
-                (
-                    vertexsCT1,
-                    faceCT1,
-                    normalsCT1,
-                    valuesCT1,
-                ) = measure.marching_cubes_lewiner(
-                    out1, spacing=self.mesh_orientation, step_size=1
+            x_center1 = np.asarray(o3d_CT_1.get_center())[0]
+            x_center2 = np.asarray(o3d_CT_2.get_center())[0]
+
+            if x_center1 < x_center2:
+                o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT1)
+                o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT2)
+                o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+            if x_center1 > x_center2:
+                o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT1)
+                o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT2)
+                o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+            o3d_pcdCT_L = o3d.geometry.PointCloud()
+            o3d_pcdCT_L.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshCT_L.vertices)
+            )
+
+            o3d_pcdCT_R = o3d.geometry.PointCloud()
+            o3d_pcdCT_R.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshCT_R.vertices)
+            )
+
+            if mesh_dirname is not None:
+                meshL_path = join(
+                    mesh_dirname,
+                    self.individual_name + "L" + self.annotatorID + "meshfaceCT.obj",
                 )
-                (
-                    vertexsCT2,
-                    faceCT2,
-                    normalsCT2,
-                    valuesCT2,
-                ) = measure.marching_cubes_lewiner(
-                    out2, spacing=self.mesh_orientation, step_size=1
-                )
-
-                o3d_CT_1 = o3d.geometry.TriangleMesh()
-                o3d_CT_1.triangles = o3d.utility.Vector3iVector(faceCT1)
-                o3d_CT_1.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-                o3d_CT_2 = o3d.geometry.TriangleMesh()
-                o3d_CT_2.triangles = o3d.utility.Vector3iVector(faceCT2)
-                o3d_CT_2.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-                x_center1 = np.asarray(o3d_CT_1.get_center())[0]
-                x_center2 = np.asarray(o3d_CT_2.get_center())[0]
-
-                if x_center1 < x_center2:
-                    o3d_meshCT_L = o3d.geometry.TriangleMesh()
-                    o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT1)
-                    o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-                    o3d_meshCT_R = o3d.geometry.TriangleMesh()
-                    o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT2)
-                    o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-                if x_center1 > x_center2:
-                    o3d_meshCT_R = o3d.geometry.TriangleMesh()
-                    o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT1)
-                    o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-                    o3d_meshCT_L = o3d.geometry.TriangleMesh()
-                    o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT2)
-                    o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-                o3d_pcdCT_L = o3d.geometry.PointCloud()
-                o3d_pcdCT_L.points = o3d.utility.Vector3dVector(
-                    np.asarray(o3d_meshCT_L.vertices)
+                meshR_path = join(
+                    mesh_dirname,
+                    self.individual_name + "R" + self.annotatorID + "meshfaceCT.obj",
                 )
 
-                o3d_pcdCT_R = o3d.geometry.PointCloud()
-                o3d_pcdCT_R.points = o3d.utility.Vector3dVector(
-                    np.asarray(o3d_meshCT_R.vertices)
+                o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
+                print("o3d_meshCT_L saved as: ", meshL_path)
+                o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
+                print("o3d_meshCT_R saved as: ", meshR_path)
+
+            if pcd_dirname is not None:
+                pcdL_path = join(
+                    pcd_dirname,
+                    self.individual_name + "L" + self.annotatorID + "pcdCT.txt",
+                )
+                pcdR_path = join(
+                    pcd_dirname,
+                    self.individual_name + "R" + self.annotatorID + "pcdCT.txt",
                 )
 
-                if mesh_dirname is not None:
-                    if self.annotatorID is None:
-                        meshL_path = join(
-                            mesh_dirname, self.individual_name + "L" + "meshfaceCT.obj"
-                        )
-                        meshR_path = join(
-                            mesh_dirname, self.individual_name + "R" + "meshfaceCT.obj"
-                        )
-                    else:
-                        meshL_path = join(
-                            mesh_dirname,
-                            self.individual_name
-                            + "L"
-                            + self.annotatorID
-                            + "meshfaceCT.obj",
-                        )
-                        meshR_path = join(
-                            mesh_dirname,
-                            self.individual_name
-                            + "R"
-                            + self.annotatorID
-                            + "meshfaceCT.obj",
-                        )
+                np.savetxt(pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", ")
+                print("pcdCT_L_txt saved as: ", pcdL_path)
+                np.savetxt(pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", ")
+                print("pcdCT_R_txt saved as: ", pcdR_path)
 
-                    o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
-                    print("o3d_meshCT_L saved as: ", meshL_path)
-                    o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
-                    print("o3d_meshCT_R saved as: ", meshR_path)
+            print("case done")
+            return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R
 
-                if pcd_dirname is not None:
-                    if self.annotatorID is None:
-                        pcdL_path = join(
-                            pcd_dirname, self.individual_name + "L" + "pcdCT.txt"
-                        )
-                        pcdR_path = join(
-                            pcd_dirname, self.individual_name + "R" + "pcdCT.txt"
-                        )
-                    else:
-                        pcdL_path = join(
-                            pcd_dirname,
-                            self.individual_name + "L" + self.annotatorID + "pcdCT.txt",
-                        )
-                        pcdR_path = join(
-                            pcd_dirname,
-                            self.individual_name + "R" + self.annotatorID + "pcdCT.txt",
-                        )
+        if self.modality == "US":
+            out1 = out.copy()
+            out1[out1 != ind1] = 0
+            out1[out1 > 0] = 1
+            out_both = out1
+            del out
+            (
+                vertexsUS,
+                faceUS,
+                normalsUS,
+                valuesUS,
+            ) = measure.marching_cubes(
+                out1, spacing=self.mesh_orientation, step_size=1, method="lewiner"
+            )
+            o3d_meshUS = o3d.geometry.TriangleMesh()
+            o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
+            o3d_meshUS.vertices = o3d.utility.Vector3dVector(vertexsUS)
 
-                    np.savetxt(
-                        pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", "
-                    )
-                    print("pcdCT_L_txt saved as: ", pcdL_path)
-                    np.savetxt(
-                        pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", "
-                    )
-                    print("pcdCT_R_txt saved as: ", pcdR_path)
+            o3d_pcdUS = o3d.geometry.PointCloud()
+            o3d_pcdUS.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshUS.vertices)
+            )
 
-                print("case done")
-                return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R
-
-            if self.modality == "US":
-                out1 = out.copy()
-                out1[out1 != ind1] = 0
-                out1[out1 > 0] = 1
-                out_both = out1
-                del out
-                (
-                    vertexsUS,
-                    faceUS,
-                    normalsUS,
-                    valuesUS,
-                ) = measure.marching_cubes_lewiner(
-                    out1, spacing=self.mesh_orientation, step_size=1
-                )
-                o3d_meshUS = o3d.geometry.TriangleMesh()
-                o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
-                o3d_meshUS.vertices = o3d.utility.Vector3dVector(vertexsUS)
-
-                o3d_pcdUS = o3d.geometry.PointCloud()
-                o3d_pcdUS.points = o3d.utility.Vector3dVector(
-                    np.asarray(o3d_meshUS.vertices)
+            if mesh_dirname is not None:
+                mesh_path = join(
+                    mesh_dirname,
+                    self.individual_name + self.annotatorID + "meshfaceUS.obj",
                 )
 
-                if mesh_dirname is not None:
-                    if self.annotatorID is None:
-                        mesh_path = join(
-                            mesh_dirname, self.individual_name + "meshfaceUS.obj"
-                        )
-                    else:
-                        mesh_path = join(
-                            mesh_dirname,
-                            self.individual_name + self.annotatorID + "meshfaceUS.obj",
-                        )
+                o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
+                print("o3d_meshUS saved as: ", mesh_path)
 
-                    o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
-                    print("o3d_meshUS saved as: ", mesh_path)
+            if pcd_dirname is not None:
+                pcd_path = join(
+                    pcd_dirname,
+                    self.individual_name + self.annotatorID + "pcdUS.txt",
+                )
+                np.savetxt(pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", ")
+                print("pcdUS_txt saved as: ", pcd_path)
 
-                if pcd_dirname is not None:
-                    if self.annotatorID is None:
-                        pcd_path = join(pcd_dirname, self.individual_name + "pcdUS.txt")
-                    else:
-                        pcd_path = join(
-                            pcd_dirname,
-                            self.individual_name + self.annotatorID + "pcdUS.txt",
-                        )
-                    np.savetxt(
-                        pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", "
-                    )
-                    print("pcdUS_txt saved as: ", pcd_path)
+            print("case done")
+            return o3d_meshUS, o3d_pcdUS
 
-                print("case done")
-                return o3d_meshUS, o3d_pcdUS
-
-            """mask_cleaning"""
-            if mask_cleaning:
-                mask_cleaned_nib = nib.Nifti1Image(out_both, self.affine)
-                nib.save(mask_cleaned_nib, self.path)
-                print("cleaning done")
+        """mask_cleaning"""
+        if mask_cleaning:
+            mask_cleaned_nib = nib.Nifti1Image(out_both, self.affine)
+            nib.save(mask_cleaned_nib, self.path)
+            print("cleaning done")
 
     def split(self, split_dirname=None):
         assert self.modality == "CT", "Applicable only on a CT mask"
 
         print("*** CT mask splitting for: ", self.basename, " ***")
-
-        self.setsuffix()
-        a = re.search(self.suffix, self.basename).start()
-        self.individual_name = self.basename[:a]
-        if "_" in self.individual_name:
-            b = re.search("_", self.individual_name).start()
-            annotator = self.individual_name[b + 1]
-            self.individual_name = self.individual_name[:b]
-        else:
-            annotator = ""
 
         len0 = self.nparray.shape[0]
         mid0 = int(len0 / 2)
@@ -515,14 +425,16 @@ class Mask(Image):
 
         if split_dirname is not None:
             splitR_path = join(
-                split_dirname, self.individual_name + "R" + annotator + self.suffix
+                split_dirname,
+                self.individual_name + "R" + self.annotatorID + self.suffix,
             )
             splitR_nib = nib.Nifti1Image(nparrayR, self.nibaffine)
             nib.save(splitR_nib, splitR_path)
             print("splitR_nib saved as: ", splitR_path)
 
             splitL_path = join(
-                split_dirname, self.individual_name + "L" + annotator + self.suffix
+                split_dirname,
+                self.individual_name + "L" + self.annotatorID + self.suffix,
             )
             splitL_nib = nib.Nifti1Image(nparrayL, self.nibaffine)
             nib.save(splitL_nib, splitL_path)
@@ -587,9 +499,9 @@ class Mesh:
 def fuse_masks(
     list_of_trusted_masks: list[Mask],
     trusted_img: Image,
+    resizing,
+    npmaxflow_lamda,
     img_intensity_scaling="normal",  # "normal" or "scale"
-    resizing=None,
-    npmaxflow_lamda=2.5,
     fused_dirname=None,
 ):
     print(
@@ -600,7 +512,7 @@ def fuse_masks(
 
     for trusted_mask in list_of_trusted_masks:
         # STAPLE requires we cast into int16 arrays
-        itk_int16 = sitk.Cast(trusted_mask.itkimg, sitk.sitkInt16)
+        itk_int16 = sitk.Cast(trusted_mask.itkmask, sitk.sitkInt16)
         seg_stack.append(itk_int16)
 
     # Run STAPLE algorithm ###
@@ -719,7 +631,7 @@ def plot_arrays(arrays):
     plt.show()
 
 
-def resiz_nparray(input_nparray, newsize, interpolmode="trilinear"):
+def resiz_nparray(input_nparray, newsize, interpolmode):
     """
     Resizes a numpy array into a specified new size.
 

@@ -7,7 +7,6 @@ Based on them, you could run those you want.
 # python src/trusted_datapaper_ds/dataprocessing/tutorial.py --config_path configs/config_file.yml
 
 """
-import os
 from os.path import join
 
 import yaml
@@ -32,26 +31,69 @@ def main(
     with open(args.config_path, "r") as yaml_file:
         data = yaml.safe_load(yaml_file)
 
-    # Image or Mask resizing (here a US image) ###
+    # Image and Mask resizing (here a US image, and mask from annotator 2) ###
     # Note: "resized_dirname" is the directory to save the resized data.
     #       You have to set it, if you want to save.
     if resizing:
         resized_dirname = "/home/wndzimbong/Bureau"
-        fpath = join(
+        imgpath = join(
             data["data_location"],
             data["usimgfol"],
             data["individual"] + data["k_side"] + data["usimg_end"],
         )
+        maskpath = join(
+            data["data_location"],
+            data["usma2fol"],
+            data["individual"] + data["k_side"] + data["annotator2"] + data["usma_end"],
+        )
         newsize = [128, 128, 128]
-        base = os.path.basename(fpath)
-        if "img" in base:
-            data = dt.Image(fpath)
-        elif "mask" in base:
-            data = dt.Mask(fpath)
-        else:
-            TypeError("Type no supported by our resize function")
-        resized_nparray = data.resize(newsize=newsize, resized_dirname=resized_dirname)
-        print(type(resized_nparray))
+
+        img = dt.Image(imgpath)
+        mask = dt.Mask(
+            maskpath, annotatorID=data["annotator2"]
+        )  # or simply annotatorID='2'
+
+        resized_img_nparray = img.resize(
+            newsize=newsize, resized_dirname=resized_dirname
+        )
+        resized_mask_nparray = mask.resize(
+            newsize=newsize, resized_dirname=resized_dirname
+        )
+        print(type(resized_img_nparray))
+        print(type(resized_mask_nparray))
+
+    # Image and Mask resizing (here a CT image, and mask from annotator 1) ###
+    # Note: "resized_dirname" is the directory to save the resized data.
+    #       You have to set it, if you want to save.
+    if resizing:
+        resized_dirname = "/home/wndzimbong/Bureau"
+        imgpath = join(
+            data["data_location"],
+            data["ctimgfol"],
+            data["individual"] + data["ctimg_end"],
+        )
+        maskpath = join(
+            data["data_location"],
+            data["ctma1fol"],
+            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
+        )
+        newsize = [128, 128, 128]
+
+        img = dt.Image(imgpath)
+        mask = dt.Mask(
+            maskpath, annotatorID=data["annotator1"]
+        )  # or simply annotatorID='2'
+
+        print(img.modality)
+        print(mask.modality)
+        resized_img_nparray = img.resize(
+            newsize=newsize, resized_dirname=resized_dirname
+        )
+        resized_mask_nparray = mask.resize(
+            newsize=newsize, resized_dirname=resized_dirname
+        )
+        print(type(resized_img_nparray))
+        print(type(resized_mask_nparray))
 
     # Convert Mask to Mesh and PCD (here a CT ground truth) ###
     # Note: "mesh_dirname" is the directory to save the mesh,
@@ -65,11 +107,10 @@ def main(
             data["ctmagtfol"],
             data["individual"] + data["ctma_end"],
         )
-        ctmask = dt.Mask(maskpath)
+        ctmask = dt.Mask(maskpath, annotatorID="gt")
         o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = ctmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
-            ok_with_suffix=True,
             mask_cleaning=False,
         )
 
@@ -85,11 +126,10 @@ def main(
             data["usmagtfol"],
             data["individual"] + data["k_side"] + data["usma_end"],
         )
-        usmask = dt.Mask(maskpath)
+        usmask = dt.Mask(maskpath, annotatorID="gt")
         o3d_meshUS, o3d_pcdUS = usmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
-            ok_with_suffix=True,
             mask_cleaning=False,
         )
 
@@ -104,7 +144,7 @@ def main(
             data["ctma1fol"],
             data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
         )
-        ctmask = dt.Mask(maskpath)
+        ctmask = dt.Mask(maskpath, annotatorID=data["annotator1"])
         nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
 
     # Split CT mask (here from ground truth) ###
@@ -118,7 +158,7 @@ def main(
             data["ctmagtfol"],
             data["individual"] + data["ctma_end"],
         )
-        ctmask = dt.Mask(maskpath)
+        ctmask = dt.Mask(maskpath, annotatorID="gt")
         nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
 
     # Shift the origin of an image or mask (here a CT image) ###
@@ -157,13 +197,14 @@ def main(
             data["individual"] + "_" + data["annotator2"] + data["ctma_end"],
         )
         img = dt.Image(imgpath)
-        mask1 = dt.Mask(mask1path)
-        mask2 = dt.Mask(mask2path)
+        mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
+        mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
         list_of_masks = [mask1, mask2]
 
         fused_nib = dt.fuse_masks(
             list_of_trusted_masks=list_of_masks,
             trusted_img=img,
+            npmaxflow_lamda=2.5,
             img_intensity_scaling="normal",  # "normal" or "scale"
             resizing=None,  # I reduce the data shape to increase the speed of the process. Can be None
             fused_dirname=fused_dirname,
@@ -191,13 +232,14 @@ def main(
             data["individual"] + data["k_side"] + data["annotator2"] + data["usma_end"],
         )
         img = dt.Image(imgpath)
-        mask1 = dt.Mask(mask1path)
-        mask2 = dt.Mask(mask2path)
+        mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
+        mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
         list_of_masks = [mask1, mask2]
 
         fused_nib = dt.fuse_masks(
             list_of_trusted_masks=list_of_masks,
             trusted_img=img,
+            npmaxflow_lamda=2.5,
             img_intensity_scaling="normal",  # "normal" or "scale"
             resizing=[
                 512,
@@ -258,7 +300,7 @@ if __name__ == "__main__":
     fuse_CTmask = 0
     fuse_USmask = 0
     fuse_landmark = 0
-    mesh_to_pcd = 1
+    mesh_to_pcd = 0
 
     main(
         resizing,
