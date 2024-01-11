@@ -1,11 +1,29 @@
+
+## ''' My personnal example of location (TO BE REMOVED)'''
+data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
+out_location: "/home/wndzimbong/Bureau"
+
+
+##################################################################
+
+
+## ''' 1- TRUSTED Data location '''
+# data_location: "~/TRUSTED_data/"
+
+
+## ''' 2- Example of element composing a kidney ID '''
 individual: "01"
 k_side: "R"
 annotator1: "1"  # don't use this when thinking to the ground truth
 annotator2: "2"  # don't use this when thinking to the ground truth
 
-data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
 
-# data_location: "~/TRUSTED_submission/"
+## ''' 3- Example of Data list '''
+uslist: ["01L", "03R", "05R"]
+ctlist: ["01", "03", "05"]
+
+
+## ''' 4- US data FOLDERS PROVIDED'''
 usimgfol: "US_DATA/US_images/"
 usma1fol: "US_DATA/US_masks/Annotator1/"
 usma2fol: "US_DATA/US_masks/Annotator2/"
@@ -17,6 +35,8 @@ usld1fol: "US_DATA/US_landmarks/Annotator1/"
 usld2fol: "US_DATA/US_landmarks/Annotator2/"
 usldgtfol: "US_DATA/US_landmarks/GT_estimated_ldksUS/"
 
+
+## ''' 5- CT data FOLDERS PROVIDED'''
 ctimgfol: "CT_DATA/CT_images/"
 ctma1fol: "CT_DATA/CT_masks/Annotator1/"
 ctma2fol: "CT_DATA/CT_masks/Annotator2/"
@@ -28,6 +48,26 @@ ctld1fol: "CT_DATA/CT_landmarks/Annotator1/"
 ctld2fol: "CT_DATA/CT_landmarks/Annotator2/"
 ctldgtfol: "CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 
+
+## ''' 6- FOLDERS NO PROVIDED (Have to be created by used if need. Can be added)'''
+# out_location: "..." # any output location
+
+ctspma1fol: "CT_DATA/CTsplit_masks/Annotator1/" # CT split masks
+ctspma2fol: "CT_DATA/CTsplit_masks/Annotator2/"
+ctspmagtfol: "CT_DATA/CTsplit_masks/GT_estimated_masksCT/"
+
+ct0spma1fol: "CT_DATA/CTsplit_masks_origin0/Annotator1/" # CT split masks shifted to origin [0,0,0]
+ct0spma2fol: "CT_DATA/CTsplit_masks_origin0/Annotator2/"
+ct0spmagtfol: "CT_DATA/CTsplit_masks_origin0/GT_estimated_masksCT/"
+
+ct0imgfol: "CT_DATA/CT_images_origin0/" # CT images shifted to origin [0,0,0]
+
+ct0ma1fol: "CT_DATA/CT_masks_origin0/Annotator1/" # CT masks shifted to origin [0,0,0]
+ct0ma2fol: "CT_DATA/CT_masks_origin0/Annotator2/"
+ct0magtfol: "CT_DATA/CT_masks_origin0/GT_estimated_masksCT/"
+
+
+## ''' 7- Data name suffixes '''
 usimg_end: "_imgUS.nii.gz"
 usma_end: "_maskUS.nii.gz"
 usme_end: "meshfaceUS.obj"
@@ -38,16 +78,20 @@ ctma_end: "_maskCT.nii.gz"
 ctme_end: "meshfaceCT.obj"
 ctld_end: "_ldkCT.txt"
 
+
+## ''' 8- Five-fold cross validation test set splits '''
 ctfold:
-   cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
+   cv1: ['116']
+   # cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
    cv2: ['47', '01', '74', '14', '33', '24', '72', '51', '64']
    cv3: ['05', '57', '43', '94', '131', '11', '54', '12', '15', '17']
    cv4: ['21', '03', '97', '27', '23', '09', '61', '32', '53', '119']
    cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']
 
 usfold:
-    cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
-    cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
-    cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
-    cv4: ['21R', '21L', '03R', '03L', '97R', '97L', '27R', '27L', '23R', '23L', '53L', '119R']
-    cv5: ['125R', '125L', '20R', '42R', '99R', '02R', '02L', '87R', '87L', '37R', '38R', '38L']
+   cv1: ['116L', '114R']
+   #  cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
+   cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
+   cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
+   cv4: ['21R', '21L', '03R', '03L', '97R', '97L', '27R', '27L', '23R', '23L', '53L', '119R']
+   cv5: ['125R', '125L', '20R', '42R', '99R', '02R', '02L', '87R', '87L', '37R', '38R', '38L']

@@ -21,8 +21,6 @@ def nearest_neighbor(src, dst):
         distances: Euclidean distances of the nearest neighbor
         indices: dst indices of the nearest neighbor
     """
-
-    #    assert src.shape == dst.shape
     src, dst = center_pair(src, dst)
     neigh = NearestNeighbors(n_neighbors=1, radius=10.0)
     neigh.fit(dst)

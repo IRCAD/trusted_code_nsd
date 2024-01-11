@@ -28,6 +28,8 @@ with me, to avoid some confilcts.
 ## pip install plyfile
 ## pip install numpymaxflow
 
+## pip install pandas==1.3.0
+
 # DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file):
 ## pip install pytest
 ## pip install pytest-cov
@@ -42,8 +44,15 @@ with me, to avoid some confilcts.
 pip install -e .
 
 
-*** DATA PROCESSING ***
+*** AN EXAMPLE INDIVIDUAL PROCESSING ***
+# Example of command to run the tutorial ####
+# python src/trusted_datapaper_ds/dataprocessing/tutorial_individual.py --config_path configs/config_file.yml
 
+
+*** AN EXAMPLE US LIST PROCESSING ***
+
+
+*** AN EXAMPLE CT LIST PROCESSING ***
 
 
 *** SEGMENTATION ***

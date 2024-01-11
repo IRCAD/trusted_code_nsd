@@ -1,10 +1,12 @@
 """
 Here you can see some examples (NOT EXHAUSTIVE) of
-running common data processings you could have to do with the TRUSTED dataset.
+running common data processings you could have to do with an indivudual of the TRUSTED dataset.
 Based on them, you could run those you want.
 
+IMPORTANT: You could adapt the config_file.yml file
+
 # Example of command to run the tutorial ####
-# python src/trusted_datapaper_ds/dataprocessing/tutorial.py --config_path configs/config_file.yml
+# python src/trusted_datapaper_ds/dataprocessing/tutorial_for_individual.py --config_path configs/config_file.yml
 
 """
 from os.path import join
@@ -31,11 +33,12 @@ def main(
     with open(args.config_path, "r") as yaml_file:
         data = yaml.safe_load(yaml_file)
 
+    print(data)
+
     # Image and Mask resizing (here a US image, and mask from annotator 2) ###
     # Note: "resized_dirname" is the directory to save the resized data.
-    #       You have to set it, if you want to save.
     if resizing:
-        resized_dirname = "/home/wndzimbong/Bureau"
+        resized_dirname = data["out_location"]
         imgpath = join(
             data["data_location"],
             data["usimgfol"],
@@ -64,9 +67,9 @@ def main(
 
     # Image and Mask resizing (here a CT image, and mask from annotator 1) ###
     # Note: "resized_dirname" is the directory to save the resized data.
-    #       You have to set it, if you want to save.
+    # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if resizing:
-        resized_dirname = "/home/wndzimbong/Bureau"
+        resized_dirname = data["out_location"]
         imgpath = join(
             data["data_location"],
             data["ctimgfol"],
@@ -98,10 +101,9 @@ def main(
     # Convert Mask to Mesh and PCD (here a CT ground truth) ###
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
-    #       You have to set it, if you want to save.
     if CTmask_to_mesh_and_pcd:
-        mesh_dirname = "/home/wndzimbong/Bureau"
-        pcd_dirname = "/home/wndzimbong/Bureau"
+        mesh_dirname = data["out_location"]
+        pcd_dirname = data["out_location"]
         maskpath = join(
             data["data_location"],
             data["ctmagtfol"],
@@ -117,10 +119,9 @@ def main(
     # Convert Mask to Mesh and PCD (here a US ground truth)###
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
-    #       You have to set it, if you want to save.
     if USmask_to_mesh_and_pcd:
-        mesh_dirname = "/home/wndzimbong/Bureau"
-        pcd_dirname = "/home/wndzimbong/Bureau"
+        mesh_dirname = data["out_location"]
+        pcd_dirname = data["out_location"]
         maskpath = join(
             data["data_location"],
             data["usmagtfol"],
@@ -135,10 +136,9 @@ def main(
 
     # Split CT mask (here from annotator 1) ###
     # Note: "split_dirname" is the directory to save the split data.
-    #       You have to set it, if you want to save.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if splitCTmask1:
-        split_dirname = "/home/wndzimbong/Bureau"
+        split_dirname = data["out_location"]
         maskpath = join(
             data["data_location"],
             data["ctma1fol"],
@@ -149,10 +149,8 @@ def main(
 
     # Split CT mask (here from ground truth) ###
     # Note: "split_dirname" is the directory to save the split data.
-    #       You have to set it, if you want to save.
-    # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if splitCTmaskgt:
-        split_dirname = "/home/wndzimbong/Bureau"
+        split_dirname = data["out_location"]
         maskpath = join(
             data["data_location"],
             data["ctmagtfol"],
@@ -163,9 +161,8 @@ def main(
 
     # Shift the origin of an image or mask (here a CT image) ###
     # Note: "shifted_dirname" is the directory to save the shifted data.
-    #       You have to set it, if you want to save.
     if shift_origin:
-        shifted_dirname = "/home/wndzimbong/Bureau"
+        shifted_dirname = data["out_location"]
         imgpath = join(
             data["data_location"],
             data["ctimgfol"],
@@ -177,10 +174,9 @@ def main(
 
     # Fuse masks from annotator1 and annotator2 (here a CT mask) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
-    #       You have to set it, if you want to save.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if fuse_CTmask:
-        fused_dirname = "/home/wndzimbong/Bureau"
+        fused_dirname = data["out_location"]
         imgpath = join(
             data["data_location"],
             data["ctimgfol"],
@@ -213,9 +209,8 @@ def main(
 
     # Fuse masks from annotator1 and annotator2 (here a US mask) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
-    #       You have to set it, if you want to save.
     if fuse_USmask:
-        fused_dirname = "/home/wndzimbong/Bureau"
+        fused_dirname = data["out_location"]
         imgpath = join(
             data["data_location"],
             data["usimgfol"],
@@ -252,9 +247,8 @@ def main(
 
     # Fuse landmarks from annotator1 and annotator2 (here CT la,ndmarks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
-    #       You have to set it, if you want to save.
     if fuse_landmark:
-        fused_dirname = "/home/wndzimbong/Bureau"
+        fused_dirname = data["out_location"]
         ldk1path = join(
             data["data_location"],
             data["ctld1fol"],
@@ -317,4 +311,4 @@ if __name__ == "__main__":
 
 
 # Example of command to run the tutorial ####
-# python src/trusted_datapaper_ds/dataprocessing/tutorial.py --config_path configs/config_file.yml
+# python src/trusted_datapaper_ds/dataprocessing/tutorial_for_individual.py --config_path configs/config_file.yml
