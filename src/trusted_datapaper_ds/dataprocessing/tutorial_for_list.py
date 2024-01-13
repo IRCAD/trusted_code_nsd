@@ -9,121 +9,14 @@ IMPORTANT: You could adapt the config_file.yml file
 # python src/trusted_datapaper_ds/dataprocessing/tutorial_for_list.py --config_path configs/config_file.yml
 
 """
-from os.path import isfile, join
+from os.path import join
 
 import yaml
 from natsort import natsorted
 
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.utils import makedir, parse_args
-
-
-def build_list(
-    data_config, modality, datatype, annotatorID, USlike_IDlist=None, CTlike_IDlist=None
-):
-    """
-    This function build a list of data paths. It is useful to run some operations in series.
-    INPUTS:
-        data_config: the yaml object containing the elements in config_file.yml
-        modality(respect the word case):
-                'us' for Ultrasound
-                'ct' for CT
-        datatype:
-                'img' for image
-                'ma' for mask
-                'me' for mesh
-                'ld' for landmarks
-        annotatorID:
-                'gt' for ground truth
-                'annotator1' for annotator1
-                'annotator2' for annotator2
-        USlike_IDlist: list of kidneys ID in the format: individual+kidney_side (ex: ['01R', '02L'])
-        CTlike_IDlist: list of kidneys ID in the format: individual+kidney_side (ex: ['01', '02'])
-    OUTPUT:
-        data_path_list: the list of data paths
-    """
-    assert modality in ["us", "ct"], " modality must be in ['us', 'ct'] "
-    assert datatype in [
-        "img",
-        "ma",
-        "me",
-        "ld",
-    ], " datatype must be 'us' or 'ct' in ['img', 'ma', 'me', 'ld'] "
-    assert annotatorID in [
-        "gt",
-        "annotator1",
-        "annotator2",
-    ], " annotatorID must be in ['gt', 'annotator1', 'annotator2'] "
-    assert (
-        int(USlike_IDlist is None) + int(CTlike_IDlist is None)
-    ) == 1, "one and only one IDlist must be empty"
-
-    data = data_config
-
-    if annotatorID == "gt":
-        annotator = ""
-    else:
-        annotator = annotatorID
-
-    if modality == "ct":
-        if datatype == "img":
-            IDlist = CTlike_IDlist
-            data_path_list = [
-                join(
-                    data["data_location"],
-                    data["ctimgfol"],
-                    individual + data["ctimg_end"],
-                )
-                for individual in IDlist
-                if isfile(
-                    join(
-                        data["data_location"],
-                        data["ctimgfol"],
-                        individual + data["ctimg_end"],
-                    )
-                )
-            ]
-        if datatype == "ma":
-            if USlike_IDlist is not None:
-                IDlist = USlike_IDlist
-                data_path_list = [
-                    join(
-                        data["data_location"],
-                        data["ctspma" + data[annotatorID] + "fol"],
-                        individual + "_" + data[annotator] + data["ctma_end"],
-                    )
-                    for individual in IDlist
-                    if isfile(
-                        join(
-                            data["data_location"],
-                            data["ctspma" + data[annotatorID] + "fol"],
-                            individual + "_" + data[annotator] + data["ctma_end"],
-                        )
-                    )
-                ]
-
-        if datatype == "me":
-            if USlike_IDlist is not None:
-                data_path_list = [
-                    join(
-                        data["data_location"],
-                        data["ctme" + data[annotatorID] + "fol"],
-                        individual + data[annotator] + data["ctme_end"],
-                    )
-                    for individual in IDlist
-                ]
-
-        if datatype == "ld":
-            data_path_list = [
-                join(
-                    data["data_location"],
-                    data["ctld" + data[annotatorID] + "fol"],
-                    individual + data[annotator] + data["ctme_end"],
-                )
-                for individual in IDlist
-            ]
-
-    return data_path_list
+from trusted_datapaper_ds.dataprocessing.datanalysis_new import usdatanalysis
+from trusted_datapaper_ds.utils import build_list, makedir, parse_args
 
 
 def main(
@@ -160,7 +53,7 @@ def main(
             )
             maskpath = join(
                 data["data_location"],
-                data["usma2fol"],
+                data["usma2fol"],  # or data["usma" + data["annotator2"] + "fol"]
                 individual + k_side + data["annotator2"] + data["usma_end"],
             )
             newsize = [128, 128, 128]
@@ -193,7 +86,7 @@ def main(
             )
             maskpath = join(
                 data["data_location"],
-                data["ctma1fol"],
+                data["ctma1fol"],  # or data["ctma" + data["annotator1"] + "fol"]
                 individual + "_" + data["annotator1"] + data["ctma_end"],
             )
             newsize = [128, 128, 128]
@@ -224,7 +117,7 @@ def main(
             individual = ind
             maskpath = join(
                 data["data_location"],
-                data["ctmagtfol"],
+                data["ctmagtfol"],  # or data["ctma" + data["gt"] + "fol"]
                 individual + data["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID="gt")
@@ -250,7 +143,7 @@ def main(
             individual = ind[:-1]
             maskpath = join(
                 data["data_location"],
-                data["usmagtfol"],
+                data["usmagtfol"],  # or data["usma" + data["gt"] + "fol"]
                 individual + k_side + data["usma_end"],
             )
             usmask = dt.Mask(maskpath, annotatorID="gt")
@@ -270,7 +163,7 @@ def main(
             individual = ind
             maskpath = join(
                 data["data_location"],
-                data["ctma1fol"],
+                data["ctma" + data["annotator1"] + "fol"],  # or data["ctma1fol"]
                 individual + "_" + data["annotator1"] + data["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID=data["annotator1"])
@@ -285,7 +178,7 @@ def main(
             individual = ind
             maskpath = join(
                 data["data_location"],
-                data["ctmagtfol"],
+                data["ctma" + data["gt"] + "fol"],  # or data["ctmagtfol"]
                 individual + data["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID="gt")
@@ -321,12 +214,12 @@ def main(
             )
             mask1path = join(
                 data["data_location"],
-                data["ctma1fol"],
+                data["ctma" + data["annotator1"] + "fol"],  # data["ctma1fol"],
                 individual + "_" + data["annotator1"] + data["ctma_end"],
             )
             mask2path = join(
                 data["data_location"],
-                data["ctma2fol"],
+                data["ctma2fol"],  # or data["ctma" + data["annotator2"] + "fol"],
                 individual + "_" + data["annotator2"] + data["ctma_end"],
             )
             img = dt.Image(imgpath)
@@ -358,12 +251,12 @@ def main(
             )
             mask1path = join(
                 data["data_location"],
-                data["usma1fol"],
+                data["usma1fol"],  # or data["usma" + data["annotator1"] + "fol"]
                 individual + k_side + data["annotator1"] + data["usma_end"],
             )
             mask2path = join(
                 data["data_location"],
-                data["usma2fol"],
+                data["usma2fol"],  # or data["usma" + data["annotator2"] + "fol"]
                 individual + k_side + data["annotator2"] + data["usma_end"],
             )
             img = dt.Image(imgpath)
@@ -394,12 +287,12 @@ def main(
             for k_side in ["L", "R"]:
                 ldk1path = join(
                     data["data_location"],
-                    data["ctld1fol"],
+                    data["ctld1fol"],  # or data["ctld" + data["annotator1"] + "fol"]
                     individual + k_side + data["annotator1"] + data["ctld_end"],
                 )
                 ldk2path = join(
                     data["data_location"],
-                    data["ctld2fol"],
+                    data["ctld2fol"],  # or data["ctld" + data["annotator2"] + "fol"]
                     individual + k_side + data["annotator2"] + data["ctld_end"],
                 )
                 ldks1 = dt.Landmarks(ldk1path)
@@ -420,12 +313,12 @@ def main(
             individual = ind[:-1]
             ldk1path = join(
                 data["data_location"],
-                data["usld1fol"],
+                data["usld1fol"],  # or data["usld" + data["annotator1"] + "fol"]
                 individual + k_side + data["annotator1"] + data["usld_end"],
             )
             ldk2path = join(
                 data["data_location"],
-                data["usld2fol"],
+                data["usld2fol"],  # or data["usld" + data["annotator2"] + "fol"]
                 individual + k_side + data["annotator2"] + data["usld_end"],
             )
             ldks1 = dt.Landmarks(ldk1path)
@@ -444,7 +337,7 @@ def main(
             for k_side in ["L", "R"]:
                 meshpath = join(
                     data["data_location"],
-                    data["ctmegtfol"],
+                    data["ctmegtfol"],  # or data["ctme" + data["gt"] + "fol"]
                     individual + k_side + data["ctme_end"],
                 )
                 mesh = dt.Mesh(meshpath)
@@ -460,7 +353,7 @@ def main(
             individual = ind[:-1]
             meshpath = join(
                 data["data_location"],
-                data["usmegtfol"],
+                data["usmegtfol"],  # or data["usme" + data["gt"] + "fol"]
                 individual + k_side + data["usme_end"],
             )
             mesh = dt.Mesh(meshpath)
@@ -473,26 +366,120 @@ def main(
         USlike_IDlist = ["116L", "114R"]
         data_path_list = build_list(
             data_config=data,
-            modality="ct",
-            datatype="ma",
+            modality="us",
+            datatype="ld",
+            # annotatorID='gt',
             annotatorID="annotator1",
             USlike_IDlist=USlike_IDlist,
             CTlike_IDlist=None,
         )
         print(data_path_list)
 
-    # if data_analysis:
-    #     dana.usdatanalysis(
-    #         usma1_files,
-    #         usma2_files,
-    #         usmagt_files,
-    #         usme1_files,
-    #         usme2_files,
-    #         usmegt_files,
-    #         usld1_files,
-    #         usld2_files,
-    #         usldgt_files,
-    #     )
+    if data_analysis:
+        USlike_IDlist = data["usfold"]["cv1"]
+
+        usma1_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ma",
+            annotatorID="annotator1",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usma2_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ma",
+            annotatorID="annotator2",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usmagt_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ma",
+            annotatorID="gt",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usme1_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="me",
+            annotatorID="annotator1",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usme2_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="me",
+            annotatorID="annotator2",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usmegt_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="me",
+            annotatorID="gt",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usld1_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ld",
+            annotatorID="annotator1",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usld2_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ld",
+            annotatorID="annotator2",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+        usldgt_files = build_list(
+            data_config=data,
+            modality="us",
+            datatype="ld",
+            annotatorID="gt",
+            USlike_IDlist=USlike_IDlist,
+            CTlike_IDlist=None,
+        )
+
+        # print(usma1_files)
+        # print("###")
+        # print(usma2_files)
+        # print("###")
+        # print(usmagt_files)
+        # print("###")
+        # print(usme1_files)
+        # print("###")
+        # print(usme2_files)
+        # print("###")
+        # print(usmegt_files)
+        # print("###")
+        # print(usld1_files)
+        # print("###")
+        # print(usld2_files)
+        # print("###")
+        # print(usldgt_files)
+
+        usdatanalysis(
+            usma1_files,
+            usma2_files,
+            usmagt_files,
+            usme1_files,
+            usme2_files,
+            usmegt_files,
+            usld1_files,
+            usld2_files,
+            usldgt_files,
+        )
 
     return
 
@@ -532,8 +519,8 @@ if __name__ == "__main__":
     fuse_USmask = 0
     fuse_landmark = 0
     mesh_to_pcd = 0
-    build_a_list = 1
-    data_analysis = 0
+    build_a_list = 0
+    data_analysis = 1
 
     main(
         ctlist,

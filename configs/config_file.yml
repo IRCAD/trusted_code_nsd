@@ -14,8 +14,9 @@ out_location: "/home/wndzimbong/Bureau"
 ## ''' 2- Example of element composing a kidney ID '''
 individual: "01"
 k_side: "R"
-annotator1: "1"  # don't use this when thinking to the ground truth
-annotator2: "2"  # don't use this when thinking to the ground truth
+annotator1: "1"
+annotator2: "2"
+gt: "gt"
 
 
 ## ''' 3- Example of Data list '''
@@ -89,7 +90,7 @@ ctfold:
    cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']
 
 usfold:
-   cv1: ['116L', '114R']
+   cv1: ['01L', '01R']
    #  cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
    cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
    cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
