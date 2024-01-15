@@ -15,11 +15,18 @@ import yaml
 from natsort import natsorted
 
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.dataprocessing.datanalysis_new import usdatanalysis
-from trusted_datapaper_ds.utils import build_list, makedir, parse_args
+from trusted_datapaper_ds.dataprocessing.datanalysis_new import datanalysis
+from trusted_datapaper_ds.utils import (
+    build_list,
+    build_many_mask_list,
+    build_many_me_ld_list,
+    makedir,
+    parse_args,
+)
 
 
 def main(
+    ctlist_with_side,
     ctlist,
     uslist,
     resizing,
@@ -33,7 +40,8 @@ def main(
     fuse_landmark,
     mesh_to_pcd,
     build_a_list,
-    data_analysis,
+    usdata_analysis,
+    ctdata_analysis,
 ):
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
@@ -295,8 +303,8 @@ def main(
                     data["ctld2fol"],  # or data["ctld" + data["annotator2"] + "fol"]
                     individual + k_side + data["annotator2"] + data["ctld_end"],
                 )
-                ldks1 = dt.Landmarks(ldk1path)
-                ldks2 = dt.Landmarks(ldk2path)
+                ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
+                ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
                 list_of_ldks = [ldks1, ldks2]
                 fused_nparray = dt.fuse_landmarks(
                     list_of_trusted_ldks=list_of_ldks,
@@ -321,8 +329,8 @@ def main(
                 data["usld2fol"],  # or data["usld" + data["annotator2"] + "fol"]
                 individual + k_side + data["annotator2"] + data["usld_end"],
             )
-            ldks1 = dt.Landmarks(ldk1path)
-            ldks2 = dt.Landmarks(ldk2path)
+            ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
+            ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
             list_of_ldks = [ldks1, ldks2]
             fused_nparray = dt.fuse_landmarks(
                 list_of_trusted_ldks=list_of_ldks,
@@ -340,7 +348,7 @@ def main(
                     data["ctmegtfol"],  # or data["ctme" + data["gt"] + "fol"]
                     individual + k_side + data["ctme_end"],
                 )
-                mesh = dt.Mesh(meshpath)
+                mesh = dt.Mesh(meshpath, annotatorID="gt")
                 nparraypcd = mesh.to_nparraypcd()
                 o3dpcd = mesh.to_o3dpcd()
                 print(type(nparraypcd), nparraypcd.shape)
@@ -356,7 +364,7 @@ def main(
                 data["usmegtfol"],  # or data["usme" + data["gt"] + "fol"]
                 individual + k_side + data["usme_end"],
             )
-            mesh = dt.Mesh(meshpath)
+            mesh = dt.Mesh(meshpath, annotatorID="gt")
             nparraypcd = mesh.to_nparraypcd()
             o3dpcd = mesh.to_o3dpcd()
             print(type(nparraypcd), nparraypcd.shape)
@@ -375,101 +383,30 @@ def main(
         )
         print(data_path_list)
 
-    if data_analysis:
-        USlike_IDlist = data["usfold"]["cv1"]
+    if usdata_analysis:
+        modality = "us"
+        usdatanalysis_folder = join(data["out_location"], data["us_analysis_folder"])
+        makedir(usdatanalysis_folder)
 
-        usma1_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ma",
-            annotatorID="annotator1",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usma2_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ma",
-            annotatorID="annotator2",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usmagt_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ma",
-            annotatorID="gt",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usme1_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="me",
-            annotatorID="annotator1",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usme2_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="me",
-            annotatorID="annotator2",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usmegt_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="me",
-            annotatorID="gt",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usld1_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ld",
-            annotatorID="annotator1",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usld2_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ld",
-            annotatorID="annotator2",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
-        )
-        usldgt_files = build_list(
-            data_config=data,
-            modality="us",
-            datatype="ld",
-            annotatorID="gt",
-            USlike_IDlist=USlike_IDlist,
-            CTlike_IDlist=None,
+        USlike_IDlist = uslist
+        CTlike_IDlist = None
+
+        usma1_files, usma2_files, usmagt_files = build_many_mask_list(
+            modality, data, USlike_IDlist, CTlike_IDlist
         )
 
-        # print(usma1_files)
-        # print("###")
-        # print(usma2_files)
-        # print("###")
-        # print(usmagt_files)
-        # print("###")
-        # print(usme1_files)
-        # print("###")
-        # print(usme2_files)
-        # print("###")
-        # print(usmegt_files)
-        # print("###")
-        # print(usld1_files)
-        # print("###")
-        # print(usld2_files)
-        # print("###")
-        # print(usldgt_files)
+        (
+            usme1_files,
+            usme2_files,
+            usmegt_files,
+            usld1_files,
+            usld2_files,
+            usldgt_files,
+        ) = build_many_me_ld_list(modality, data, USlike_IDlist, CTlike_IDlist)
 
-        usdatanalysis(
+        datanalysis(
+            modality,
+            usdatanalysis_folder,
             usma1_files,
             usma2_files,
             usmagt_files,
@@ -479,6 +416,44 @@ def main(
             usld1_files,
             usld2_files,
             usldgt_files,
+        )
+
+    if ctdata_analysis:
+        modality = "ct"
+        ctdatanalysis_folder = join(data["out_location"], data["ct_analysis_folder"])
+        makedir(ctdatanalysis_folder)
+
+        # For CT Masks
+        USlike_IDlist = None
+        CTlike_IDlist = ctlist
+        ctma1_files, ctma2_files, ctmagt_files = build_many_mask_list(
+            modality, data, USlike_IDlist, CTlike_IDlist
+        )
+
+        # For CT Meshes and Landmarks which are name like US ones
+        USlike_IDlist = ctlist_with_side
+        CTlike_IDlist = None
+        (
+            ctme1_files,
+            ctme2_files,
+            ctmegt_files,
+            ctld1_files,
+            ctld2_files,
+            ctldgt_files,
+        ) = build_many_me_ld_list(modality, data, USlike_IDlist, CTlike_IDlist)
+
+        datanalysis(
+            modality,
+            ctdatanalysis_folder,
+            ctma1_files,
+            ctma2_files,
+            ctmagt_files,
+            ctme1_files,
+            ctme2_files,
+            ctmegt_files,
+            ctld1_files,
+            ctld2_files,
+            ctldgt_files,
         )
 
     return
@@ -496,6 +471,7 @@ if __name__ == "__main__":
         + data["ctfold"]["cv4"]
         + data["ctfold"]["cv5"]
     )
+    allct_with_side = natsorted([j + "L" for j in allct] + [j + "R" for j in allct])
     allus = natsorted(
         data["usfold"]["cv1"]
         + data["usfold"]["cv2"]
@@ -505,10 +481,12 @@ if __name__ == "__main__":
     )
 
     ctcv1 = data["ctfold"]["cv1"]
+    ctcv1_with_side = natsorted([j + "L" for j in ctcv1] + [j + "R" for j in ctcv1])
     uscv1 = data["usfold"]["cv1"]
 
-    ctlist = ctcv1
-    uslist = uscv1
+    ctlist_with_side = allct_with_side
+    ctlist = allct
+    uslist = allus
     resizing = 0
     CTmask_to_mesh_and_pcd = 0
     USmask_to_mesh_and_pcd = 0
@@ -520,9 +498,11 @@ if __name__ == "__main__":
     fuse_landmark = 0
     mesh_to_pcd = 0
     build_a_list = 0
-    data_analysis = 1
+    usdata_analysis = 1
+    ctdata_analysis = 1
 
     main(
+        ctlist_with_side,
         ctlist,
         uslist,
         resizing,
@@ -536,7 +516,8 @@ if __name__ == "__main__":
         fuse_landmark,
         mesh_to_pcd,
         build_a_list,
-        data_analysis,
+        usdata_analysis,
+        ctdata_analysis,
     )
 
 

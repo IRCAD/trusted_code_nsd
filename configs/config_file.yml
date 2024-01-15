@@ -52,6 +52,8 @@ ctldgtfol: "CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 
 ## ''' 6- FOLDERS NO PROVIDED (Have to be created by used if need. Can be added)'''
 # out_location: "..." # any output location
+us_analysis_folder: "us_analysis_folder"
+ct_analysis_folder: "ct_analysis_folder"
 
 ctspma1fol: "CT_DATA/CTsplit_masks/Annotator1/" # CT split masks
 ctspma2fol: "CT_DATA/CTsplit_masks/Annotator2/"
@@ -68,6 +70,7 @@ ct0ma2fol: "CT_DATA/CT_masks_origin0/Annotator2/"
 ct0magtfol: "CT_DATA/CT_masks_origin0/GT_estimated_masksCT/"
 
 
+
 ## ''' 7- Data name suffixes '''
 usimg_end: "_imgUS.nii.gz"
 usma_end: "_maskUS.nii.gz"
@@ -82,16 +85,16 @@ ctld_end: "_ldkCT.txt"
 
 ## ''' 8- Five-fold cross validation test set splits '''
 ctfold:
-   cv1: ['116']
-   # cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
+   # cv1: ['116']
+   cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
    cv2: ['47', '01', '74', '14', '33', '24', '72', '51', '64']
    cv3: ['05', '57', '43', '94', '131', '11', '54', '12', '15', '17']
    cv4: ['21', '03', '97', '27', '23', '09', '61', '32', '53', '119']
    cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']
 
 usfold:
-   cv1: ['01L', '01R']
-   #  cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
+   # cv1: ['01L', '01R']
+   cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
    cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
    cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
    cv4: ['21R', '21L', '03R', '03L', '97R', '97L', '27R', '27L', '23R', '23L', '53L', '119R']

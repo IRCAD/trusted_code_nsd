@@ -2,91 +2,117 @@
 In this file, we analyse the fused manual segmentations versus each annotator.
 """
 
+from os.path import join
 
 import numpy as np
+import pandas as pd
 from natsort import natsorted
 
 from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.metrics import Dice, HaussDistance, MeanNNDistance
 
 
-def usdatanalysis(
-    usma1_files,
-    usma2_files,
-    usmagt_files,
-    usme1_files,
-    usme2_files,
-    usmegt_files,
-    usld1_files,
-    usld2_files,
-    usldgt_files,
+def datanalysis(
+    modality,
+    analysis_folder,
+    ma1_files,
+    ma2_files,
+    magt_files,
+    me1_files,
+    me2_files,
+    megt_files,
+    ld1_files,
+    ld2_files,
+    ldgt_files,
 ):
     assert (
-        len(usmagt_files) == len(usma1_files)
-        and len(usmagt_files) == len(usma2_files)
-        and len(usmegt_files) == len(usme1_files)
-        and len(usmegt_files) == len(usme2_files)
-        and len(usldgt_files) == len(usld1_files)
-        and len(usldgt_files) == len(usld2_files)
+        len(magt_files) == len(ma1_files)
+        and len(magt_files) == len(ma2_files)
+        and len(megt_files) == len(me1_files)
+        and len(megt_files) == len(me2_files)
+        and len(ldgt_files) == len(ld1_files)
+        and len(ldgt_files) == len(ld2_files)
     ), "There is an incompatibility about the number of files in the lists you give me."
 
-    usma1_files = natsorted(usma1_files)
-    usma2_files = natsorted(usma2_files)
-    usmagt_files = natsorted(usmagt_files)
-    usme1_files = natsorted(usme1_files)
-    usme2_files = natsorted(usme2_files)
-    usmegt_files = natsorted(usmegt_files)
-    usld1_files = natsorted(usld1_files)
-    usld2_files = natsorted(usld2_files)
-    usldgt_files = natsorted(usldgt_files)
+    csv_dice_file = join(analysis_folder, modality + "_dice.csv")
+    csv_othermetric_file = join(analysis_folder, modality + "_othermetric.csv")
 
-    for i, file in enumerate(usmagt_files):
-        dice_us1 = np.nan
-        dice_us2 = np.nan
-        haus_us1 = np.nan
-        haus_us2 = np.nan
-        dst_us1 = np.nan
-        dst_us2 = np.nan
+    df_dice = pd.DataFrame()
+    df_othermetric = pd.DataFrame()
 
-        usmagt = dt.Mask(file, annotatorID="gt")
-        assert usmagt.modality == "US", "The mask seems not to be for a US image"
-        ID = usmagt.individual_name
-        usme1 = dt.Mesh(usme1_files[i])
-        usme2 = dt.Mesh(usme2_files[i])
-        usmegt = dt.Mesh(usmegt_files[i])
-        dt.Landmarks(usld1_files[i])
-        dt.Landmarks(usld2_files[i])
-        dt.Landmarks(usldgt_files[i])
+    ma1_files = natsorted(ma1_files)
+    ma2_files = natsorted(ma2_files)
+    magt_files = natsorted(magt_files)
+    me1_files = natsorted(me1_files)
+    me2_files = natsorted(me2_files)
+    megt_files = natsorted(megt_files)
+    ld1_files = natsorted(ld1_files)
+    ld2_files = natsorted(ld2_files)
+    ldgt_files = natsorted(ldgt_files)
+
+    for i, magt_file in enumerate(magt_files):
+        dice1 = np.nan
+        dice2 = np.nan
+
+        magt = dt.Mask(magt_file, annotatorID="gt")
+        if modality == "us":
+            assert magt.modality == "US", "The mask seems not to be for a US image"
+        if modality == "ct":
+            assert magt.modality == "CT", "The mask seems not to be for a CT image"
+
+        ID = magt.individual_name
+
+        print("Processing ", ID)
 
         # Evaluate Dice score metric over US masks:
-
         try:
-            dice_us = Dice(usma1_files[i], file)
-            dice_us1 = dice_us.evaluate_overlap()
-            print("dice_us1: ", dice_us1)
-
-            dice_us = Dice(usma2_files[i], file)
-            dice_us2 = dice_us.evaluate_overlap()
-            print("dice_us2: ", dice_us2)
+            dice = Dice(ma1_files[i], magt_file)
+            dice1 = dice.evaluate_overlap()
+            dice = Dice(ma2_files[i], magt_file)
+            dice2 = dice.evaluate_overlap()
         except ValueError:
             error_message = (
-                "There is an error when computing Dice for US, individual "
-                + ID
-                + ". \n"
+                "There is an error when computing Dice for individual " + ID + ". \n"
             )
             print(error_message)
 
+        # Results saving
+        values = {"kidney_id": ID, "dice_us1": dice1, "dice_us2": dice2}
+        df_dice = df_dice.append(values, ignore_index=True)
+
+    df_dice.to_csv(csv_dice_file, index=False)
+
+    for i, megt_file in enumerate(megt_files):
+        haus1 = np.nan
+        haus2 = np.nan
+        nndst1 = np.nan
+        nndst2 = np.nan
+        lm_dist1 = [np.nan for i in range(7)]
+        lm_dist2 = [np.nan for i in range(7)]
+
+        megt = dt.Mesh(megt_file, annotatorID="gt")
+        if modality == "us":
+            assert magt.modality == "US", "The mask seems not to be for a US image"
+        if modality == "ct":
+            assert magt.modality == "CT", "The mask seems not to be for a CT image"
+
+        ID = megt.individual_name
+
+        print("Processing ", ID)
+        me1 = dt.Mesh(me1_files[i], annotatorID="1")
+        me2 = dt.Mesh(me2_files[i], annotatorID="2")
+        ld1 = dt.Landmarks(ld1_files[i], annotatorID="1")
+        ld2 = dt.Landmarks(ld2_files[i], annotatorID="2")
+        ldgt = dt.Landmarks(ldgt_files[i], annotatorID="gt")
+
         # Evaluate Hausdorf metric over US meshes:
         try:
-            haus_us = HaussDistance(95)
-            haus_us1 = haus_us.evaluate_mesh(usme1.o3dmesh, usmegt.o3dmesh)
-            print("haus_us1: ", haus_us1)
-
-            haus_us2 = haus_us.evaluate_mesh(usme2.o3dmesh, usmegt.o3dmesh)
-            print("haus_us2: ", haus_us2)
+            haus = HaussDistance(95)
+            haus1 = haus.evaluate_mesh(me1.o3dmesh, megt.o3dmesh)
+            haus2 = haus.evaluate_mesh(me2.o3dmesh, megt.o3dmesh)
         except ValueError:
             error_message = (
-                "There is an error when computing HausdorffMask for US, individual "
+                "There is an error when computing HausdorffMask for individual "
                 + ID
                 + ". \n"
             )
@@ -95,70 +121,44 @@ def usdatanalysis(
         # Evaluate US mean surface-to-surface nearest neighbour distance:
         try:
             d_nn = MeanNNDistance()
-            dst_us1 = d_nn.evaluate_mesh(usme1.o3dmesh, usmegt.o3dmesh)
-            print("dst_us1 =", dst_us1)
-
-            dst_us2 = d_nn.evaluate_mesh(usme2.o3dmesh, usmegt.o3dmesh)
-            print("dst_us2 =", dst_us2)
+            nndst1 = d_nn.evaluate_mesh(me1.o3dmesh, megt.o3dmesh)
+            nndst2 = d_nn.evaluate_mesh(me2.o3dmesh, megt.o3dmesh)
         except ValueError:
             error_message = (
-                "There is an error when computing  US nn_dist for individual "
+                "There is an error when computing nn_dist for individual " + ID + ". \n"
+            )
+            print(error_message)
+
+        # Evaluate US landmark inter-annotator agreement:
+        try:
+            for t in range(7):
+                lm_dist1[t] = np.linalg.norm(ld1.nparray[t, :] - ldgt.nparray[t, :])
+                lm_dist2[t] = np.linalg.norm(ld2.nparray[t, :] - ldgt.nparray[t, :])
+        except ValueError:
+            error_message = (
+                "There is an error when computing landmark inter-annotator agreement for individual "
                 + ID
                 + ". \n"
             )
             print(error_message)
 
+        # Results saving
+        values = {
+            "kidney_id": ID,
+            "h95mesh1": haus1,
+            "h95mesh2": haus2,
+            "nndst1": nndst1,
+            "nndst2": nndst2,
+            "lm1_dist": lm_dist1[0],
+            "lm2_dist": lm_dist1[1],
+            "lm3_dist": lm_dist1[2],
+            "lm4_dist": lm_dist1[3],
+            "lm5_dist": lm_dist1[4],
+            "lm6_dist": lm_dist1[5],
+            "lm7_dist": lm_dist1[6],
+        }
+        df_othermetric = df_othermetric.append(values, ignore_index=True)
+
+    df_othermetric.to_csv(csv_othermetric_file, index=False)
+
     return
-
-
-# def ctdatanalysis(
-#     ctma1_files, ctma2_files, ctmagt_files, ctld1_files, ctld2_files, ctldgt_files
-# ):
-#     assert (
-#         len(ctmagt_files) == len(ctma1_files)
-#         and len(ctmagt_files) == len(ctma2_files)
-#         and len(ctldgt_files) == len(ctld1_files)
-#         and len(ctldgt_files) == len(ctld2_files)
-#     ), "There is an incompatibility about the number of files in the lists you give me."
-
-#     ctma1_files = natsorted(ctma1_files)
-#     ctma2_files = natsorted(ctma2_files)
-#     ctmagt_files = natsorted(ctmagt_files)
-#     ctld1_files = natsorted(ctld1_files)
-#     ctld2_files = natsorted(ctld2_files)
-#     ctldgt_files = natsorted(ctldgt_files)
-
-#     for i, file in enumerate(ctmagt_files):
-#         np.nan
-#         np.nan
-#         np.nan
-#         np.nan
-#         np.nan
-#         np.nan
-
-#         ctmagt = dt.Mask(file)
-#         assert ctmagt.modality == "CT", "The mask seems not to be for a CT image"
-#         ctmagt.individual_name
-#         dt.Mask(ctma1_files[i])
-#         dt.Mask(ctma2_files[i])
-#         dt.Mask(ctld1_files[i])
-#         dt.Mask(ctld2_files[i])
-#         dt.Mask(ctldgt_files[i])
-
-
-# def write_csv_files(files, results_pth):
-#     """
-#     Writes registration results as a CSV file (which is then cted to compute registration statistics)
-#     :return: None
-#     """
-
-#     df = pd.DataFrame()
-#     for f in files:
-#         ID = get_id_from_filename(f)
-#         plkf = results_pth + "/" + ID + ".pkl"
-#         if os.path.exists(plkf):
-#             values = pickle.load(open(plkf, "rb"))
-#             df = df.append(values, ignore_index=True)
-#         else:
-#             print(plkf + " does not exist")
-#     df.to_csv(results_pth + "/" + "results.csv", index=False)

@@ -425,7 +425,7 @@ class Mask:
 
 
 class Landmarks:
-    def __init__(self, ldkspath) -> None:
+    def __init__(self, ldkspath, annotatorID) -> None:
         assert ldkspath[-4:] == ".txt"
         self.path = ldkspath
         self.basename = os.path.basename(self.path)
@@ -433,11 +433,20 @@ class Landmarks:
 
         # Determine the modality of the image
         self.modality = None
+        self.modality = "CT" if "CT" in self.basename else "US"
 
-        if "US" in self.basename:
-            self.modality = "US"
-        if "CT" in self.basename:
-            self.modality = "CT"
+        self.suffix = "_ldk" + self.modality + ".txt"
+
+        if annotatorID == "gt":
+            self.annotatorID = ""
+            b = self.suffix
+        else:
+            self.annotatorID = str(annotatorID)
+            b = self.annotatorID + self.suffix
+
+        a = re.search(b, self.basename).start()
+
+        self.individual_name = self.basename[:a]
 
     def to_o3d(self, ply_dirname=None):
         if len(self.nparray.shape) == 1:
@@ -452,7 +461,7 @@ class Landmarks:
 
 
 class Mesh:
-    def __init__(self, meshpath) -> None:
+    def __init__(self, meshpath, annotatorID) -> None:
         assert meshpath[-4:] == ".obj"
         self.path = meshpath
         self.basename = os.path.basename(self.path)
@@ -460,11 +469,20 @@ class Mesh:
 
         # Determine the modality of the image
         self.modality = None
+        self.modality = "CT" if "CT" in self.basename else "US"
 
-        if "US" in self.basename:
-            self.modality = "US"
-        if "CT" in self.basename:
-            self.modality = "CT"
+        self.suffix = "meshface" + self.modality + ".obj"
+
+        if annotatorID == "gt":
+            self.annotatorID = ""
+            b = self.suffix
+        else:
+            self.annotatorID = str(annotatorID)
+            b = self.annotatorID + self.suffix
+
+        a = re.search(b, self.basename).start()
+
+        self.individual_name = self.basename[:a]
 
     def to_nparraypcd(self):
         nparray = np.array(self.o3dmesh.vertices)

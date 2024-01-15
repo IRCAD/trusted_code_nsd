@@ -259,8 +259,8 @@ def main(
             data["ctld2fol"],
             data["individual"] + data["k_side"] + data["annotator2"] + data["ctld_end"],
         )
-        ldks1 = dt.Landmarks(ldk1path)
-        ldks2 = dt.Landmarks(ldk2path)
+        ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
+        ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
         list_of_ldks = [ldks1, ldks2]
         fused_nparray = dt.fuse_landmarks(
             list_of_trusted_ldks=list_of_ldks,
@@ -275,7 +275,7 @@ def main(
             data["usmegtfol"],
             data["individual"] + data["k_side"] + data["usme_end"],
         )
-        mesh = dt.Mesh(meshpath)
+        mesh = dt.Mesh(meshpath, annotatorID=data["gt"])
         nparraypcd = mesh.to_nparraypcd()
         o3dpcd = mesh.to_o3dpcd()
         print(type(nparraypcd), nparraypcd.shape)

@@ -61,18 +61,18 @@ def build_list(
         int(USlike_IDlist is None) + int(CTlike_IDlist is None)
     ) == 1, "one and only one IDlist must be empty"
 
-    data = data_config
+    config = data_config
 
     if annotatorID == "gt":
         ma_middle = ""
         me_middle = ""
     else:
         if modality == "ct":
-            ma_middle = "_" + data[annotatorID]
+            ma_middle = "_" + config[annotatorID]
         if modality == "us":
-            ma_middle = data[annotatorID]
+            ma_middle = config[annotatorID]
 
-        me_middle = data[annotatorID]
+        me_middle = config[annotatorID]
 
     if datatype == "img":
         str_var_IDlist = modality.upper() + "like_IDlist"
@@ -81,16 +81,16 @@ def build_list(
         IDlist = var_IDlist
         data_path_list = [
             join(
-                data["data_location"],
-                data[modality + "imgfol"],
-                individual + data[modality + "img_end"],
+                config["data_location"],
+                config[modality + "imgfol"],
+                individual + config[modality + "img_end"],
             )
             for individual in IDlist
             if isfile(
                 join(
-                    data["data_location"],
-                    data[modality + "imgfol"],
-                    individual + data[modality + "img_end"],
+                    config["data_location"],
+                    config[modality + "imgfol"],
+                    individual + config[modality + "img_end"],
                 )
             )
         ]
@@ -107,16 +107,16 @@ def build_list(
 
             data_path_list = [
                 join(
-                    data["data_location"],
-                    data[start + data[annotatorID] + "fol"],
-                    individual + ma_middle + data[modality + "ma_end"],
+                    config["data_location"],
+                    config[start + config[annotatorID] + "fol"],
+                    individual + ma_middle + config[modality + "ma_end"],
                 )
                 for individual in IDlist
                 if isfile(
                     join(
-                        data["data_location"],
-                        data[start + data[annotatorID] + "fol"],
-                        individual + ma_middle + data[modality + "ma_end"],
+                        config["data_location"],
+                        config[start + config[annotatorID] + "fol"],
+                        individual + ma_middle + config[modality + "ma_end"],
                     )
                 )
             ]
@@ -127,16 +127,16 @@ def build_list(
             IDlist = CTlike_IDlist
             data_path_list = [
                 join(
-                    data["data_location"],
-                    data["ctma" + data[annotatorID] + "fol"],
-                    individual + ma_middle + data["ctma_end"],
+                    config["data_location"],
+                    config["ctma" + config[annotatorID] + "fol"],
+                    individual + ma_middle + config["ctma_end"],
                 )
                 for individual in IDlist
                 if isfile(
                     join(
-                        data["data_location"],
-                        data["ctma" + data[annotatorID] + "fol"],
-                        individual + ma_middle + data["ctma_end"],
+                        config["data_location"],
+                        config["ctma" + config[annotatorID] + "fol"],
+                        individual + ma_middle + config["ctma_end"],
                     )
                 )
             ]
@@ -148,16 +148,16 @@ def build_list(
         IDlist = USlike_IDlist
         data_path_list = [
             join(
-                data["data_location"],
-                data[modality + "me" + data[annotatorID] + "fol"],
-                individual + me_middle + data[modality + "me_end"],
+                config["data_location"],
+                config[modality + "me" + config[annotatorID] + "fol"],
+                individual + me_middle + config[modality + "me_end"],
             )
             for individual in IDlist
             if isfile(
                 join(
-                    data["data_location"],
-                    data[modality + "me" + data[annotatorID] + "fol"],
-                    individual + me_middle + data[modality + "me_end"],
+                    config["data_location"],
+                    config[modality + "me" + config[annotatorID] + "fol"],
+                    individual + me_middle + config[modality + "me_end"],
                 )
             )
         ]
@@ -169,18 +169,100 @@ def build_list(
         IDlist = USlike_IDlist
         data_path_list = [
             join(
-                data["data_location"],
-                data[modality + "ld" + data[annotatorID] + "fol"],
-                individual + me_middle + data[modality + "ld_end"],
+                config["data_location"],
+                config[modality + "ld" + config[annotatorID] + "fol"],
+                individual + me_middle + config[modality + "ld_end"],
             )
             for individual in IDlist
             if isfile(
                 join(
-                    data["data_location"],
-                    data[modality + "ld" + data[annotatorID] + "fol"],
-                    individual + me_middle + data[modality + "ld_end"],
+                    config["data_location"],
+                    config[modality + "ld" + config[annotatorID] + "fol"],
+                    individual + me_middle + config[modality + "ld_end"],
                 )
             )
         ]
 
     return data_path_list
+
+
+def build_many_mask_list(mod, config, USlike_IDlist, CTlike_IDlist):
+    ma1_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ma",
+        annotatorID="annotator1",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=CTlike_IDlist,
+    )
+    ma2_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ma",
+        annotatorID="annotator2",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=CTlike_IDlist,
+    )
+    magt_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ma",
+        annotatorID="gt",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=CTlike_IDlist,
+    )
+
+    return ma1_files, ma2_files, magt_files
+
+
+def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
+    me1_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="me",
+        annotatorID="annotator1",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+    me2_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="me",
+        annotatorID="annotator2",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+    megt_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="me",
+        annotatorID="gt",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+    ld1_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ld",
+        annotatorID="annotator1",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+    ld2_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ld",
+        annotatorID="annotator2",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+    ldgt_files = build_list(
+        data_config=config,
+        modality=mod,
+        datatype="ld",
+        annotatorID="gt",
+        USlike_IDlist=USlike_IDlist,
+        CTlike_IDlist=None,
+    )
+
+    return me1_files, me2_files, megt_files, ld1_files, ld2_files, ldgt_files
