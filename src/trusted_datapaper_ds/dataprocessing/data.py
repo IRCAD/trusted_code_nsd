@@ -774,3 +774,39 @@ def resiz_nib_data(input_nib, newsize, interpolmode):
     resized_nib = nib.Nifti1Image(resized_nparray, affine)
 
     return resized_nib
+
+
+def clean_nibmask(nib_mask, number_of_kidney):
+    assert number_of_kidney in [1, 2], " number_of_kidney must be 1 or 2"
+
+    affine = nib_mask.affine
+
+    out = cc3d.connected_components(nib_mask.get_fdata())
+    bins_origin = np.bincount(out.flatten())
+    bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
+    ind0 = 0
+    bins_copy.remove(bins_origin[ind0])
+    ind1 = np.where(bins_origin == max(bins_copy))[0][0]
+    bins_copy.remove(bins_origin[ind1])
+
+    if number_of_kidney == 2:
+        ind2 = np.where(bins_origin == max(bins_copy))[0][0]
+        bins_copy.remove(bins_origin[ind2])
+        out1 = out.copy()
+        out1[out1 != ind1] = 0
+        out2 = out.copy()
+        out2[out2 != ind2] = 0
+        out1[out1 > 0] = 1
+        out2[out2 > 0] = 1
+        out_both = out1 + out2
+
+    if number_of_kidney == 1:
+        out1 = out.copy()
+        out1[out1 != ind1] = 0
+        out1[out1 > 0] = 1
+        out_both = out1
+
+    clean_mask_nib = nib.Nifti1Image(out_both, affine)
+
+    print("mask cleaned and contained ", number_of_kidney, " kidney(s)")
+    return clean_mask_nib
