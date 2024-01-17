@@ -31,29 +31,30 @@ def main(
 ):
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
-
-    print(data)
+        config = yaml.safe_load(yaml_file)
 
     # Image and Mask resizing (here a US image, and mask from annotator 2) ###
     # Note: "resized_dirname" is the directory to save the resized data.
     if resizing:
-        resized_dirname = data["out_location"]
+        resized_dirname = config["out_location"]
         imgpath = join(
-            data["data_location"],
-            data["usimgfol"],
-            data["individual"] + data["k_side"] + data["usimg_end"],
+            config["data_location"],
+            config["usimgfol"],
+            config["individual"] + config["k_side"] + config["usimg_end"],
         )
         maskpath = join(
-            data["data_location"],
-            data["usma2fol"],
-            data["individual"] + data["k_side"] + data["annotator2"] + data["usma_end"],
+            config["data_location"],
+            config["usma2fol"],
+            config["individual"]
+            + config["k_side"]
+            + config["annotator2"]
+            + config["usma_end"],
         )
         newsize = [128, 128, 128]
 
         img = dt.Image(imgpath)
         mask = dt.Mask(
-            maskpath, annotatorID=data["annotator2"]
+            maskpath, annotatorID=config["annotator2"]
         )  # or simply annotatorID='2'
 
         resized_img_nparray = img.resize(
@@ -69,22 +70,22 @@ def main(
     # Note: "resized_dirname" is the directory to save the resized data.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if resizing:
-        resized_dirname = data["out_location"]
+        resized_dirname = config["out_location"]
         imgpath = join(
-            data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["ctimg_end"],
+            config["data_location"],
+            config["ctimgfol"],
+            config["individual"] + config["ctimg_end"],
         )
         maskpath = join(
-            data["data_location"],
-            data["ctma1fol"],
-            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
+            config["data_location"],
+            config["ctma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
         )
         newsize = [128, 128, 128]
 
         img = dt.Image(imgpath)
         mask = dt.Mask(
-            maskpath, annotatorID=data["annotator1"]
+            maskpath, annotatorID=config["annotator1"]
         )  # or simply annotatorID='2'
 
         print(img.modality)
@@ -102,15 +103,21 @@ def main(
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     if CTmask_to_mesh_and_pcd:
-        mesh_dirname = data["out_location"]
-        pcd_dirname = data["out_location"]
+        mesh_dirname = config["out_location"]
+        pcd_dirname = config["out_location"]
         maskpath = join(
-            data["data_location"],
-            data["ctmagtfol"],
-            data["individual"] + data["ctma_end"],
+            config["data_location"],
+            config["ctmagtfol"],
+            config["individual"] + config["ctma_end"],
         )
         ctmask = dt.Mask(maskpath, annotatorID="gt")
-        o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R = ctmask.to_mesh_and_pcd(
+        (
+            o3d_meshCT_L,
+            o3d_meshCT_R,
+            o3d_pcdCT_L,
+            o3d_pcdCT_R,
+            mask_cleaned_nib,
+        ) = ctmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
             mask_cleaning=False,
@@ -120,15 +127,15 @@ def main(
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     if USmask_to_mesh_and_pcd:
-        mesh_dirname = data["out_location"]
-        pcd_dirname = data["out_location"]
+        mesh_dirname = config["out_location"]
+        pcd_dirname = config["out_location"]
         maskpath = join(
-            data["data_location"],
-            data["usmagtfol"],
-            data["individual"] + data["k_side"] + data["usma_end"],
+            config["data_location"],
+            config["usmagtfol"],
+            config["individual"] + config["k_side"] + config["usma_end"],
         )
         usmask = dt.Mask(maskpath, annotatorID="gt")
-        o3d_meshUS, o3d_pcdUS = usmask.to_mesh_and_pcd(
+        o3d_meshUS, o3d_pcdUS, mask_cleaned_nib = usmask.to_mesh_and_pcd(
             mesh_dirname=mesh_dirname,
             pcd_dirname=pcd_dirname,
             mask_cleaning=False,
@@ -138,35 +145,35 @@ def main(
     # Note: "split_dirname" is the directory to save the split data.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if splitCTmask1:
-        split_dirname = data["out_location"]
+        split_dirname = config["out_location"]
         maskpath = join(
-            data["data_location"],
-            data["ctma1fol"],
-            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
+            config["data_location"],
+            config["ctma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
         )
-        ctmask = dt.Mask(maskpath, annotatorID=data["annotator1"])
-        nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
+        ctmask = dt.Mask(maskpath, annotatorID=config["annotator1"])
+        nibL, nibR = ctmask.split(split_dirname=split_dirname)
 
     # Split CT mask (here from ground truth) ###
     # Note: "split_dirname" is the directory to save the split data.
     if splitCTmaskgt:
-        split_dirname = data["out_location"]
+        split_dirname = config["out_location"]
         maskpath = join(
-            data["data_location"],
-            data["ctmagtfol"],
-            data["individual"] + data["ctma_end"],
+            config["data_location"],
+            config["ctmagtfol"],
+            config["individual"] + config["ctma_end"],
         )
         ctmask = dt.Mask(maskpath, annotatorID="gt")
-        nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
+        nibL, nibR = ctmask.split(split_dirname=split_dirname)
 
     # Shift the origin of an image or mask (here a CT image) ###
     # Note: "shifted_dirname" is the directory to save the shifted data.
     if shift_origin:
-        shifted_dirname = data["out_location"]
+        shifted_dirname = config["out_location"]
         imgpath = join(
-            data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["ctimg_end"],
+            config["data_location"],
+            config["ctimgfol"],
+            config["individual"] + config["ctimg_end"],
         )
         ctimg = dt.Image(imgpath)
         img_itk_shifted = ctimg.shift_origin(shifted_dirname=shifted_dirname)
@@ -176,25 +183,25 @@ def main(
     # Note: "fused_dirname" is the directory to save the fused mask.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if fuse_CTmask:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         imgpath = join(
-            data["data_location"],
-            data["ctimgfol"],
-            data["individual"] + data["ctimg_end"],
+            config["data_location"],
+            config["ctimgfol"],
+            config["individual"] + config["ctimg_end"],
         )
         mask1path = join(
-            data["data_location"],
-            data["ctma1fol"],
-            data["individual"] + "_" + data["annotator1"] + data["ctma_end"],
+            config["data_location"],
+            config["ctma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
         )
         mask2path = join(
-            data["data_location"],
-            data["ctma2fol"],
-            data["individual"] + "_" + data["annotator2"] + data["ctma_end"],
+            config["data_location"],
+            config["ctma2fol"],
+            config["individual"] + "_" + config["annotator2"] + config["ctma_end"],
         )
         img = dt.Image(imgpath)
-        mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
-        mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
+        mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
+        mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
         list_of_masks = [mask1, mask2]
 
         fused_nib = dt.fuse_masks(
@@ -210,25 +217,31 @@ def main(
     # Fuse masks from annotator1 and annotator2 (here a US mask) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_USmask:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         imgpath = join(
-            data["data_location"],
-            data["usimgfol"],
-            data["individual"] + data["k_side"] + data["usimg_end"],
+            config["data_location"],
+            config["usimgfol"],
+            config["individual"] + config["k_side"] + config["usimg_end"],
         )
         mask1path = join(
-            data["data_location"],
-            data["usma1fol"],
-            data["individual"] + data["k_side"] + data["annotator1"] + data["usma_end"],
+            config["data_location"],
+            config["usma1fol"],
+            config["individual"]
+            + config["k_side"]
+            + config["annotator1"]
+            + config["usma_end"],
         )
         mask2path = join(
-            data["data_location"],
-            data["usma2fol"],
-            data["individual"] + data["k_side"] + data["annotator2"] + data["usma_end"],
+            config["data_location"],
+            config["usma2fol"],
+            config["individual"]
+            + config["k_side"]
+            + config["annotator2"]
+            + config["usma_end"],
         )
         img = dt.Image(imgpath)
-        mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
-        mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
+        mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
+        mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
         list_of_masks = [mask1, mask2]
 
         fused_nib = dt.fuse_masks(
@@ -248,19 +261,25 @@ def main(
     # Fuse landmarks from annotator1 and annotator2 (here CT la,ndmarks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_landmark:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         ldk1path = join(
-            data["data_location"],
-            data["ctld1fol"],
-            data["individual"] + data["k_side"] + data["annotator1"] + data["ctld_end"],
+            config["data_location"],
+            config["ctld1fol"],
+            config["individual"]
+            + config["k_side"]
+            + config["annotator1"]
+            + config["ctld_end"],
         )
         ldk2path = join(
-            data["data_location"],
-            data["ctld2fol"],
-            data["individual"] + data["k_side"] + data["annotator2"] + data["ctld_end"],
+            config["data_location"],
+            config["ctld2fol"],
+            config["individual"]
+            + config["k_side"]
+            + config["annotator2"]
+            + config["ctld_end"],
         )
-        ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
-        ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
+        ldks1 = dt.Landmarks(ldk1path, annotatorID=config["annotator1"])
+        ldks2 = dt.Landmarks(ldk2path, annotatorID=config["annotator2"])
         list_of_ldks = [ldks1, ldks2]
         fused_nparray = dt.fuse_landmarks(
             list_of_trusted_ldks=list_of_ldks,
@@ -271,11 +290,11 @@ def main(
     # Read a mesh and convert the vertices into pcd as numpy.array or like open3d pcd object (here a US mesh)
     if mesh_to_pcd:
         meshpath = join(
-            data["data_location"],
-            data["usmegtfol"],
-            data["individual"] + data["k_side"] + data["usme_end"],
+            config["data_location"],
+            config["usmegtfol"],
+            config["individual"] + config["k_side"] + config["usme_end"],
         )
-        mesh = dt.Mesh(meshpath, annotatorID=data["gt"])
+        mesh = dt.Mesh(meshpath, annotatorID=config["gt"])
         nparraypcd = mesh.to_nparraypcd()
         o3dpcd = mesh.to_o3dpcd()
         print(type(nparraypcd), nparraypcd.shape)
@@ -288,8 +307,8 @@ if __name__ == "__main__":
     resizing = 0
     CTmask_to_mesh_and_pcd = 0
     USmask_to_mesh_and_pcd = 0
-    splitCTmask1 = 0
-    splitCTmaskgt = 0
+    splitCTmask1 = 1
+    splitCTmaskgt = 1
     shift_origin = 0
     fuse_CTmask = 0
     fuse_USmask = 0
@@ -303,8 +322,8 @@ if __name__ == "__main__":
         splitCTmask1,
         splitCTmaskgt,
         shift_origin,
-        fuse_CTmask,
         fuse_USmask,
+        fuse_CTmask,
         fuse_landmark,
         mesh_to_pcd,
     )

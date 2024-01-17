@@ -244,61 +244,204 @@ class Mask:
         pcd_dirname=None,
         mask_cleaning=True,
     ):
-        nib_data = self.nibmask
-        modality = self.modality
-        individual_name = self.individual_name
-        annotatorID = self.annotatorID
-        path = self.path
+        affine = self.nibaffine
+        new_affine = np.linalg.solve(np.sign(affine), affine)
+        sign_affine = np.sign(affine)
+        sign_affine[sign_affine == 0.0] = 1.0
+        sign_new_affine = np.sign(new_affine)
+        sign_new_affine[sign_new_affine == 0.0] = 1.0
+        self.mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
+
+        print("*** mesh and pcd creation for: ", self.basename, " ***")
+        out = cc3d.connected_components(self.nparray)
+        bins_origin = np.bincount(out.flatten())
+        bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
+        ind0 = 0
+        bins_copy.remove(bins_origin[ind0])
+        ind1 = np.where(bins_origin == max(bins_copy))[0][0]
+        bins_copy.remove(bins_origin[ind1])
 
         if self.modality == "CT":
+            ind2 = np.where(bins_origin == max(bins_copy))[0][0]
+            bins_copy.remove(bins_origin[ind2])
+            out1 = out.copy()
+            out1[out1 != ind1] = 0
+            out2 = out.copy()
+            out2[out2 != ind2] = 0
+            out1[out1 > 0] = 1
+            out2[out2 > 0] = 1
+            out_both = out1 + out2
+            del out
             (
-                o3d_meshCT_L,
-                o3d_meshCT_R,
-                o3d_pcdCT_L,
-                o3d_pcdCT_R,
-                mask_cleaned_nib,
-            ) = convert_to_mesh_and_pcd(
-                nib_data,
-                modality,
-                individual_name,
-                annotatorID,
-                path,
-                mesh_dirname,
-                pcd_dirname,
-                mask_cleaning,
+                vertexsCT1,
+                faceCT1,
+                normalsCT1,
+                valuesCT1,
+            ) = measure.marching_cubes(
+                out1, spacing=self.mesh_orientation, step_size=1, method="lewiner"
             )
-            return (
-                o3d_meshCT_L,
-                o3d_meshCT_R,
-                o3d_pcdCT_L,
-                o3d_pcdCT_R,
-                mask_cleaned_nib,
+            (
+                vertexsCT2,
+                faceCT2,
+                normalsCT2,
+                valuesCT2,
+            ) = measure.marching_cubes(
+                out2, spacing=self.mesh_orientation, step_size=1, method="lewiner"
             )
+
+            o3d_CT_1 = o3d.geometry.TriangleMesh()
+            o3d_CT_1.triangles = o3d.utility.Vector3iVector(faceCT1)
+            o3d_CT_1.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+            o3d_CT_2 = o3d.geometry.TriangleMesh()
+            o3d_CT_2.triangles = o3d.utility.Vector3iVector(faceCT2)
+            o3d_CT_2.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+            x_center1 = np.asarray(o3d_CT_1.get_center())[0]
+            x_center2 = np.asarray(o3d_CT_2.get_center())[0]
+
+            if x_center1 < x_center2:
+                o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT1)
+                o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT2)
+                o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+            if x_center1 > x_center2:
+                o3d_meshCT_R = o3d.geometry.TriangleMesh()
+                o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT1)
+                o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT1)
+
+                o3d_meshCT_L = o3d.geometry.TriangleMesh()
+                o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT2)
+                o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT2)
+
+            o3d_pcdCT_L = o3d.geometry.PointCloud()
+            o3d_pcdCT_L.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshCT_L.vertices)
+            )
+
+            o3d_pcdCT_R = o3d.geometry.PointCloud()
+            o3d_pcdCT_R.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshCT_R.vertices)
+            )
+
+            if mesh_dirname is not None:
+                meshL_path = join(
+                    mesh_dirname,
+                    self.individual_name + "L" + self.annotatorID + "meshfaceCT.obj",
+                )
+                meshR_path = join(
+                    mesh_dirname,
+                    self.individual_name + "R" + self.annotatorID + "meshfaceCT.obj",
+                )
+
+                o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
+                print("o3d_meshCT_L saved as: ", meshL_path)
+                o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
+                print("o3d_meshCT_R saved as: ", meshR_path)
+
+            if pcd_dirname is not None:
+                pcdL_path = join(
+                    pcd_dirname,
+                    self.individual_name + "L" + self.annotatorID + "pcdCT.txt",
+                )
+                pcdR_path = join(
+                    pcd_dirname,
+                    self.individual_name + "R" + self.annotatorID + "pcdCT.txt",
+                )
+
+                np.savetxt(pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", ")
+                print("pcdCT_L_txt saved as: ", pcdL_path)
+                np.savetxt(pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", ")
+                print("pcdCT_R_txt saved as: ", pcdR_path)
+
+            print("case done")
+            return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R
 
         if self.modality == "US":
-            o3d_meshUS, o3d_pcdUS, mask_cleaned_nib = convert_to_mesh_and_pcd(
-                nib_data,
-                modality,
-                individual_name,
-                annotatorID,
-                path,
-                mesh_dirname,
-                pcd_dirname,
-                mask_cleaning,
+            out1 = out.copy()
+            out1[out1 != ind1] = 0
+            out1[out1 > 0] = 1
+            out_both = out1
+            del out
+            (
+                vertexsUS,
+                faceUS,
+                normalsUS,
+                valuesUS,
+            ) = measure.marching_cubes(
+                out1, spacing=self.mesh_orientation, step_size=1, method="lewiner"
             )
-            return o3d_meshUS, o3d_pcdUS, mask_cleaned_nib
+            o3d_meshUS = o3d.geometry.TriangleMesh()
+            o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
+            o3d_meshUS.vertices = o3d.utility.Vector3dVector(vertexsUS)
+
+            o3d_pcdUS = o3d.geometry.PointCloud()
+            o3d_pcdUS.points = o3d.utility.Vector3dVector(
+                np.asarray(o3d_meshUS.vertices)
+            )
+
+            if mesh_dirname is not None:
+                mesh_path = join(
+                    mesh_dirname,
+                    self.individual_name + self.annotatorID + "meshfaceUS.obj",
+                )
+
+                o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
+                print("o3d_meshUS saved as: ", mesh_path)
+
+            if pcd_dirname is not None:
+                pcd_path = join(
+                    pcd_dirname,
+                    self.individual_name + self.annotatorID + "pcdUS.txt",
+                )
+                np.savetxt(pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", ")
+                print("pcdUS_txt saved as: ", pcd_path)
+
+            print("case done")
+            return o3d_meshUS, o3d_pcdUS
+
+        """mask_cleaning"""
+        if mask_cleaning:
+            mask_cleaned_nib = nib.Nifti1Image(out_both, self.affine)
+            nib.save(mask_cleaned_nib, self.path)
+            print("cleaning done")
 
     def split(self, split_dirname=None):
-        nib_data = self.nibmask
-        modality = self.modality
-        individual_name = self.individual_name
-        annotatorID = self.annotatorID
+        assert self.modality == "CT", "Applicable only on a CT mask"
 
-        splitL_nib, splitR_nib = convert_to_split(
-            nib_data, modality, individual_name, annotatorID, split_dirname
-        )
+        print("*** CT mask splitting for: ", self.basename, " ***")
 
-        return splitL_nib, splitR_nib
+        len0 = self.nparray.shape[0]
+        mid0 = int(len0 / 2)
+
+        nparrayR = np.zeros_like(self.nparray)
+        nparrayR[:mid0, :, :] = self.nparray[:mid0, :, :].copy()
+
+        nparrayL = np.zeros_like(self.nparray)
+        nparrayL[mid0:, :, :] = self.nparray[mid0:, :, :].copy()
+
+        if split_dirname is not None:
+            splitR_path = join(
+                split_dirname,
+                self.individual_name + "R" + self.annotatorID + self.suffix,
+            )
+            splitR_nib = nib.Nifti1Image(nparrayR, self.nibaffine)
+            nib.save(splitR_nib, splitR_path)
+            print("splitR_nib saved as: ", splitR_path)
+
+            splitL_path = join(
+                split_dirname,
+                self.individual_name + "L" + self.annotatorID + self.suffix,
+            )
+            splitL_nib = nib.Nifti1Image(nparrayL, self.nibaffine)
+            nib.save(splitL_nib, splitL_path)
+            print("splitL_nib saved as: ", splitL_path)
+
+        return nparrayL, nparrayR
 
 
 class Landmarks:
@@ -370,229 +513,6 @@ class Mesh:
         o3dpcd = o3d.geometry.PointCloud()
         o3dpcd.points = o3d.utility.Vector3dVector(nparray)
         return o3dpcd
-
-
-def convert_to_mesh_and_pcd(
-    nib_data,
-    modality,
-    individual_name,
-    annotatorID,
-    path,
-    mesh_dirname=None,
-    pcd_dirname=None,
-    mask_cleaning=True,
-):
-    affine = nib_data.affine
-    new_affine = np.linalg.solve(np.sign(affine), affine)
-    sign_affine = np.sign(affine)
-    sign_affine[sign_affine == 0.0] = 1.0
-    sign_new_affine = np.sign(new_affine)
-    sign_new_affine[sign_new_affine == 0.0] = 1.0
-    mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
-
-    mask_cleaned_nib = None  # initialization of this variable
-
-    # print("*** mesh and pcd creation for: ", self.basename, " ***")
-
-    out = cc3d.connected_components(nib_data.get_fdata())
-    bins_origin = np.bincount(out.flatten())
-    bins_copy = np.ndarray.tolist(np.bincount(out.flatten()))
-    ind0 = 0
-    bins_copy.remove(bins_origin[ind0])
-    ind1 = np.where(bins_origin == max(bins_copy))[0][0]
-    bins_copy.remove(bins_origin[ind1])
-
-    if modality == "CT":
-        ind2 = np.where(bins_origin == max(bins_copy))[0][0]
-        bins_copy.remove(bins_origin[ind2])
-        out1 = out.copy()
-        out1[out1 != ind1] = 0
-        out2 = out.copy()
-        out2[out2 != ind2] = 0
-        out1[out1 > 0] = 1
-        out2[out2 > 0] = 1
-        out_both = out1 + out2
-        del out
-        (
-            vertexsCT1,
-            faceCT1,
-            normalsCT1,
-            valuesCT1,
-        ) = measure.marching_cubes(
-            out1, spacing=mesh_orientation, step_size=1, method="lewiner"
-        )
-        (
-            vertexsCT2,
-            faceCT2,
-            normalsCT2,
-            valuesCT2,
-        ) = measure.marching_cubes(
-            out2, spacing=mesh_orientation, step_size=1, method="lewiner"
-        )
-
-        o3d_CT_1 = o3d.geometry.TriangleMesh()
-        o3d_CT_1.triangles = o3d.utility.Vector3iVector(faceCT1)
-        o3d_CT_1.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-        o3d_CT_2 = o3d.geometry.TriangleMesh()
-        o3d_CT_2.triangles = o3d.utility.Vector3iVector(faceCT2)
-        o3d_CT_2.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-        x_center1 = np.asarray(o3d_CT_1.get_center())[0]
-        x_center2 = np.asarray(o3d_CT_2.get_center())[0]
-
-        if x_center1 < x_center2:
-            o3d_meshCT_L = o3d.geometry.TriangleMesh()
-            o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT1)
-            o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-            o3d_meshCT_R = o3d.geometry.TriangleMesh()
-            o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT2)
-            o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-        if x_center1 > x_center2:
-            o3d_meshCT_R = o3d.geometry.TriangleMesh()
-            o3d_meshCT_R.triangles = o3d.utility.Vector3iVector(faceCT1)
-            o3d_meshCT_R.vertices = o3d.utility.Vector3dVector(vertexsCT1)
-
-            o3d_meshCT_L = o3d.geometry.TriangleMesh()
-            o3d_meshCT_L.triangles = o3d.utility.Vector3iVector(faceCT2)
-            o3d_meshCT_L.vertices = o3d.utility.Vector3dVector(vertexsCT2)
-
-        o3d_pcdCT_L = o3d.geometry.PointCloud()
-        o3d_pcdCT_L.points = o3d.utility.Vector3dVector(
-            np.asarray(o3d_meshCT_L.vertices)
-        )
-
-        o3d_pcdCT_R = o3d.geometry.PointCloud()
-        o3d_pcdCT_R.points = o3d.utility.Vector3dVector(
-            np.asarray(o3d_meshCT_R.vertices)
-        )
-
-        if mesh_dirname is not None:
-            meshL_path = join(
-                mesh_dirname,
-                individual_name + "L" + annotatorID + "meshfaceCT.obj",
-            )
-            meshR_path = join(
-                mesh_dirname,
-                individual_name + "R" + annotatorID + "meshfaceCT.obj",
-            )
-
-            o3d.io.write_triangle_mesh(meshL_path, o3d_meshCT_L)
-            print("o3d_meshCT_L saved as: ", meshL_path)
-            o3d.io.write_triangle_mesh(meshR_path, o3d_meshCT_R)
-            print("o3d_meshCT_R saved as: ", meshR_path)
-
-        if pcd_dirname is not None:
-            pcdL_path = join(
-                pcd_dirname,
-                individual_name + "L" + annotatorID + "pcdCT.txt",
-            )
-            pcdR_path = join(
-                pcd_dirname,
-                individual_name + "R" + annotatorID + "pcdCT.txt",
-            )
-
-            np.savetxt(pcdL_path, np.asarray(o3d_meshCT_L.vertices), delimiter=", ")
-            print("pcdCT_L_txt saved as: ", pcdL_path)
-            np.savetxt(pcdR_path, np.asarray(o3d_meshCT_R.vertices), delimiter=", ")
-            print("pcdCT_R_txt saved as: ", pcdR_path)
-
-        """mask_cleaning"""
-        if mask_cleaning:
-            mask_cleaned_nib = nib.Nifti1Image(out_both, affine)
-            nib.save(mask_cleaned_nib, path)
-            print("cleaning done")
-
-        print("case done")
-        return o3d_meshCT_L, o3d_meshCT_R, o3d_pcdCT_L, o3d_pcdCT_R, mask_cleaned_nib
-
-    if modality == "US":
-        out1 = out.copy()
-        out1[out1 != ind1] = 0
-        out1[out1 > 0] = 1
-        out_both = out1
-        del out
-        (
-            vertexsUS,
-            faceUS,
-            normalsUS,
-            valuesUS,
-        ) = measure.marching_cubes(
-            out1, spacing=mesh_orientation, step_size=1, method="lewiner"
-        )
-        o3d_meshUS = o3d.geometry.TriangleMesh()
-        o3d_meshUS.triangles = o3d.utility.Vector3iVector(faceUS)
-        o3d_meshUS.vertices = o3d.utility.Vector3dVector(vertexsUS)
-
-        o3d_pcdUS = o3d.geometry.PointCloud()
-        o3d_pcdUS.points = o3d.utility.Vector3dVector(np.asarray(o3d_meshUS.vertices))
-
-        if mesh_dirname is not None:
-            mesh_path = join(
-                mesh_dirname,
-                individual_name + annotatorID + "meshfaceUS.obj",
-            )
-
-            o3d.io.write_triangle_mesh(mesh_path, o3d_meshUS)
-            print("o3d_meshUS saved as: ", mesh_path)
-
-        if pcd_dirname is not None:
-            pcd_path = join(
-                pcd_dirname,
-                individual_name + annotatorID + "pcdUS.txt",
-            )
-            np.savetxt(pcd_path, np.asarray(o3d_meshUS.vertices), delimiter=", ")
-            print("pcdUS_txt saved as: ", pcd_path)
-
-        """mask_cleaning"""
-        if mask_cleaning:
-            mask_cleaned_nib = nib.Nifti1Image(out_both, affine)
-            nib.save(mask_cleaned_nib, path)
-            print("cleaning done")
-
-        print("case done")
-        return o3d_meshUS, o3d_pcdUS, mask_cleaned_nib
-
-
-def convert_to_split(
-    nib_data, modality, individual_name, annotatorID, split_dirname=None
-):
-    assert modality == "CT", "Applicable only on a CT mask"
-
-    print("*** CT mask splitting ***")
-
-    suffix = "_mask" + modality + ".nii.gz"
-
-    nparray = nib_data.get_fdata()
-    len0 = nparray.shape[0]
-    mid0 = int(len0 / 2)
-
-    nparrayR = np.zeros_like(nparray)
-    nparrayR[:mid0, :, :] = nparray[:mid0, :, :].copy()
-
-    nparrayL = np.zeros_like(nparray)
-    nparrayL[mid0:, :, :] = nparray[mid0:, :, :].copy()
-
-    if split_dirname is not None:
-        splitR_path = join(
-            split_dirname,
-            individual_name + "R" + annotatorID + suffix,
-        )
-        splitR_nib = nib.Nifti1Image(nparrayR, nib_data.affine)
-        nib.save(splitR_nib, splitR_path)
-        print("splitR_nib saved as: ", splitR_path)
-
-        splitL_path = join(
-            split_dirname,
-            individual_name + "L" + annotatorID + suffix,
-        )
-        splitL_nib = nib.Nifti1Image(nparrayL, nib_data.affine)
-        nib.save(splitL_nib, splitL_path)
-        print("splitL_nib saved as: ", splitL_path)
-
-    return splitL_nib, splitR_nib
 
 
 def fuse_masks(

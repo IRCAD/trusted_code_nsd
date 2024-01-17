@@ -9,7 +9,7 @@ import pandas as pd
 from natsort import natsorted
 
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.metrics import Dice, HaussDistance, MeanNNDistance
+from trusted_datapaper_ds.metrics import Dice, Haus95Mask, HausMesh, MeanNNDistance
 
 
 def datanalysis(
@@ -53,6 +53,8 @@ def datanalysis(
     for i, magt_file in enumerate(magt_files):
         dice1 = np.nan
         dice2 = np.nan
+        haus1 = np.nan
+        haus2 = np.nan
 
         magt = dt.Mask(magt_file, annotatorID="gt")
         if modality == "us":
@@ -64,7 +66,7 @@ def datanalysis(
 
         print("Processing ", ID)
 
-        # Evaluate Dice score metric over US masks:
+        # Evaluate Dice score and Hausdorff95 metrics between masks:
         try:
             dice = Dice(ma1_files[i], magt_file)
             dice1 = dice.evaluate_overlap()
@@ -76,12 +78,32 @@ def datanalysis(
             )
             print(error_message)
 
+        try:
+            haus = Haus95Mask(ma1_files[i], magt_file)
+            haus1 = haus.evaluate_overlap()
+            haus = Haus95Mask(ma2_files[i], magt_file)
+            haus2 = haus.evaluate_overlap()
+        except ValueError:
+            error_message = (
+                "There is an error when computing Haus95Mask for individual "
+                + ID
+                + ". \n"
+            )
+            print(error_message)
+
         # Results saving
-        values = {"kidney_id": ID, "dice_us1": dice1, "dice_us2": dice2}
+        values = {
+            "kidney_id": ID,
+            "dice1": dice1,
+            "dice2": dice2,
+            "h95mask1": haus1,
+            "h95mask2": haus2,
+        }
         df_dice = df_dice.append(values, ignore_index=True)
 
     df_dice.to_csv(csv_dice_file, index=False)
 
+    # Evaluate Dice score, Hausdorff95, nn_distance metrics between meshes, and , landmarks_distances:
     for i, megt_file in enumerate(megt_files):
         haus1 = np.nan
         haus2 = np.nan
@@ -105,9 +127,9 @@ def datanalysis(
         ld2 = dt.Landmarks(ld2_files[i], annotatorID="2")
         ldgt = dt.Landmarks(ldgt_files[i], annotatorID="gt")
 
-        # Evaluate Hausdorf metric over US meshes:
+        # Evaluate Hausdorf metric between meshes:
         try:
-            haus = HaussDistance(95)
+            haus = HausMesh(95)
             haus1 = haus.evaluate_mesh(me1.o3dmesh, megt.o3dmesh)
             haus2 = haus.evaluate_mesh(me2.o3dmesh, megt.o3dmesh)
         except ValueError:
@@ -118,7 +140,7 @@ def datanalysis(
             )
             print(error_message)
 
-        # Evaluate US mean surface-to-surface nearest neighbour distance:
+        # Evaluate mean surface-to-surface nearest neighbour distance:
         try:
             d_nn = MeanNNDistance()
             nndst1 = d_nn.evaluate_mesh(me1.o3dmesh, megt.o3dmesh)
@@ -129,7 +151,7 @@ def datanalysis(
             )
             print(error_message)
 
-        # Evaluate US landmark inter-annotator agreement:
+        # Evaluate landmark inter-annotator agreement:
         try:
             for t in range(7):
                 lm_dist1[t] = np.linalg.norm(ld1.nparray[t, :] - ldgt.nparray[t, :])

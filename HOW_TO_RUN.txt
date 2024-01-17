@@ -15,7 +15,11 @@ with me, to avoid some confilcts.
 ## pip install nnunetv2   # This one will install also many dependencies, then avoid me to have to install them
 ## pip install git+https://github.com/MIC-DKFZ/acvl_utils.git
 ## pip install git+https://github.com/MIC-DKFZ/dynamic-network-architectures.git
-## pip install git+https://github.com/julien-blanchon/hiddenlayer.git
+
+## #pip install git+https://github.com/julien-blanchon/hiddenlayer.git
+## pip install monai==1.3.0
+
+
 ## pip install git+https://github.com/Project-MONAI/MONAI#egg=monai
 ## pip install torchvision torchaudio
 ## pip install PyYAML
@@ -56,9 +60,11 @@ pip install -e .
 
 
 *** SEGMENTATION ***
-#### Training
+#### Training in 128
 
-#### Inference
+
+
+#### Inference in 128 and upsampling
 
 
 ### Evaluation

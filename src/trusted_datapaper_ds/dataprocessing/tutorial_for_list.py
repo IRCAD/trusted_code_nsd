@@ -17,9 +17,9 @@ from natsort import natsorted
 from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.dataprocessing.datanalysis_new import datanalysis
 from trusted_datapaper_ds.utils import (
-    build_list,
-    build_many_mask_list,
-    build_many_me_ld_list,
+    build_analist,
+    build_many_mask_analist,
+    build_many_me_ld_analist,
     makedir,
     parse_args,
 )
@@ -134,6 +134,7 @@ def main(
                 o3d_meshCT_R,
                 o3d_pcdCT_L,
                 o3d_pcdCT_R,
+                mask_cleaned_nib,
             ) = ctmask.to_mesh_and_pcd(
                 mesh_dirname=mesh_dirname,
                 pcd_dirname=pcd_dirname,
@@ -155,7 +156,7 @@ def main(
                 individual + k_side + data["usma_end"],
             )
             usmask = dt.Mask(maskpath, annotatorID="gt")
-            o3d_meshUS, o3d_pcdUS = usmask.to_mesh_and_pcd(
+            o3d_meshUS, o3d_pcdUS, mask_cleaned_nib = usmask.to_mesh_and_pcd(
                 mesh_dirname=mesh_dirname,
                 pcd_dirname=pcd_dirname,
                 mask_cleaning=False,
@@ -175,7 +176,7 @@ def main(
                 individual + "_" + data["annotator1"] + data["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID=data["annotator1"])
-            nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
+            nibL, nibR = ctmask.split(split_dirname=split_dirname)
 
     # Split CT mask (here from ground truth) ###
     # Note: "split_dirname" is the directory to save the split data.
@@ -190,7 +191,7 @@ def main(
                 individual + data["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID="gt")
-            nparrayL, nparrayR = ctmask.split(split_dirname=split_dirname)
+            nibL, nibR = ctmask.split(split_dirname=split_dirname)
 
     # Shift the origin of list of images or masks (here CT images) ###
     # Note: "shifted_dirname" is the directory to save the shifted data.
@@ -372,7 +373,7 @@ def main(
 
     if build_a_list:
         USlike_IDlist = ["116L", "114R"]
-        data_path_list = build_list(
+        data_path_list = build_analist(
             data_config=data,
             modality="us",
             datatype="ld",
@@ -391,7 +392,7 @@ def main(
         USlike_IDlist = uslist
         CTlike_IDlist = None
 
-        usma1_files, usma2_files, usmagt_files = build_many_mask_list(
+        usma1_files, usma2_files, usmagt_files = build_many_mask_analist(
             modality, data, USlike_IDlist, CTlike_IDlist
         )
 
@@ -402,7 +403,7 @@ def main(
             usld1_files,
             usld2_files,
             usldgt_files,
-        ) = build_many_me_ld_list(modality, data, USlike_IDlist, CTlike_IDlist)
+        ) = build_many_me_ld_analist(modality, data, USlike_IDlist, CTlike_IDlist)
 
         datanalysis(
             modality,
@@ -426,7 +427,7 @@ def main(
         # For CT Masks
         USlike_IDlist = None
         CTlike_IDlist = ctlist
-        ctma1_files, ctma2_files, ctmagt_files = build_many_mask_list(
+        ctma1_files, ctma2_files, ctmagt_files = build_many_mask_analist(
             modality, data, USlike_IDlist, CTlike_IDlist
         )
 
@@ -440,7 +441,7 @@ def main(
             ctld1_files,
             ctld2_files,
             ctldgt_files,
-        ) = build_many_me_ld_list(modality, data, USlike_IDlist, CTlike_IDlist)
+        ) = build_many_me_ld_analist(modality, data, USlike_IDlist, CTlike_IDlist)
 
         datanalysis(
             modality,
@@ -484,9 +485,14 @@ if __name__ == "__main__":
     ctcv1_with_side = natsorted([j + "L" for j in ctcv1] + [j + "R" for j in ctcv1])
     uscv1 = data["usfold"]["cv1"]
 
+    # ctlist_with_side = ctcv1_with_side
+    # ctlist = ctcv1
+    # uslist = uscv1
+
     ctlist_with_side = allct_with_side
     ctlist = allct
     uslist = allus
+
     resizing = 0
     CTmask_to_mesh_and_pcd = 0
     USmask_to_mesh_and_pcd = 0

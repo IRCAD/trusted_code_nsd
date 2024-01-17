@@ -21,7 +21,7 @@ def makedir(folder):
     return
 
 
-def build_list(
+def build_analist(
     data_config, modality, datatype, annotatorID, USlike_IDlist=None, CTlike_IDlist=None
 ):
     """
@@ -186,8 +186,8 @@ def build_list(
     return data_path_list
 
 
-def build_many_mask_list(mod, config, USlike_IDlist, CTlike_IDlist):
-    ma1_files = build_list(
+def build_many_mask_analist(mod, config, USlike_IDlist, CTlike_IDlist):
+    ma1_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ma",
@@ -195,7 +195,7 @@ def build_many_mask_list(mod, config, USlike_IDlist, CTlike_IDlist):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=CTlike_IDlist,
     )
-    ma2_files = build_list(
+    ma2_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ma",
@@ -203,7 +203,7 @@ def build_many_mask_list(mod, config, USlike_IDlist, CTlike_IDlist):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=CTlike_IDlist,
     )
-    magt_files = build_list(
+    magt_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ma",
@@ -215,8 +215,8 @@ def build_many_mask_list(mod, config, USlike_IDlist, CTlike_IDlist):
     return ma1_files, ma2_files, magt_files
 
 
-def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
-    me1_files = build_list(
+def build_many_me_ld_analist(mod, config, USlike_IDlist, CTlike_IDlist=None):
+    me1_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="me",
@@ -224,7 +224,7 @@ def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
-    me2_files = build_list(
+    me2_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="me",
@@ -232,7 +232,7 @@ def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
-    megt_files = build_list(
+    megt_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="me",
@@ -240,7 +240,7 @@ def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
-    ld1_files = build_list(
+    ld1_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ld",
@@ -248,7 +248,7 @@ def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
-    ld2_files = build_list(
+    ld2_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ld",
@@ -256,7 +256,7 @@ def build_many_me_ld_list(mod, config, USlike_IDlist, CTlike_IDlist=None):
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
-    ldgt_files = build_list(
+    ldgt_files = build_analist(
         data_config=config,
         modality=mod,
         datatype="ld",

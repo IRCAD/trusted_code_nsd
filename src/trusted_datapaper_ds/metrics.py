@@ -5,24 +5,12 @@ from monai.metrics import DiceMetric, HausdorffDistanceMetric
 from monai.transforms import AsDiscrete, Compose, EnsureChannelFirst, LoadImage
 
 from trusted_datapaper_ds import geometry_utils as gu
-
-# from monai.metrics import DiceMetric
-# from monai.transforms import AddChannel, AsDiscrete, Compose, ToTensor
-# process = Compose([AddChannel(), ToTensor()])
-# binarizing = AsDiscrete(threshold_values=True)
-# dice_metric = DiceMetric(include_background=True, reduction="mean")
-# haus_mask_metric = HausdorffDistanceMetric(
-#     include_background=False,
-#     distance_metric="euclidean",
-#     percentile=100,
-#     directed=False,
-#     reduction="mean",
-#     get_not_nans=False,
-# )
+from trusted_datapaper_ds.dataprocessing import data as dt
 
 process = Compose([LoadImage(), EnsureChannelFirst(), AsDiscrete(threshold=0.5)])
 
 dice_metric = DiceMetric(include_background=True, reduction="mean")
+
 haus_mask_metric = HausdorffDistanceMetric(
     include_background=True,
     distance_metric="euclidean",
@@ -40,8 +28,12 @@ class Dice:
         return
 
     def evaluate_overlap(self):
-        pred = process(self.pred_file)
-        gt = process(self.gt_file)
+        pred = process(
+            self.pred_file
+        )  # can be a list of channel-first Tensor (CHW[D]) or a batch-first Tensor (BCHW[D])
+        gt = process(
+            self.gt_file
+        )  # can be a list of channel-first Tensor (CHW[D]) or a batch-first Tensor (BCHW[D])
 
         dice_metric(y_pred=pred, y=gt)
         dice = dice_metric.aggregate().item()
@@ -49,20 +41,23 @@ class Dice:
         return dice
 
 
-# class HausdorffMask:
-#     def __init__(self, pred_file, gt_file):
-#         self.pred_file = pred_file
-#         self.gt_file = gt_file
-#         return
+class Haus95Mask:
+    def __init__(self, pred_file, gt_file):
+        self.pred_file = pred_file
+        self.gt_file = gt_file
+        gtmask = dt.Mask(maskpath=gt_file, annotatorID="gt")
+        self.spacing = gtmask.spacing
+        return
 
-#     def evaluate_overlap(self):
-#         pred = process(self.pred_file)
-#         gt = process(self.gt_file)
-
-#         haus_mask_metric(y_pred=pred, y=gt, spacing=)
-#         haus_mask = haus_mask_metric.aggregate().item()
-#         haus_mask_metric.reset()
-#         return haus_mask
+    def evaluate_overlap(self):
+        pred = process(self.pred_file)
+        gt = process(self.gt_file)
+        pred = pred.unsqueeze(0)  # Need to be a batch-first Tensor (BCHW[D])
+        gt = gt.unsqueeze(0)  # Need to be a batch-first Tensor (BCHW[D])
+        haus_mask_metric(y_pred=pred, y=gt, spacing=self.spacing)
+        haus_mask = haus_mask_metric.aggregate().item()
+        haus_mask_metric.reset()
+        return haus_mask
 
 
 class MeanNNDistance:
@@ -89,7 +84,7 @@ class MeanNNDistance:
         return d_total
 
 
-class HaussDistance:
+class HausMesh:
     def __init__(self, percent):
         self.percent = percent
 

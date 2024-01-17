@@ -70,40 +70,11 @@ def training(
 
     NumberOfEpochs = nb_epochs
 
-    if modality == "CT":
-        input_folder = join(data_location, modality + "_DATA", modality + "img128")
-        target_folder1 = join(
-            data_location, modality + "_DATA", modality + "mask128", "Annotator2"
-        )
-        target_folder2 = join(
-            data_location, modality + "_DATA", modality + "mask128", "Annotator3"
-        )
-        target_folder12 = join(
-            data_location, modality + "_DATA", modality + "mask128", "maxflow2.5"
-        )
-
-    if modality == "US":
-        input_folder = join(
-            data_location, modality + "_DATA", modality + "img128_rescaled0.3"
-        )
-        target_folder1 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "Annotator2",
-        )
-        target_folder2 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "Annotator3",
-        )
-        target_folder12 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "maxflow2.5",
-        )
+    # input_folder = join(data_location, modality + "_DATA", modality + "img128")
+    input_folder = join(data_location, config[modality + "128imgfol"])
+    target_folder1 = join(data_location, config[modality + "128ma1fol"])
+    target_folder2 = join(data_location, config[modality + "128ma2fol"])
+    target_folder12 = join(data_location, config[modality + "128magtfol"])
 
     if two_targets_training:
         print("###")
@@ -111,8 +82,8 @@ def training(
         print("###")
         output_folder = join(
             data_location,
-            modality + "_DATA",
-            modality + "output_mask128",
+            modality.upper() + "_DATA",
+            modality.upper() + "output_mask128",
             segmodel + "_lr" + str(lr) + "_epoch" + str(nb_epochs),
             cv,
             "two_targets_training",
@@ -123,8 +94,8 @@ def training(
         print("###")
         output_folder = join(
             data_location,
-            modality + "_DATA",
-            modality + "output_mask128",
+            modality.upper() + "_DATA",
+            modality.upper() + "output_mask128",
             segmodel + "_lr" + str(lr) + "_epoch" + str(nb_epochs),
             cv,
             "single_target_training",
@@ -144,57 +115,36 @@ def training(
 
     sys.stdout = open(path, "w")
 
-    if modality == "CT":
-        all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
-        valid_img_paths = [
-            join(input_folder, i + "_3_img.nii.gz")
-            for i in indiv
-            if isfile(join(input_folder, i + "_3_img.nii.gz"))
-        ]
-        all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
-        valid_seg1_paths = [
-            join(target_folder1, i + "_2_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder1, i + "_2_Vol.nii.gz"))
-        ]
-        all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
-        valid_seg2_paths = [
-            join(target_folder2, i + "_3_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder2, i + "_3_Vol.nii.gz"))
-        ]
-        all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
-        valid_seg12_paths = [
-            join(target_folder12, i + "_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder12, i + "_Vol.nii.gz"))
-        ]
+    all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
+    valid_img_paths = [
+        join(input_folder, i + config[modality + "img_end"])
+        for i in indiv
+        if isfile(join(input_folder, i + config[modality + "img_end"]))
+    ]
+    all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
+    valid_seg12_paths = [
+        join(target_folder12, i + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder12, i + config[modality + "ma_end"]))
+    ]
 
-    if modality == "US":
-        all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
-        valid_img_paths = [
-            join(input_folder, i + "3_img.nii.gz")
-            for i in indiv
-            if isfile(join(input_folder, i + "3_img.nii.gz"))
-        ]
-        all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
-        valid_seg1_paths = [
-            join(target_folder1, i + "2_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder1, i + "2_Vol.nii.gz"))
-        ]
-        all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
-        valid_seg2_paths = [
-            join(target_folder2, i + "3_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder2, i + "3_Vol.nii.gz"))
-        ]
-        all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
-        valid_seg12_paths = [
-            join(target_folder12, i + "_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder12, i + "_Vol.nii.gz"))
-        ]
+    if modality == "ct":
+        middle = "_"
+    if modality == "us":
+        middle = ""
+
+    all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
+    valid_seg1_paths = [
+        join(target_folder1, i + middle + "1" + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder1, i + middle + "1" + config[modality + "ma_end"]))
+    ]
+    all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
+    valid_seg2_paths = [
+        join(target_folder2, i + middle + "2" + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder2, i + middle + "2" + config[modality + "ma_end"]))
+    ]
 
     print("len valid_img_paths", len(valid_img_paths))
     print("len valid_seg1_paths", len(valid_seg1_paths))
@@ -226,9 +176,7 @@ def training(
 
     train_transform = Compose(
         [
-            # load 4 Nifti images and stack them together
             LoadImaged(keys=["image", "label1", "label2", "label12"]),
-            # AddChanneld(keys=["image", "label1", "label2", "label12"]),
             EnsureChannelFirstd(keys=["image", "label1", "label2", "label12"]),
             RandFlipd(
                 keys=["image", "label1", "label2", "label12"], prob=0.25, spatial_axis=0
@@ -273,7 +221,6 @@ def training(
     val_transform = Compose(
         [
             LoadImaged(keys=["image", "label12"]),
-            # AddChanneld(keys=["image", "label12"]),
             EnsureChannelFirstd(keys=["image", "label12"]),
             Resized(
                 keys=["image", "label12"],
@@ -541,8 +488,8 @@ def external_loss_metric_plot(modality, cv, segmodel, data_location, val_interva
     return
 
 
-def main(config, modality, segmodel):
-    data_location = "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
+def main(config, modality, segmodel, lr, wdecay, nb_epochs):
+    data_location = config["seg_data_location"]
 
     # for cv in ['cv1', 'cv2', 'cv3', 'cv4', 'cv5']:
     for cv in ["cv3"]:
@@ -552,9 +499,9 @@ def main(config, modality, segmodel):
             cv,
             segmodel,
             data_location,
-            lr=1e-0,
-            wdecay=1e-5,
-            nb_epochs=1001,
+            lr,
+            wdecay,
+            nb_epochs,
             two_targets_training=False,
         )
 
@@ -564,9 +511,9 @@ def main(config, modality, segmodel):
             cv,
             segmodel,
             data_location,
-            lr=1e-0,
-            wdecay=1e-5,
-            nb_epochs=1001,
+            lr,
+            wdecay,
+            nb_epochs,
             two_targets_training=True,
         )
 
@@ -576,7 +523,40 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         data = yaml.safe_load(yaml_file)
 
-    # main(config=data, modality="US", segmodel="unet")
-    main(config=data, modality="CT", segmodel="vnet")
-    # main(config=data, modality="CT", segmodel="unet")
-    # main(config=data, modality="US", segmodel="vnet")
+    lr = 1e-0
+    wdecay = 1e-5
+    nb_epochs = 1001
+
+    # Please respect the case
+    main(
+        config=data,
+        modality="ct",
+        segmodel="vnet",
+        lr=lr,
+        wdecay=wdecay,
+        nb_epochs=nb_epochs,
+    )
+    main(
+        config=data,
+        modality="ct",
+        segmodel="unet",
+        lr=lr,
+        wdecay=wdecay,
+        nb_epochs=nb_epochs,
+    )
+    main(
+        config=data,
+        modality="us",
+        segmodel="vnet",
+        lr=lr,
+        wdecay=wdecay,
+        nb_epochs=nb_epochs,
+    )
+    main(
+        config=data,
+        modality="us",
+        segmodel="unet",
+        lr=lr,
+        wdecay=wdecay,
+        nb_epochs=nb_epochs,
+    )
