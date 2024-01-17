@@ -23,7 +23,6 @@ import numpymaxflow as maxflow
 import open3d as o3d
 import SimpleITK as sitk
 import torch
-import torch.nn.functional as F
 from monai.transforms import (
     AsDiscrete,
     Compose,
@@ -739,11 +738,39 @@ def resiz_nparray(input_nparray, newsize, interpolmode):
     Returns:
         ...
     """
-    resized_nparray = F.interpolate(
-        torch.unsqueeze(torch.unsqueeze(torch.from_numpy(input_nparray), 0), 0),
-        size=newsize,
+    addchanel_nparray = torch.unsqueeze(torch.from_numpy(input_nparray), 0)
+
+    post_resiz = Resize(
+        spatial_size=newsize,
         mode=interpolmode,
         align_corners=interpolmode == "trilinear",
     )
-    resized_nparray = (torch.squeeze(torch.squeeze(resized_nparray, 0), 0)).numpy()
+    binarising = AsDiscrete(threshold=0.5)
+
+    resized_tensor0 = post_resiz(addchanel_nparray)
+    resized_nparray = np.asarray(resized_tensor0).squeeze(0)
+    resized_tensor = binarising(resized_nparray)
+
+    resized_nparray = resized_tensor.numpy()
+    del (resized_tensor0, resized_tensor)
+
     return resized_nparray
+
+
+def resiz_nib_data(input_nib, newsize, interpolmode):
+    """
+    Resize a nibabel object a specified new size.
+
+    Args:
+        ...
+    Returns:
+        ...
+    """
+    input_nparray = input_nib.get_fdata()
+    affine = input_nib.affine
+
+    resized_nparray = resiz_nparray(input_nparray, newsize, interpolmode)
+
+    resized_nib = nib.Nifti1Image(resized_nparray, affine)
+
+    return resized_nib

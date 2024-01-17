@@ -307,11 +307,11 @@ if __name__ == "__main__":
     resizing = 0
     CTmask_to_mesh_and_pcd = 0
     USmask_to_mesh_and_pcd = 0
-    splitCTmask1 = 1
-    splitCTmaskgt = 1
+    splitCTmask1 = 0
+    splitCTmaskgt = 0
     shift_origin = 0
     fuse_CTmask = 0
-    fuse_USmask = 0
+    fuse_USmask = 1
     fuse_landmark = 0
     mesh_to_pcd = 0
 
