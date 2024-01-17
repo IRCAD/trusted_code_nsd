@@ -577,6 +577,6 @@ if __name__ == "__main__":
         data = yaml.safe_load(yaml_file)
 
     # main(config=data, modality="US", segmodel="unet")
-    main(config=data, modality="CT", segmodel="vnet")
+    # main(config=data, modality="CT", segmodel="vnet")
+    main(config=data, modality="US", segmodel="vnet")
     # main(config=data, modality="CT", segmodel="unet")
-    # main(config=data, modality="US", segmodel="vnet")

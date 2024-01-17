@@ -247,7 +247,6 @@ class Mask:
         modality = self.modality
         individual_name = self.individual_name
         annotatorID = self.annotatorID
-        path = self.path
 
         if self.modality == "CT":
             (
@@ -261,7 +260,6 @@ class Mask:
                 modality,
                 individual_name,
                 annotatorID,
-                path,
                 mesh_dirname,
                 pcd_dirname,
                 mask_cleaning,
@@ -280,7 +278,6 @@ class Mask:
                 modality,
                 individual_name,
                 annotatorID,
-                path,
                 mesh_dirname,
                 pcd_dirname,
                 mask_cleaning,
@@ -376,7 +373,6 @@ def convert_to_mesh_and_pcd(
     modality,
     individual_name,
     annotatorID,
-    path,
     mesh_dirname=None,
     pcd_dirname=None,
     mask_cleaning=True,
@@ -390,6 +386,9 @@ def convert_to_mesh_and_pcd(
     mesh_orientation = np.diag(new_affine)[:3] @ np.sign(affine[:3, :3])
 
     mask_cleaned_nib = None  # initialization of this variable
+
+    if annotatorID == "gt" or annotatorID == "auto":
+        annotatorID = ""
 
     # print("*** mesh and pcd creation for: ", self.basename, " ***")
 
@@ -501,7 +500,6 @@ def convert_to_mesh_and_pcd(
         """mask_cleaning"""
         if mask_cleaning:
             mask_cleaned_nib = nib.Nifti1Image(out_both, affine)
-            nib.save(mask_cleaned_nib, path)
             print("cleaning done")
 
         print("case done")
@@ -548,7 +546,6 @@ def convert_to_mesh_and_pcd(
         """mask_cleaning"""
         if mask_cleaning:
             mask_cleaned_nib = nib.Nifti1Image(out_both, affine)
-            nib.save(mask_cleaned_nib, path)
             print("cleaning done")
 
         print("case done")
@@ -559,6 +556,9 @@ def convert_to_split(
     nib_data, modality, individual_name, annotatorID, split_dirname=None
 ):
     assert modality == "CT", "Applicable only on a CT mask"
+
+    if annotatorID == "gt" or annotatorID == "auto":
+        annotatorID = ""
 
     print("*** CT mask splitting ***")
 

@@ -1,0 +1,17 @@
+auto: "auto"
+modality: "ct"
+ref_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_images/"
+
+gtmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_masks/GT_estimated_masksCT/"
+gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT"
+
+seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask128/"
+mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask/"
+mesh_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mesh/"
+pcd_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_pcdTXT/"
+
+segmodel: "nnunet"
+
+training_target: "single_target_training"
+
+segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/CT/"
