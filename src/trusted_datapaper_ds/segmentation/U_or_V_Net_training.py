@@ -578,5 +578,5 @@ if __name__ == "__main__":
 
     # main(config=data, modality="US", segmodel="unet")
     # main(config=data, modality="CT", segmodel="vnet")
-    main(config=data, modality="US", segmodel="vnet")
-    # main(config=data, modality="CT", segmodel="unet")
+    # main(config=data, modality="US", segmodel="vnet")
+    main(config=data, modality="CT", segmodel="unet")

@@ -4,37 +4,81 @@
 About the conda environement, I recommand to create one, and install the packages following the same order
 with me, to avoid some confilcts.
 
-
 *** ENVIRONEMENT SETTING ***
 
-## conda create -n trusted_env python=3.9
-## conda activate trusted_env
+## conda create -n trusted_env2 python=3.9
+## conda activate trusted_env2
+
 ## pip install --upgrade pip
+## pip install torch torchvision torchaudio (lastest versions)
 
-## pip install lxml
-## pip install nnunetv2   # This one will install also many dependencies, then avoid me to have to install them
-## pip install git+https://github.com/MIC-DKFZ/acvl_utils.git
-## pip install git+https://github.com/MIC-DKFZ/dynamic-network-architectures.git
-
-## #pip install git+https://github.com/julien-blanchon/hiddenlayer.git
-## pip install monai==1.3.0
+python -c 'import torch;print(torch.backends.cudnn.version())'
+python -c 'import torch;print(torch.__version__)'
+(8902  ,  2.1.2+cu121) at this date: 19/01/2024
 
 
-## pip install git+https://github.com/Project-MONAI/MONAI#egg=monai
-## pip install torchvision torchaudio
-## pip install PyYAML
-## pip install natsort
-## pip install vtk
-## pip install jupyterlab
-## pip install open3d
-## pip install fire
-## pip install opencv-contrib-python
-## pip install plyfile
-## pip install numpymaxflow
+#1 Specific to MONAI (It will also add many suitable requirements)
+## cd src/MONAI/ (This MONAI folder comes from the command: git clone https://github.com/Project-MONAI/MONAI.git run the 19/01/2024)
+## pip install -e '.[all]'
+## python -c "import monai; print(monai.__version__)"  (to check the monai version: 1.3.0)
+## cd ../..
 
+#2 General (for our needs)
 ## pip install pandas==1.3.0
+## pip install lxml
+## pip install connected-components-3d==3.12.4
+## pip install statsmodels==0.14.1
+## pip install natsort==8.4.0
+## pip install vtk==9.3.0
+## pip install jupyterlab (lastest version)
+## pip install open3d==0.18.0
+## pip install opencv-contrib-python==4.9.0.80
+## pip install plyfile==1.0.3
+## pip install numpymaxflow==0.0.6
 
-# DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file):
+
+#3 Specific to nnUNetv1
+## cd src/nnUNet/  (This nnUNet folder comes from the command: git clone https://github.com/MIC-DKFZ/nnUNet.git run the 19/01/2024)
+## git checkout nnunetv1
+## pip install -e .
+## cd ../..
+
+
+#4 Specific to CoTr (which uses his local nnUNetv1)
+#4_1 Option 1: Just use the CoTr folder provided in "trusted_datapaper_ds/src/"
+## cd src/CoTr/nnUNet/
+## pip install -e .
+## cd ..
+## cd CoTr_package
+## pip install -e .
+## cd ../../.. (you are now in the project folder "trusted_datapaper_ds/")
+
+#4_2 Option 2: Download the git of the authors (+ code updating in point 4_1_2)
+#4_1_1 Downloading + installation
+## cd src/
+## git clone https://github.com/YtongXie/CoTr.git
+## cd CoTr
+## rm -r nnUNet
+## git clone https://github.com/MIC-DKFZ/nnUNet.git
+## cd nnUNet
+## git checkout nnunetv1
+## pip install -e .
+## cd ..
+## cd CoTr_package
+## pip install -e .
+## cd ../../.. (you are now in the project folder "trusted_datapaper_ds/")
+
+#4_1_2 Some update you have to do manually in the CoTr folder
+# In the file: src/CoTr/CoTr_package/CoTr/training/network_training/nnUNetTrainerV2_ResTrans.py,
+# replace the line 9 (from nnunet.training.data_augmentation.default_data_augmentation import get_moreDA_augmentation)
+# into: from nnunet.training.data_augmentation.data_augmentation_moreDA import get_moreDA_augmentation
+# And replace all the occurrences of "self.plans['plans_per_stage'][1]"
+# by "self.plans['plans_per_stage'][0]"
+# In the same file replace lines 267 and 268 (tr_keys = splits[0]['train'] , and   val_keys = splits[0]['val']),
+# by (tr_keys = splits[self.fold]['train'] , and   val_keys = splits[self.fold]['val'])
+
+
+#5 (REALLY OPTIONNAL): DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file):
 ## pip install pytest
 ## pip install pytest-cov
 ## pip install tox
@@ -44,13 +88,31 @@ with me, to avoid some confilcts.
 ## pip install sphinx
 ## pip install recommonmark
 
-# Install the package trusted-datapaper-ds (current directory) in editable (development) mode.
-pip install -e .
+# MAYBE YOU WILL ALSO NEED ONE FROM THESE
+#acvl-utils==0.2
+#dicom2nifti==2.4.10
+#dynamic-network-architectures==0.2
+#filelock==3.13.1
+#fsspec==2023.12.2
+#future==0.18.3
+#idna==3.6
+#imagecodecs==2024.1.1
+#python-graphviz==0.20.1
+#pytz==2023.3.post1
+#seaborn==0.13.1
+#yacs==0.1.8
+#pip install git+https://github.com/julien-blanchon/hiddenlayer.git
+#pip install git+https://github.com/MIC-DKFZ/acvl_utils.git
+#pip install git+https://github.com/MIC-DKFZ/dynamic-network-architectures.git
+
+
+#6 Install the package trusted-datapaper-ds (current directory) in editable (development) mode.
+## pip install -e .
 
 
 *** AN EXAMPLE INDIVIDUAL PROCESSING ***
 # Example of command to run the tutorial ####
-# python src/trusted_datapaper_ds/dataprocessing/tutorial_individual.py --config_path configs/config_file.yml
+# python src/trusted_datapaper_ds/dataprocessing/tutorial_for_individual.py --config_path configs/anaconfig_file.yml
 
 
 *** AN EXAMPLE US LIST PROCESSING ***

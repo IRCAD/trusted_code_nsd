@@ -45,30 +45,30 @@ def main(
 ):
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
+        config = yaml.safe_load(yaml_file)
 
     # List of Images and Masks resizing (here US images, and masks from annotator 2) ###
     # Note: "resized_dirname" is the directory to save the resized data.
     if resizing:
-        resized_dirname = data["out_location"]
+        resized_dirname = config["out_location"]
         for ind in uslist:
             k_side = ind[-1]
             individual = ind[:-1]
             imgpath = join(
-                data["data_location"],
-                data["usimgfol"],
-                individual + k_side + data["usimg_end"],
+                config["data_location"],
+                config["usimgfol"],
+                individual + k_side + config["usimg_end"],
             )
             maskpath = join(
-                data["data_location"],
-                data["usma2fol"],  # or data["usma" + data["annotator2"] + "fol"]
-                individual + k_side + data["annotator2"] + data["usma_end"],
+                config["data_location"],
+                config["usma2fol"],  # or config["usma" + config["annotator2"] + "fol"]
+                individual + k_side + config["annotator2"] + config["usma_end"],
             )
             newsize = [128, 128, 128]
 
             img = dt.Image(imgpath)
             mask = dt.Mask(
-                maskpath, annotatorID=data["annotator2"]
+                maskpath, annotatorID=config["annotator2"]
             )  # or simply annotatorID='2'
 
             resized_img_nparray = img.resize(
@@ -84,24 +84,24 @@ def main(
     # Note: "resized_dirname" is the directory to save the resized data.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if resizing:
-        resized_dirname = data["out_location"]
+        resized_dirname = config["out_location"]
         for ind in ctlist:
             individual = ind
             imgpath = join(
-                data["data_location"],
-                data["ctimgfol"],
-                individual + data["ctimg_end"],
+                config["data_location"],
+                config["ctimgfol"],
+                individual + config["ctimg_end"],
             )
             maskpath = join(
-                data["data_location"],
-                data["ctma1fol"],  # or data["ctma" + data["annotator1"] + "fol"]
-                individual + "_" + data["annotator1"] + data["ctma_end"],
+                config["data_location"],
+                config["ctma1fol"],  # or config["ctma" + config["annotator1"] + "fol"]
+                individual + "_" + config["annotator1"] + config["ctma_end"],
             )
             newsize = [128, 128, 128]
 
             img = dt.Image(imgpath)
             mask = dt.Mask(
-                maskpath, annotatorID=data["annotator1"]
+                maskpath, annotatorID=config["annotator1"]
             )  # or simply annotatorID='2'
 
             print(img.modality)
@@ -119,14 +119,14 @@ def main(
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     if CTmask_to_mesh_and_pcd:
-        mesh_dirname = data["out_location"]
-        pcd_dirname = data["out_location"]
+        mesh_dirname = config["out_location"]
+        pcd_dirname = config["out_location"]
         for ind in ctlist:
             individual = ind
             maskpath = join(
-                data["data_location"],
-                data["ctmagtfol"],  # or data["ctma" + data["gt"] + "fol"]
-                individual + data["ctma_end"],
+                config["data_location"],
+                config["ctmagtfol"],  # or config["ctma" + config["gt"] + "fol"]
+                individual + config["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID="gt")
             (
@@ -145,15 +145,15 @@ def main(
     # Note: "mesh_dirname" is the directory to save the mesh,
     #       "pcd_dirname" is the directory to save the point cloud
     if USmask_to_mesh_and_pcd:
-        mesh_dirname = data["out_location"]
-        pcd_dirname = data["out_location"]
+        mesh_dirname = config["out_location"]
+        pcd_dirname = config["out_location"]
         for ind in uslist:
             k_side = ind[-1]
             individual = ind[:-1]
             maskpath = join(
-                data["data_location"],
-                data["usmagtfol"],  # or data["usma" + data["gt"] + "fol"]
-                individual + k_side + data["usma_end"],
+                config["data_location"],
+                config["usmagtfol"],  # or config["usma" + config["gt"] + "fol"]
+                individual + k_side + config["usma_end"],
             )
             usmask = dt.Mask(maskpath, annotatorID="gt")
             o3d_meshUS, o3d_pcdUS, mask_cleaned_nib = usmask.to_mesh_and_pcd(
@@ -166,29 +166,29 @@ def main(
     # Note: "split_dirname" is the directory to save the split data.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if splitCTmask1:
-        split_dirname = join(data["out_location"], data["ctspma1fol"])
+        split_dirname = join(config["out_location"], config["ctspma1fol"])
         makedir(split_dirname)
         for ind in ctlist:
             individual = ind
             maskpath = join(
-                data["data_location"],
-                data["ctma" + data["annotator1"] + "fol"],  # or data["ctma1fol"]
-                individual + "_" + data["annotator1"] + data["ctma_end"],
+                config["data_location"],
+                config["ctma" + config["annotator1"] + "fol"],  # or config["ctma1fol"]
+                individual + "_" + config["annotator1"] + config["ctma_end"],
             )
-            ctmask = dt.Mask(maskpath, annotatorID=data["annotator1"])
+            ctmask = dt.Mask(maskpath, annotatorID=config["annotator1"])
             nibL, nibR = ctmask.split(split_dirname=split_dirname)
 
     # Split CT mask (here from ground truth) ###
     # Note: "split_dirname" is the directory to save the split data.
     if splitCTmaskgt:
-        split_dirname = join(data["out_location"], data["ctspmagtfol"])
+        split_dirname = join(config["out_location"], config["ctspmagtfol"])
         makedir(split_dirname)
         for ind in ctlist:
             individual = ind
             maskpath = join(
-                data["data_location"],
-                data["ctma" + data["gt"] + "fol"],  # or data["ctmagtfol"]
-                individual + data["ctma_end"],
+                config["data_location"],
+                config["ctma" + config["gt"] + "fol"],  # or config["ctmagtfol"]
+                individual + config["ctma_end"],
             )
             ctmask = dt.Mask(maskpath, annotatorID="gt")
             nibL, nibR = ctmask.split(split_dirname=split_dirname)
@@ -196,14 +196,14 @@ def main(
     # Shift the origin of list of images or masks (here CT images) ###
     # Note: "shifted_dirname" is the directory to save the shifted data.
     if shift_origin:
-        shifted_dirname = join(data["out_location"], data["ct0imgfol"])
+        shifted_dirname = join(config["out_location"], config["ct0imgfol"])
         makedir(shifted_dirname)
         for ind in ctlist:
             individual = ind
             imgpath = join(
-                data["data_location"],
-                data["ctimgfol"],
-                individual + data["ctimg_end"],
+                config["data_location"],
+                config["ctimgfol"],
+                individual + config["ctimg_end"],
             )
             ctimg = dt.Image(imgpath)
             img_itk_shifted = ctimg.shift_origin(shifted_dirname=shifted_dirname)
@@ -213,27 +213,27 @@ def main(
     # Note: "fused_dirname" is the directory to save the fused mask.
     # Important Note: add the "_" (like in the example ) in the annotator CT mask names
     if fuse_CTmask:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         for ind in ctlist:
             individual = ind
             imgpath = join(
-                data["data_location"],
-                data["ctimgfol"],
-                individual + data["ctimg_end"],
+                config["data_location"],
+                config["ctimgfol"],
+                individual + config["ctimg_end"],
             )
             mask1path = join(
-                data["data_location"],
-                data["ctma" + data["annotator1"] + "fol"],  # data["ctma1fol"],
-                individual + "_" + data["annotator1"] + data["ctma_end"],
+                config["data_location"],
+                config["ctma" + config["annotator1"] + "fol"],  # config["ctma1fol"],
+                individual + "_" + config["annotator1"] + config["ctma_end"],
             )
             mask2path = join(
-                data["data_location"],
-                data["ctma2fol"],  # or data["ctma" + data["annotator2"] + "fol"],
-                individual + "_" + data["annotator2"] + data["ctma_end"],
+                config["data_location"],
+                config["ctma2fol"],  # or config["ctma" + config["annotator2"] + "fol"],
+                individual + "_" + config["annotator2"] + config["ctma_end"],
             )
             img = dt.Image(imgpath)
-            mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
-            mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
+            mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
+            mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
             list_of_masks = [mask1, mask2]
 
             fused_nib = dt.fuse_masks(
@@ -249,28 +249,28 @@ def main(
     # Fuse list of masks from annotator1 and annotator2 (here US masks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_USmask:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         for ind in uslist:
             k_side = ind[-1]
             individual = ind[:-1]
             imgpath = join(
-                data["data_location"],
-                data["usimgfol"],
-                individual + k_side + data["usimg_end"],
+                config["data_location"],
+                config["usimgfol"],
+                individual + k_side + config["usimg_end"],
             )
             mask1path = join(
-                data["data_location"],
-                data["usma1fol"],  # or data["usma" + data["annotator1"] + "fol"]
-                individual + k_side + data["annotator1"] + data["usma_end"],
+                config["data_location"],
+                config["usma1fol"],  # or config["usma" + config["annotator1"] + "fol"]
+                individual + k_side + config["annotator1"] + config["usma_end"],
             )
             mask2path = join(
-                data["data_location"],
-                data["usma2fol"],  # or data["usma" + data["annotator2"] + "fol"]
-                individual + k_side + data["annotator2"] + data["usma_end"],
+                config["data_location"],
+                config["usma2fol"],  # or config["usma" + config["annotator2"] + "fol"]
+                individual + k_side + config["annotator2"] + config["usma_end"],
             )
             img = dt.Image(imgpath)
-            mask1 = dt.Mask(mask1path, annotatorID=data["annotator1"])
-            mask2 = dt.Mask(mask2path, annotatorID=data["annotator2"])
+            mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
+            mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
             list_of_masks = [mask1, mask2]
 
             fused_nib = dt.fuse_masks(
@@ -290,22 +290,26 @@ def main(
     # Fuse list of landmark set from annotator1 and annotator2 (here CT landmarks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_landmark:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         for ind in ctlist:
             individual = ind
             for k_side in ["L", "R"]:
                 ldk1path = join(
-                    data["data_location"],
-                    data["ctld1fol"],  # or data["ctld" + data["annotator1"] + "fol"]
-                    individual + k_side + data["annotator1"] + data["ctld_end"],
+                    config["data_location"],
+                    config[
+                        "ctld1fol"
+                    ],  # or config["ctld" + config["annotator1"] + "fol"]
+                    individual + k_side + config["annotator1"] + config["ctld_end"],
                 )
                 ldk2path = join(
-                    data["data_location"],
-                    data["ctld2fol"],  # or data["ctld" + data["annotator2"] + "fol"]
-                    individual + k_side + data["annotator2"] + data["ctld_end"],
+                    config["data_location"],
+                    config[
+                        "ctld2fol"
+                    ],  # or config["ctld" + config["annotator2"] + "fol"]
+                    individual + k_side + config["annotator2"] + config["ctld_end"],
                 )
-                ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
-                ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
+                ldks1 = dt.Landmarks(ldk1path, annotatorID=config["annotator1"])
+                ldks2 = dt.Landmarks(ldk2path, annotatorID=config["annotator2"])
                 list_of_ldks = [ldks1, ldks2]
                 fused_nparray = dt.fuse_landmarks(
                     list_of_trusted_ldks=list_of_ldks,
@@ -316,22 +320,22 @@ def main(
     # Fuse list of landmark set from annotator1 and annotator2 (here U landmarks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_landmark:
-        fused_dirname = data["out_location"]
+        fused_dirname = config["out_location"]
         for ind in uslist:
             k_side = ind[-1]
             individual = ind[:-1]
             ldk1path = join(
-                data["data_location"],
-                data["usld1fol"],  # or data["usld" + data["annotator1"] + "fol"]
-                individual + k_side + data["annotator1"] + data["usld_end"],
+                config["data_location"],
+                config["usld1fol"],  # or config["usld" + config["annotator1"] + "fol"]
+                individual + k_side + config["annotator1"] + config["usld_end"],
             )
             ldk2path = join(
-                data["data_location"],
-                data["usld2fol"],  # or data["usld" + data["annotator2"] + "fol"]
-                individual + k_side + data["annotator2"] + data["usld_end"],
+                config["data_location"],
+                config["usld2fol"],  # or config["usld" + config["annotator2"] + "fol"]
+                individual + k_side + config["annotator2"] + config["usld_end"],
             )
-            ldks1 = dt.Landmarks(ldk1path, annotatorID=data["annotator1"])
-            ldks2 = dt.Landmarks(ldk2path, annotatorID=data["annotator2"])
+            ldks1 = dt.Landmarks(ldk1path, annotatorID=config["annotator1"])
+            ldks2 = dt.Landmarks(ldk2path, annotatorID=config["annotator2"])
             list_of_ldks = [ldks1, ldks2]
             fused_nparray = dt.fuse_landmarks(
                 list_of_trusted_ldks=list_of_ldks,
@@ -345,9 +349,9 @@ def main(
             individual = ind
             for k_side in ["L", "R"]:
                 meshpath = join(
-                    data["data_location"],
-                    data["ctmegtfol"],  # or data["ctme" + data["gt"] + "fol"]
-                    individual + k_side + data["ctme_end"],
+                    config["data_location"],
+                    config["ctmegtfol"],  # or config["ctme" + config["gt"] + "fol"]
+                    individual + k_side + config["ctme_end"],
                 )
                 mesh = dt.Mesh(meshpath, annotatorID="gt")
                 nparraypcd = mesh.to_nparraypcd()
@@ -361,9 +365,9 @@ def main(
             k_side = ind[-1]
             individual = ind[:-1]
             meshpath = join(
-                data["data_location"],
-                data["usmegtfol"],  # or data["usme" + data["gt"] + "fol"]
-                individual + k_side + data["usme_end"],
+                config["data_location"],
+                config["usmegtfol"],  # or config["usme" + config["gt"] + "fol"]
+                individual + k_side + config["usme_end"],
             )
             mesh = dt.Mesh(meshpath, annotatorID="gt")
             nparraypcd = mesh.to_nparraypcd()
@@ -374,7 +378,7 @@ def main(
     if build_a_list:
         USlike_IDlist = ["116L", "114R"]
         data_path_list = build_analist(
-            data_config=data,
+            data_config=config,
             modality="us",
             datatype="ld",
             # annotatorID='gt',
@@ -386,14 +390,16 @@ def main(
 
     if usdata_analysis:
         modality = "us"
-        usdatanalysis_folder = join(data["out_location"], data["us_analysis_folder"])
+        usdatanalysis_folder = join(
+            config["out_location"], config["us_analysis_folder"]
+        )
         makedir(usdatanalysis_folder)
 
         USlike_IDlist = uslist
         CTlike_IDlist = None
 
         usma1_files, usma2_files, usmagt_files = build_many_mask_analist(
-            modality, data, USlike_IDlist, CTlike_IDlist
+            modality, config, USlike_IDlist, CTlike_IDlist
         )
 
         (
@@ -403,7 +409,7 @@ def main(
             usld1_files,
             usld2_files,
             usldgt_files,
-        ) = build_many_me_ld_analist(modality, data, USlike_IDlist, CTlike_IDlist)
+        ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
 
         datanalysis(
             modality,
@@ -421,14 +427,16 @@ def main(
 
     if ctdata_analysis:
         modality = "ct"
-        ctdatanalysis_folder = join(data["out_location"], data["ct_analysis_folder"])
+        ctdatanalysis_folder = join(
+            config["out_location"], config["ct_analysis_folder"]
+        )
         makedir(ctdatanalysis_folder)
 
         # For CT Masks
         USlike_IDlist = None
         CTlike_IDlist = ctlist
         ctma1_files, ctma2_files, ctmagt_files = build_many_mask_analist(
-            modality, data, USlike_IDlist, CTlike_IDlist
+            modality, config, USlike_IDlist, CTlike_IDlist
         )
 
         # For CT Meshes and Landmarks which are name like US ones
@@ -441,7 +449,7 @@ def main(
             ctld1_files,
             ctld2_files,
             ctldgt_files,
-        ) = build_many_me_ld_analist(modality, data, USlike_IDlist, CTlike_IDlist)
+        ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
 
         datanalysis(
             modality,
@@ -463,27 +471,27 @@ def main(
 if __name__ == "__main__":
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
+        config = yaml.safe_load(yaml_file)
 
     allct = natsorted(
-        data["ctfold"]["cv1"]
-        + data["ctfold"]["cv2"]
-        + data["ctfold"]["cv3"]
-        + data["ctfold"]["cv4"]
-        + data["ctfold"]["cv5"]
+        config["ctfold"]["cv1"]
+        + config["ctfold"]["cv2"]
+        + config["ctfold"]["cv3"]
+        + config["ctfold"]["cv4"]
+        + config["ctfold"]["cv5"]
     )
     allct_with_side = natsorted([j + "L" for j in allct] + [j + "R" for j in allct])
     allus = natsorted(
-        data["usfold"]["cv1"]
-        + data["usfold"]["cv2"]
-        + data["usfold"]["cv3"]
-        + data["usfold"]["cv4"]
-        + data["usfold"]["cv5"]
+        config["usfold"]["cv1"]
+        + config["usfold"]["cv2"]
+        + config["usfold"]["cv3"]
+        + config["usfold"]["cv4"]
+        + config["usfold"]["cv5"]
     )
 
-    ctcv1 = data["ctfold"]["cv1"]
+    ctcv1 = config["ctfold"]["cv1"]
     ctcv1_with_side = natsorted([j + "L" for j in ctcv1] + [j + "R" for j in ctcv1])
-    uscv1 = data["usfold"]["cv1"]
+    uscv1 = config["usfold"]["cv1"]
 
     # ctlist_with_side = ctcv1_with_side
     # ctlist = ctcv1

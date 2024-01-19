@@ -162,7 +162,7 @@ class Image:
 
 
 class Mask:
-    def __init__(self, maskpath, annotatorID):
+    def __init__(self, maskpath, annotatorID, split=False):
         """
         Initializes an Mask object from an mask file (.nii.gz).
 
@@ -186,7 +186,10 @@ class Mask:
         else:
             self.annotatorID = str(annotatorID)
             if self.modality == "CT":
-                b = "_" + self.annotatorID + self.suffix
+                if split:
+                    b = self.annotatorID + self.suffix
+                else:
+                    b = "_" + self.annotatorID + self.suffix
             else:
                 b = self.annotatorID + self.suffix
 

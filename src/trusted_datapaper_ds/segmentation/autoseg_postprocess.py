@@ -31,21 +31,19 @@ def reupsampling_nib(imgnib, prednib, modality, clean=True):
     return resized_prednib
 
 
-def reupsampling_and_save_nii_list(
-    annotatorID, imgpath_list, predpath_list, output_folder, clean=True
-):
+def reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=True):
+    annotatorID = config["auto"]
+    img_folder = config["img_location"]
+
     makedir(output_folder)
 
-    for ref, ind in zip(imgpath_list, predpath_list):
-        imgpath = ref
+    for ind in predpath_list:
         maskpath = ind
-
-        img = dt.Image(imgpath)
         mask = dt.Mask(maskpath, annotatorID)
+        ID = mask.individual_name
 
-        assert (
-            img.individual_name == mask.individual_name
-        ), "Image and Prediction seem to be different"
+        imgpath = join(img_folder, ID + config["usimg_end"])
+        img = dt.Image(imgpath)
 
         modality = img.modality
 
@@ -135,11 +133,8 @@ def meshing_pcding_and_saving_nii_mask_list(
             # )
 
 
-def main1(config, imgpath_list, predpath_list, output_folder):
-    annotatorID = config["auto"]
-    reupsampling_and_save_nii_list(
-        annotatorID, imgpath_list, predpath_list, output_folder, clean=True
-    )
+def main1(config, predpath_list, output_folder):
+    reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=True)
     return
 
 
@@ -156,22 +151,25 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    case1 = 0
-    case2 = 1
+    postprocess1 = 0
+    postprocess2 = 1
+    postprocess3 = 0
 
-    if case1:
-        ref_folder = config["ref_location"]
+    if config["modality"] == "ct":
+        postprocess3 = 1
+
+    if postprocess1:
+        img_folder = config["img_location"]
         input_folder = join(
             config["seg128location"], config["segmodel"], config["training_target"]
         )
-        imgpath_list = natsorted(glob(join(ref_folder, "*.nii.gz")))
         predpath_list = natsorted(glob(join(input_folder, "*.nii.gz")))
         output_folder = join(
             config["mask_seglocation"], config["segmodel"], config["training_target"]
         )
-        main1(config, imgpath_list, predpath_list, output_folder)
+        main1(config, predpath_list, output_folder)
 
-    if case2:
+    if postprocess2:
         pred_folder = join(
             config["mask_seglocation"], config["segmodel"], config["training_target"]
         )
@@ -183,3 +181,19 @@ if __name__ == "__main__":
             config["pcd_seglocation"], config["segmodel"], config["training_target"]
         )
         main2(config, maskpath_list, mesh_folder, pcd_folder)
+
+    if postprocess3:
+        mask_folder = join(
+            config["mask_seglocation"], config["segmodel"], config["training_target"]
+        )
+        maskpath_list = natsorted(glob(join(mask_folder, "*.nii.gz")))
+        split_dirname = join(
+            config["splitmask_seglocation"],
+            config["segmodel"],
+            config["training_target"],
+        )
+        makedir(split_dirname)
+
+        for maskpath in maskpath_list:
+            ctmask = dt.Mask(maskpath, annotatorID=config["auto"])
+            nibL, nibR = ctmask.split(split_dirname=split_dirname)

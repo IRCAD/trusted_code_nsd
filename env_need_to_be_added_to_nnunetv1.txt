@@ -1,0 +1,19 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: linux-64
+
+acvl-utils=0.2=pypi_0
+
+connected-components-3d=3.12.4=pypi_0
+
+dicom2nifti=2.4.10=pypi_0
+dynamic-network-architectures=0.2=pypi_0
+filelock=3.13.1=pypi_0
+fsspec=2023.12.2=pypi_0
+future=0.18.3=pypi_0
+idna=3.6=pypi_0
+imagecodecs=2024.1.1=pypi_0
+python-graphviz=0.20.1=pypi_0
+pytz=2023.3.post1=pypi_0
+seaborn=0.13.1=pypi_0
+yacs=0.1.8=pypi_0
