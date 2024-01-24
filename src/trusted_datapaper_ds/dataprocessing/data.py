@@ -741,7 +741,8 @@ def resiz_nparray(input_nparray, newsize, interpolmode):
     Returns:
         ...
     """
-    addchanel_nparray = torch.unsqueeze(torch.from_numpy(input_nparray), 0)
+
+    addchanel_tensor = torch.unsqueeze((torch.from_numpy(input_nparray)), 0)
 
     post_resiz = Resize(
         spatial_size=newsize,
@@ -750,11 +751,12 @@ def resiz_nparray(input_nparray, newsize, interpolmode):
     )
     binarising = AsDiscrete(threshold=0.5)
 
-    resized_tensor0 = post_resiz(addchanel_nparray)
+    resized_tensor0 = post_resiz(addchanel_tensor)
+
     resized_nparray = np.asarray(resized_tensor0).squeeze(0)
     resized_tensor = binarising(resized_nparray)
-
     resized_nparray = resized_tensor.numpy()
+
     del (resized_tensor0, resized_tensor)
 
     return resized_nparray

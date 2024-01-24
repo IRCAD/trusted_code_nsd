@@ -16,7 +16,7 @@ def reupsampling_nib(imgnib, prednib, modality, clean=True):
     assert (
         np.max(squared_diff_affine_matrix) < 1e-6
     ), "imgnib and prednib seem to be different"
-    assert modality in ["CT", "US"], "modality has to be set in ['CT', 'US'] "
+    assert modality.upper() in ["CT", "US"], "modality has to be set in ['CT', 'US'] "
 
     newsize = list(imgnib.shape)
 
@@ -42,10 +42,10 @@ def reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=T
         mask = dt.Mask(maskpath, annotatorID)
         ID = mask.individual_name
 
-        imgpath = join(img_folder, ID + config["usimg_end"])
-        img = dt.Image(imgpath)
+        modality = config["modality"]
 
-        modality = img.modality
+        imgpath = join(img_folder, ID + config[modality + "img_end"])
+        img = dt.Image(imgpath)
 
         img_nib = img.nibimg
         pred_nib = mask.nibmask
@@ -151,11 +151,11 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    postprocess1 = 0
-    postprocess2 = 1
-    postprocess3 = 0
+    postprocess1 = 0  # Resupsampling
+    postprocess2 = 0  # meshing
+    postprocess3 = 1
 
-    if config["modality"] == "ct":
+    if config["modality"] == "CT":
         postprocess3 = 1
 
     if postprocess1:

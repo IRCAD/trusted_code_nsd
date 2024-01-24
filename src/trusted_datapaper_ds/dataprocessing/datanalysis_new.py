@@ -57,9 +57,9 @@ def datanalysis(
         haus2 = np.nan
 
         magt = dt.Mask(magt_file, annotatorID="gt")
-        if modality == "us":
+        if modality == "US":
             assert magt.modality == "US", "The mask seems not to be for a US image"
-        if modality == "ct":
+        if modality == "CT":
             assert magt.modality == "CT", "The mask seems not to be for a CT image"
 
         ID = magt.individual_name
@@ -113,9 +113,9 @@ def datanalysis(
         lm_dist2 = [np.nan for i in range(7)]
 
         megt = dt.Mesh(megt_file, annotatorID="gt")
-        if modality == "us":
+        if modality == "US":
             assert magt.modality == "US", "The mask seems not to be for a US image"
-        if modality == "ct":
+        if modality == "CT":
             assert magt.modality == "CT", "The mask seems not to be for a CT image"
 
         ID = megt.individual_name

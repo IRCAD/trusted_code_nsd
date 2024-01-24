@@ -23,9 +23,9 @@ def detect_outliers(data, k=1.5):
 
 
 def seg_analysis(config, seg_evaluation_outputs_folder: str):
-    modality = config["modality"]
+    config["modality"]
 
-    resultfile_csv = join(seg_evaluation_outputs_folder, modality + "_segresults.csv")
+    resultfile_csv = join(seg_evaluation_outputs_folder, "segresults.csv")
     resultdf = pd.read_csv(resultfile_csv, index_col=0)
 
     summarydf = pd.DataFrame()
@@ -162,7 +162,7 @@ def main(config):
     """ Build the means for all the methods"""
     # for segmodel in ["unet", "vnet", "nnunet", "cotr"]:
     #     for target_kind in ["double_targets_training", "single_target_training"]:
-    for segmodel in ["nnunet"]:
+    for segmodel in ["unet_lr1.0_epoch1001_batch2"]:
         for target_kind in ["single_target_training"]:
             seg_evaluation_outputs_folder = join(
                 segresults_folder, segmodel, target_kind

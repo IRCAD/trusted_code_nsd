@@ -1,5 +1,5 @@
 auto: "auto"
-modality: "us"
+modality: "US"
 
 ref1model: "nnunet"
 ref1target: "double_targets_training"

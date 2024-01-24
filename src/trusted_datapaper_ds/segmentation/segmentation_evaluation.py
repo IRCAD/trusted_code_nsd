@@ -22,20 +22,23 @@ def segeval(
 ):
     modality = config["modality"]
     results_folder = config["segresults_folder"]
+    segmodel = config["segmodel"]
+    training_target = config["training_target"]
+
     assert len(maauto_files) == len(
         meauto_files
     ), "There is an incompatibility about the number of files in the lists you give me."
 
-    csv_file = join(results_folder, modality + "_segresults.csv")
+    csv_file = join(results_folder, segmodel, training_target, "segresults.csv")
 
     df = pd.DataFrame()
 
     maauto_files = natsorted(maauto_files)
     meauto_files = natsorted(meauto_files)
 
-    if modality == "ct":
+    if modality == "CT":
         magt_folder = config["gtsplitmask_location"]
-    if modality == "us":
+    if modality == "US":
         magt_folder = config["gtmask_location"]
     meauto_folder = join(
         config["mesh_seglocation"], config["segmodel"], config["training_target"]
@@ -47,11 +50,11 @@ def segeval(
         hmesh1 = np.nan
         nndst1 = np.nan
 
-        maauto = dt.Mask(maauto_file, annotatorID="auto", split=modality == "ct")
+        maauto = dt.Mask(maauto_file, annotatorID="auto", split=modality == "CT")
 
-        if modality == "us":
+        if modality == "US":
             assert maauto.modality == "US", "The mask seems not to be for a US image"
-        if modality == "ct":
+        if modality == "CT":
             assert maauto.modality == "CT", "The mask seems not to be for a CT image"
 
         ID = maauto.individual_name
@@ -66,9 +69,9 @@ def segeval(
         meauto_file = join(meauto_folder, ID + config[modality + "me_end"])
         meauto = dt.Mesh(meauto_file, annotatorID="auto")
 
-        if modality == "us":
+        if modality == "US":
             assert megt.modality == "US", "The mesh seems not to be for a US image"
-        if modality == "ct":
+        if modality == "CT":
             assert megt.modality == "CT", "The mesh seems not to be for a CT image"
 
         assert (
@@ -150,14 +153,14 @@ if __name__ == "__main__":
     modality = config["modality"]
     results_folder = config["segresults_folder"]
 
-    if modality == "ct":
+    if modality == "CT":
         magt_folder = config["gtsplitmask_location"]
         maauto_folder = join(
             config["splitmask_seglocation"],
             config["segmodel"],
             config["training_target"],
         )
-    if modality == "us":
+    if modality == "US":
         magt_folder = config["gtmask_location"]
         maauto_folder = join(
             config["mask_seglocation"], config["segmodel"], config["training_target"]

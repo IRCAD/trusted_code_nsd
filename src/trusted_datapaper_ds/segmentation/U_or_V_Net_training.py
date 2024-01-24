@@ -228,7 +228,6 @@ def training(
         [
             # load 4 Nifti images and stack them together
             LoadImaged(keys=["image", "label1", "label2", "label12"]),
-            # AddChanneld(keys=["image", "label1", "label2", "label12"]),
             EnsureChannelFirstd(keys=["image", "label1", "label2", "label12"]),
             RandFlipd(
                 keys=["image", "label1", "label2", "label12"], prob=0.25, spatial_axis=0
@@ -273,7 +272,6 @@ def training(
     val_transform = Compose(
         [
             LoadImaged(keys=["image", "label12"]),
-            # AddChanneld(keys=["image", "label12"]),
             EnsureChannelFirstd(keys=["image", "label12"]),
             Resized(
                 keys=["image", "label12"],

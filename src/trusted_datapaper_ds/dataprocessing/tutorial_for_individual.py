@@ -39,16 +39,16 @@ def main(
         resized_dirname = config["out_location"]
         imgpath = join(
             config["data_location"],
-            config["usimgfol"],
-            config["individual"] + config["k_side"] + config["usimg_end"],
+            config["USimgfol"],
+            config["individual"] + config["k_side"] + config["USimg_end"],
         )
         maskpath = join(
             config["data_location"],
-            config["usma2fol"],
+            config["USma2fol"],
             config["individual"]
             + config["k_side"]
             + config["annotator2"]
-            + config["usma_end"],
+            + config["USma_end"],
         )
         newsize = [128, 128, 128]
 
@@ -73,13 +73,13 @@ def main(
         resized_dirname = config["out_location"]
         imgpath = join(
             config["data_location"],
-            config["ctimgfol"],
-            config["individual"] + config["ctimg_end"],
+            config["CTimgfol"],
+            config["individual"] + config["CTimg_end"],
         )
         maskpath = join(
             config["data_location"],
-            config["ctma1fol"],
-            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
+            config["CTma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["CTma_end"],
         )
         newsize = [128, 128, 128]
 
@@ -107,8 +107,8 @@ def main(
         pcd_dirname = config["out_location"]
         maskpath = join(
             config["data_location"],
-            config["ctmagtfol"],
-            config["individual"] + config["ctma_end"],
+            config["CTmagtfol"],
+            config["individual"] + config["CTma_end"],
         )
         ctmask = dt.Mask(maskpath, annotatorID="gt")
         (
@@ -131,8 +131,8 @@ def main(
         pcd_dirname = config["out_location"]
         maskpath = join(
             config["data_location"],
-            config["usmagtfol"],
-            config["individual"] + config["k_side"] + config["usma_end"],
+            config["USmagtfol"],
+            config["individual"] + config["k_side"] + config["USma_end"],
         )
         usmask = dt.Mask(maskpath, annotatorID="gt")
         o3d_meshUS, o3d_pcdUS, mask_cleaned_nib = usmask.to_mesh_and_pcd(
@@ -148,8 +148,8 @@ def main(
         split_dirname = config["out_location"]
         maskpath = join(
             config["data_location"],
-            config["ctma1fol"],
-            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
+            config["CTma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["CTma_end"],
         )
         ctmask = dt.Mask(maskpath, annotatorID=config["annotator1"])
         nibL, nibR = ctmask.split(split_dirname=split_dirname)
@@ -160,8 +160,8 @@ def main(
         split_dirname = config["out_location"]
         maskpath = join(
             config["data_location"],
-            config["ctmagtfol"],
-            config["individual"] + config["ctma_end"],
+            config["CTmagtfol"],
+            config["individual"] + config["CTma_end"],
         )
         ctmask = dt.Mask(maskpath, annotatorID="gt")
         nibL, nibR = ctmask.split(split_dirname=split_dirname)
@@ -172,8 +172,8 @@ def main(
         shifted_dirname = config["out_location"]
         imgpath = join(
             config["data_location"],
-            config["ctimgfol"],
-            config["individual"] + config["ctimg_end"],
+            config["CTimgfol"],
+            config["individual"] + config["CTimg_end"],
         )
         ctimg = dt.Image(imgpath)
         img_itk_shifted = ctimg.shift_origin(shifted_dirname=shifted_dirname)
@@ -186,18 +186,18 @@ def main(
         fused_dirname = config["out_location"]
         imgpath = join(
             config["data_location"],
-            config["ctimgfol"],
-            config["individual"] + config["ctimg_end"],
+            config["CTimgfol"],
+            config["individual"] + config["CTimg_end"],
         )
         mask1path = join(
             config["data_location"],
-            config["ctma1fol"],
-            config["individual"] + "_" + config["annotator1"] + config["ctma_end"],
+            config["CTma1fol"],
+            config["individual"] + "_" + config["annotator1"] + config["CTma_end"],
         )
         mask2path = join(
             config["data_location"],
-            config["ctma2fol"],
-            config["individual"] + "_" + config["annotator2"] + config["ctma_end"],
+            config["CTma2fol"],
+            config["individual"] + "_" + config["annotator2"] + config["CTma_end"],
         )
         img = dt.Image(imgpath)
         mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
@@ -220,24 +220,24 @@ def main(
         fused_dirname = config["out_location"]
         imgpath = join(
             config["data_location"],
-            config["usimgfol"],
-            config["individual"] + config["k_side"] + config["usimg_end"],
+            config["USimgfol"],
+            config["individual"] + config["k_side"] + config["USimg_end"],
         )
         mask1path = join(
             config["data_location"],
-            config["usma1fol"],
+            config["USma1fol"],
             config["individual"]
             + config["k_side"]
             + config["annotator1"]
-            + config["usma_end"],
+            + config["USma_end"],
         )
         mask2path = join(
             config["data_location"],
-            config["usma2fol"],
+            config["USma2fol"],
             config["individual"]
             + config["k_side"]
             + config["annotator2"]
-            + config["usma_end"],
+            + config["USma_end"],
         )
         img = dt.Image(imgpath)
         mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
@@ -264,19 +264,19 @@ def main(
         fused_dirname = config["out_location"]
         ldk1path = join(
             config["data_location"],
-            config["ctld1fol"],
+            config["CTld1fol"],
             config["individual"]
             + config["k_side"]
             + config["annotator1"]
-            + config["ctld_end"],
+            + config["CTld_end"],
         )
         ldk2path = join(
             config["data_location"],
-            config["ctld2fol"],
+            config["CTld2fol"],
             config["individual"]
             + config["k_side"]
             + config["annotator2"]
-            + config["ctld_end"],
+            + config["CTld_end"],
         )
         ldks1 = dt.Landmarks(ldk1path, annotatorID=config["annotator1"])
         ldks2 = dt.Landmarks(ldk2path, annotatorID=config["annotator2"])
@@ -291,8 +291,8 @@ def main(
     if mesh_to_pcd:
         meshpath = join(
             config["data_location"],
-            config["usmegtfol"],
-            config["individual"] + config["k_side"] + config["usme_end"],
+            config["USmegtfol"],
+            config["individual"] + config["k_side"] + config["USme_end"],
         )
         mesh = dt.Mesh(meshpath, annotatorID=config["gt"])
         nparraypcd = mesh.to_nparraypcd()
