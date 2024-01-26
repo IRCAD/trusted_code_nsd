@@ -57,7 +57,7 @@ def segmentor(
     model_name, weight_file, img_files, output_folder=None, maskinterpolmode="trilinear"
 ):
     assert ("unet" in model_name) or (
-        "unet" in model_name
+        "vnet" in model_name
     ), " Cannot identify the name of the model. "
 
     if output_folder is not None:
@@ -106,17 +106,27 @@ def segmentor(
             )
             img_basename = os.path.basename(file_name)
 
-            # post_resiz = Resize(spatial_size=original_shape)
-            post_trans2 = Compose(
-                [
-                    Resize(
-                        spatial_size=original_shape,
-                        mode=maskinterpolmode,
-                        align_corners=maskinterpolmode == "trilinear",
-                    ),
-                    AsDiscrete(threshold=0.5),
-                ]
-            )
+            if maskinterpolmode == "trilinear":
+                post_trans2 = Compose(
+                    [
+                        Resize(
+                            spatial_size=original_shape,
+                            mode=maskinterpolmode,
+                            align_corners=True,
+                        ),
+                        AsDiscrete(threshold=0.5),
+                    ]
+                )
+            else:
+                post_trans2 = Compose(
+                    [
+                        Resize(
+                            spatial_size=original_shape,
+                            mode=maskinterpolmode,
+                        ),
+                        AsDiscrete(threshold=0.5),
+                    ]
+                )
 
             val_input = np.array(image_data["image"])
             val_input = torch.as_tensor(val_input, dtype=None, device=device)
@@ -127,8 +137,6 @@ def segmentor(
             np_val_output = post_trans2(np_val_output)
 
             np_val_output = np.asarray(np_val_output.detach().cpu()).squeeze(0)
-            # print("output size", np_val_output.shape)
-            # print(np.unique(np_val_output))
             nib_val_output = nib.Nifti1Image(np_val_output, affine)
 
             if output_folder is not None:
@@ -146,24 +154,31 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     modality = config["modality"]
-    cv = "cv1"
-    model_name = config["segmodel"]
-    output_folder = join(
-        config["mask_seglocation"], config["segmodel"], config["training_target"]
-    )  # Here the outputs are already upsampled
+    for cv in ["cv1", "cv2", "cv3", "cv4", "cv5"]:
+        # for cv in ["cv5"]:
+        model_name = config["segmodel"]
+        output_folder = join(
+            config["mask_seglocation"], config["segmodel"], config["training_target"]
+        )  # Here the outputs are already upsampled
 
-    weight_file = join(
-        config["trained_models_location"],
-        model_name,
-        cv,
-        config["training_target"],
-        "best_metric_model.pth",
-    )
+        weight_file = join(
+            config["trained_models_location"],
+            model_name,
+            cv,
+            config["training_target"],
+            "best_metric_model.pth",
+        )
 
-    img_folder = join(config["img_location"])
-    img_files = [join(img_folder, i + config[modality + "img_end"]) for i in config[cv]]
-    print(len(img_files))
+        img_folder = join(config["img_location"])
+        img_files = [
+            join(img_folder, i + config[modality + "img_end"]) for i in config[cv]
+        ]
+        print(len(img_files))
 
-    nib_val_output = segmentor(
-        model_name, weight_file, img_files, output_folder, maskinterpolmode="trilinear"
-    )
+        nib_val_output = segmentor(
+            model_name,
+            weight_file,
+            img_files,
+            output_folder,
+            maskinterpolmode="trilinear",
+        )

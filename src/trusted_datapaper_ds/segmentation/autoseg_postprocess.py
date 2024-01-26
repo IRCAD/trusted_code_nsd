@@ -152,8 +152,8 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     postprocess1 = 0  # Resupsampling
-    postprocess2 = 0  # meshing
-    postprocess3 = 1
+    postprocess2 = 1  # meshing
+    postprocess3 = 0
 
     if config["modality"] == "CT":
         postprocess3 = 1

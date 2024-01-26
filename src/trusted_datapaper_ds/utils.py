@@ -8,6 +8,13 @@ def parse_args():
     PARSER.add_argument(
         "--config_path", type=str, required=True, help="path to the parameters yml file"
     )
+    PARSER.add_argument(
+        "--num_processors",
+        type=int,
+        default=2,
+        help="number of processors used \
+                       for preprocessing",
+    )
     ARGS = PARSER.parse_args()
     return ARGS
 

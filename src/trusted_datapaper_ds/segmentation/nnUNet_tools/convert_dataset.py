@@ -1,21 +1,9 @@
-import argparse
 import json
 import os
 import shutil
 from typing import Tuple
 
-import yaml
 from natsort import natsorted
-
-
-def parse_args():
-    PARSER = argparse.ArgumentParser(description="Convert dataset into nnUnet format")
-    PARSER.add_argument(
-        "--config_path", type=str, required=True, help="path to the parameters yml file"
-    )
-
-    ARGS = PARSER.parse_args()
-    return ARGS
 
 
 def save_json(obj, file: str, indent: int = 4, sort_keys: bool = True) -> None:
@@ -144,16 +132,23 @@ def generate_dataset_json(
     )
 
 
-def main(config_path, modality):
-    with open(config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
-    data_location = data["data_location"]
-    modality_specific = os.path.join(modality.upper() + "_DATA", data["nnunet_data"])
-    root_dir = os.path.join(data_location, modality_specific, "processed/Dataset")
+def convert(config):
+    data_location = config["trained_models_location"]
+    assert config["ntarget"] in ["1", "2"], ' "ntarget" must be  in ["1", "2"]'
+    if config["ntarget"] == "1":
+        target = "single"
+    if config["ntarget"] == "2":
+        target = "double"
+    root_dir = os.path.join(
+        data_location, config["nnunet_data"], "processed", target, "Dataset"
+    )
     raw_data_dir = os.path.join(root_dir, "nnUNet_raw")
     preprocessed_data_dir = os.path.join(root_dir, "nnUNet_preprocessed")
     results_dir = os.path.join(root_dir, "nnUNet_results")
-    spefic_dataset_dir = "Dataset%03.0d_%s" % (data["dataset_id"], data["task_name"])
+    spefic_dataset_dir = "Dataset%03.0d_%s" % (
+        config["dataset_id"],
+        config["task_name"],
+    )
     dataset_dir = os.path.join(raw_data_dir, spefic_dataset_dir)
     train_img_dir = os.path.join(dataset_dir, "imagesTr")
     test_img_dir = os.path.join(dataset_dir, "imagesTs")
@@ -166,31 +161,27 @@ def main(config_path, modality):
     os.makedirs(train_img_dir, exist_ok=True)
     os.makedirs(train_labels, exist_ok=True)
     os.makedirs(test_img_dir, exist_ok=True)
-    img_dir = os.path.join(
-        data_location, modality.upper() + "_DATA", data["nnunet_data"], "raw", "input"
-    )
+    img_dir = os.path.join(data_location, config["nnunet_data"], "raw", "input", target)
     img_files_list = natsorted(os.listdir(img_dir))
+
     mask_dir = os.path.join(
-        data_location,
-        modality.upper() + "_DATA",
-        data["nnunet_data"],
-        "raw",
-        "ground_truth",
+        data_location, config["nnunet_data"], "raw", "ground_truth", target
     )
+
     mask_files_list = natsorted(os.listdir(mask_dir))
 
     for i, (img_file, mask_file) in enumerate(zip(img_files_list, mask_files_list)):
         new_img_filename = (
-            data["img_prefix"]
-            + img_file[: img_file.find(data["file_ending"])]
+            config["img_prefix"]
+            + img_file[: img_file.find(config["file_ending"])]
             + "_"
-            + data["channel"]
-            + data["file_ending"]
+            + config["channel"]
+            + config["file_ending"]
         )
         new_mask_filename = (
-            data["img_prefix"]
-            + mask_file[: mask_file.find(data["file_ending"])]
-            + data["file_ending"]
+            config["img_prefix"]
+            + mask_file[: mask_file.find(config["file_ending"])]
+            + config["file_ending"]
         )
         shutil.copyfile(
             os.path.join(img_dir, img_file),
@@ -203,24 +194,14 @@ def main(config_path, modality):
 
     generate_dataset_json(
         dataset_dir,
-        data["channel_names"],
-        labels=data["labels"],
+        config["channel_names"],
+        labels=config["labels"],
         num_training_cases=len(img_files_list),
-        file_ending=data["file_ending"],
-        dataset_name=data["task_name"],
-        reference=data["reference"],
-        overwrite_image_reader_writer=data["image_reader_writer"],
-        description=data["description"],
+        file_ending=config["file_ending"],
+        dataset_name=config["task_name"],
+        reference=config["reference"],
+        overwrite_image_reader_writer=config["image_reader_writer"],
+        description=config["description"],
     )
 
     return root_dir
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    with open(args.config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
-    modality = data["modality"]
-
-    root_dir = main(args.config_path, modality=modality)
-    print("Data successfully preprocessed into: ", root_dir)

@@ -1,3 +1,6 @@
+data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission"
+output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
+
 auto: "auto"
 modality: "CT"
 img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_images/"
@@ -5,6 +8,11 @@ img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/T
 gtmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_masks/GT_estimated_masksCT/"
 gtsplitmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CTsplit_masks/GT_estimated_masksCT/"
 gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT"
+
+ct128imgfol: "CT_DATA/CTimg128/"
+ct128ma1fol: "CT_DATA/CTmask128/Annotator1/"
+ct128ma2fol: "CT_DATA/CTmask128/Annotator2/"
+ct128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 
 seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask128/"
 
@@ -20,9 +28,10 @@ CTma_end: "_maskCT.nii.gz"
 CTme_end: "meshfaceCT.obj"
 
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CTseg_trained_models/"
-# segmodel: "nnunetv1"
-segmodel: "unet_lr1.0_epoch1001_batch2"
-training_target: "single_target_training"
+# segmodel: "nnunetv1_loic_by_william"
+# segmodel: "unet"
+segmodel: "vnet_lr1.0_epoch1001_batch2"
+training_target: "double_targets_training"
 
 
 cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']

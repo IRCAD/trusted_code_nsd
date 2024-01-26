@@ -42,25 +42,17 @@ warnings.filterwarnings("ignore")  # remove some warnings
 matplotlib.use("Agg")
 
 
-"""## Setup data directory
-
-data_folder: the location of US data folder containing two subfolders: "USimg_cropped128" and "USmask_cropped128"
-output_folder: the global location to save the training output
-out_dir: the specific location to save the training output for the current fold of the cross validation
-
-"""
-
-
 def training(
     config,
     modality,
     cv,
     segmodel,
     data_location,
+    output_location,
     lr,
     wdecay,
     nb_epochs,
-    two_targets_training,
+    double_targets_training,
 ):
     """## out.txt is the text file containing the informations concerning the training events like
     the training loss value, the validation metric value, ...
@@ -70,61 +62,32 @@ def training(
 
     NumberOfEpochs = nb_epochs
 
-    if modality == "CT":
-        input_folder = join(data_location, modality + "_DATA", modality + "img128")
-        target_folder1 = join(
-            data_location, modality + "_DATA", modality + "mask128", "Annotator2"
-        )
-        target_folder2 = join(
-            data_location, modality + "_DATA", modality + "mask128", "Annotator3"
-        )
-        target_folder12 = join(
-            data_location, modality + "_DATA", modality + "mask128", "maxflow2.5"
-        )
+    # input_folder = join(data_location, modality + "_DATA", modality + "img128")
+    input_folder = join(data_location, config[modality + "128imgfol"])
+    target_folder1 = join(data_location, config[modality + "128ma1fol"])
+    target_folder2 = join(data_location, config[modality + "128ma2fol"])
+    target_folder12 = join(data_location, config[modality + "128magtfol"])
 
-    if modality == "US":
-        input_folder = join(
-            data_location, modality + "_DATA", modality + "img128_rescaled0.3"
-        )
-        target_folder1 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "Annotator2",
-        )
-        target_folder2 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "Annotator3",
-        )
-        target_folder12 = join(
-            data_location,
-            modality + "_DATA",
-            modality + "mask128_rescaled0.3",
-            "maxflow2.5",
-        )
-
-    if two_targets_training:
+    if double_targets_training:
         print("###")
         print("TWO TRAINING TARGETS SEGMENTATION WITH " + segmodel)
         print("###")
         output_folder = join(
-            data_location,
+            output_location,
             modality + "_DATA",
-            modality + "output_mask128",
+            modality + "seg_trained_models",
             segmodel + "_lr" + str(lr) + "_epoch" + str(nb_epochs),
             cv,
-            "two_targets_training",
+            "double_targets_training",
         )
-    if not two_targets_training:
+    if not double_targets_training:
         print("###")
         print("SINGLE FUSED TRAINING TARGETS SEGMENTATION WITH " + segmodel)
         print("###")
         output_folder = join(
-            data_location,
+            output_location,
             modality + "_DATA",
-            modality + "output_mask128",
+            modality + "seg_trained_models",
             segmodel + "_lr" + str(lr) + "_epoch" + str(nb_epochs),
             cv,
             "single_target_training",
@@ -137,64 +100,43 @@ def training(
     except FileExistsError:
         print("Directory ", output_folder, " already exists")
 
-    indiv = config[modality.lower() + "fold"][cv]
+    indiv = config[cv]
     print("indiv = ", indiv)
 
-    path = join(output_folder, "out.txt")
+    # path = join(output_folder, "out.txt")
 
-    sys.stdout = open(path, "w")
+    # sys.stdout = open(path, "w")
+
+    all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
+    valid_img_paths = [
+        join(input_folder, i + config[modality + "img_end"])
+        for i in indiv
+        if isfile(join(input_folder, i + config[modality + "img_end"]))
+    ]
+    all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
+    valid_seg12_paths = [
+        join(target_folder12, i + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder12, i + config[modality + "ma_end"]))
+    ]
 
     if modality == "CT":
-        all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
-        valid_img_paths = [
-            join(input_folder, i + "_3_img.nii.gz")
-            for i in indiv
-            if isfile(join(input_folder, i + "_3_img.nii.gz"))
-        ]
-        all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
-        valid_seg1_paths = [
-            join(target_folder1, i + "_2_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder1, i + "_2_Vol.nii.gz"))
-        ]
-        all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
-        valid_seg2_paths = [
-            join(target_folder2, i + "_3_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder2, i + "_3_Vol.nii.gz"))
-        ]
-        all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
-        valid_seg12_paths = [
-            join(target_folder12, i + "_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder12, i + "_Vol.nii.gz"))
-        ]
-
+        middle = "_"
     if modality == "US":
-        all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
-        valid_img_paths = [
-            join(input_folder, i + "3_img.nii.gz")
-            for i in indiv
-            if isfile(join(input_folder, i + "3_img.nii.gz"))
-        ]
-        all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
-        valid_seg1_paths = [
-            join(target_folder1, i + "2_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder1, i + "2_Vol.nii.gz"))
-        ]
-        all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
-        valid_seg2_paths = [
-            join(target_folder2, i + "3_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder2, i + "3_Vol.nii.gz"))
-        ]
-        all_seg12_paths = natsorted(glob(join(target_folder12, "*.nii.gz")))
-        valid_seg12_paths = [
-            join(target_folder12, i + "_Vol.nii.gz")
-            for i in indiv
-            if isfile(join(target_folder12, i + "_Vol.nii.gz"))
-        ]
+        middle = ""
+
+    all_seg1_paths = natsorted(glob(join(target_folder1, "*.nii.gz")))
+    valid_seg1_paths = [
+        join(target_folder1, i + middle + "1" + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder1, i + middle + "1" + config[modality + "ma_end"]))
+    ]
+    all_seg2_paths = natsorted(glob(join(target_folder2, "*.nii.gz")))
+    valid_seg2_paths = [
+        join(target_folder2, i + middle + "2" + config[modality + "ma_end"])
+        for i in indiv
+        if isfile(join(target_folder2, i + middle + "2" + config[modality + "ma_end"]))
+    ]
 
     print("len valid_img_paths", len(valid_img_paths))
     print("len valid_seg1_paths", len(valid_seg1_paths))
@@ -226,7 +168,6 @@ def training(
 
     train_transform = Compose(
         [
-            # load 4 Nifti images and stack them together
             LoadImaged(keys=["image", "label1", "label2", "label12"]),
             EnsureChannelFirstd(keys=["image", "label1", "label2", "label12"]),
             RandFlipd(
@@ -413,11 +354,11 @@ def training(
             labels12 = binarizing(labels12)
             optimizer.zero_grad()
             outputs = model(inputs)
-            if two_targets_training:
+            if double_targets_training:
                 loss = (
                     loss_function(outputs, labels1) + loss_function(outputs, labels2)
                 ) * 0.5
-            if not two_targets_training:
+            if not double_targets_training:
                 loss = loss_function(outputs, labels12)
             loss.backward()
             optimizer.step()
@@ -513,47 +454,23 @@ def training(
     return
 
 
-def external_loss_metric_plot(modality, cv, segmodel, data_location, val_interval=2):
-    output_folder = join(
-        data_location, modality + "_DATA", modality + "output_mask128", segmodel, cv
-    )
-    loss = np.loadtxt(join(output_folder, "loss.txt"))
-    metric = np.loadtxt(join(output_folder, "metric.txt"))
-    """## Plot the loss and metric"""
-    plt.figure("train", (12, 6))
-    plt.subplot(1, 2, 1)
-    plt.title("Epoch Average Loss")
-    x = [i + 1 for i in range(len(loss))]
-    y = loss
-    plt.xlabel("epoch")
-    plt.plot(x, y, color="red")
-    plt.subplot(1, 2, 2)
-    plt.title("Val Mean Dice")
-    x = [val_interval * (i + 1) for i in range(len(metric))]
-    y = metric
-    plt.xlabel("epoch")
-    plt.plot(x, y, color="green")
-    plt.savefig(join(output_folder, "loss_metric" + ".png"))
-    plt.close("train")
-    print("plotted")
-    return
-
-
-def main(config, modality, segmodel):
-    data_location = "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
+def main(config, modality, segmodel, lr, wdecay, nb_epochs):
+    data_location = config["data_location"]
+    output_location = config["output_location"]
 
     # for cv in ['cv1', 'cv2', 'cv3', 'cv4', 'cv5']:
-    for cv in ["cv3"]:
+    for cv in ["cv1"]:
         training(
             config,
             modality,
             cv,
             segmodel,
             data_location,
-            lr=1e-0,
-            wdecay=1e-5,
-            nb_epochs=1001,
-            two_targets_training=False,
+            output_location,
+            lr,
+            wdecay,
+            nb_epochs,
+            double_targets_training=False,
         )
 
         training(
@@ -562,19 +479,31 @@ def main(config, modality, segmodel):
             cv,
             segmodel,
             data_location,
-            lr=1e-0,
-            wdecay=1e-5,
-            nb_epochs=1001,
-            two_targets_training=True,
+            output_location,
+            lr,
+            wdecay,
+            nb_epochs,
+            double_targets_training=True,
         )
 
 
 if __name__ == "__main__":
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
+        config = yaml.safe_load(yaml_file)
 
-    # main(config=data, modality="US", segmodel="unet")
-    # main(config=data, modality="CT", segmodel="vnet")
-    # main(config=data, modality="US", segmodel="vnet")
-    main(config=data, modality="CT", segmodel="unet")
+    modality = config["modality"]
+    segmodel = config["segmodel"]
+    lr = 1e-0
+    wdecay = 1e-5
+    nb_epochs = 1001
+
+    # Please respect the case
+    main(
+        config=config,
+        modality=modality,
+        segmodel=segmodel,
+        lr=lr,
+        wdecay=wdecay,
+        nb_epochs=nb_epochs,
+    )

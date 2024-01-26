@@ -99,18 +99,29 @@ class Image:
         Returns:
             np.ndarray: The resized NumPy array representation of the image data.
         """
-
-        post_resiz = Compose(
-            [
-                LoadImage(),
-                EnsureChannelFirst(),
-                Resize(
-                    spatial_size=newsize,
-                    mode=interpolmode,
-                    align_corners=interpolmode == "trilinear",
-                ),
-            ]
-        )
+        if interpolmode == "trilinear":
+            post_resiz = Compose(
+                [
+                    LoadImage(),
+                    EnsureChannelFirst(),
+                    Resize(
+                        spatial_size=newsize,
+                        mode=interpolmode,
+                        align_corners=True,
+                    ),
+                ]
+            )
+        else:
+            post_resiz = Compose(
+                [
+                    LoadImage(),
+                    EnsureChannelFirst(),
+                    Resize(
+                        spatial_size=newsize,
+                        mode=interpolmode,
+                    ),
+                ]
+            )
         resized_nparray = post_resiz(self.path)
         resized_nparray = np.asarray(resized_nparray).squeeze(0)
 
@@ -214,19 +225,31 @@ class Mask:
         Returns:
             ...
         """
-
-        post_resiz = Compose(
-            [
-                LoadImage(),
-                EnsureChannelFirst(),
-                Resize(
-                    spatial_size=newsize,
-                    mode=interpolmode,
-                    align_corners=interpolmode == "trilinear",
-                ),
-                AsDiscrete(threshold=0.5),
-            ]
-        )
+        if interpolmode == "trilinear":
+            post_resiz = Compose(
+                [
+                    LoadImage(),
+                    EnsureChannelFirst(),
+                    Resize(
+                        spatial_size=newsize,
+                        mode=interpolmode,
+                        align_corners=True,
+                    ),
+                    AsDiscrete(threshold=0.5),
+                ]
+            )
+        else:
+            post_resiz = Compose(
+                [
+                    LoadImage(),
+                    EnsureChannelFirst(),
+                    Resize(
+                        spatial_size=newsize,
+                        mode=interpolmode,
+                    ),
+                    AsDiscrete(threshold=0.5),
+                ]
+            )
         resized_nparray0 = post_resiz(self.path)
         resized_nparray = np.asarray(resized_nparray0).squeeze(0)
         del resized_nparray0
@@ -743,12 +766,18 @@ def resiz_nparray(input_nparray, newsize, interpolmode):
     """
 
     addchanel_tensor = torch.unsqueeze((torch.from_numpy(input_nparray)), 0)
+    if interpolmode == "trilinear":
+        post_resiz = Resize(
+            spatial_size=newsize,
+            mode=interpolmode,
+            align_corners=True,
+        )
+    else:
+        post_resiz = Resize(
+            spatial_size=newsize,
+            mode=interpolmode,
+        )
 
-    post_resiz = Resize(
-        spatial_size=newsize,
-        mode=interpolmode,
-        align_corners=interpolmode == "trilinear",
-    )
     binarising = AsDiscrete(threshold=0.5)
 
     resized_tensor0 = post_resiz(addchanel_tensor)
