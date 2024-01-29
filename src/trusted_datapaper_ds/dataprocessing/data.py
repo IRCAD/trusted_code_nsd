@@ -329,7 +329,8 @@ class Landmarks:
         self.path = ldkspath
         self.basename = os.path.basename(self.path)
         self.nparray = np.loadtxt(self.path)
-
+        assert self.nparray.shape[1] == 3
+        self.number_of_ldks = self.nparray.shape[0]
         # Determine the modality of the image
         self.modality = None
         self.modality = "CT" if "CT" in self.basename else "US"
@@ -357,6 +358,13 @@ class Landmarks:
         plymark_path = join(ply_dirname, self.basename)
         o3d.io.write_point_cloud(plymark_path.replace(".txt", ".ply"), o3dldks)
         return o3dldks
+
+    def noising(self, std):
+        noised_ldks = np.random.normal(
+            loc=self.nparray, scale=std * np.ones_like(self.nparray), size=None
+        )
+        self.nparray = noised_ldks
+        return
 
 
 class Mesh:

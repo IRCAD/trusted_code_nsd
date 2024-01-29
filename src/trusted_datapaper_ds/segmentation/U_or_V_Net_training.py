@@ -224,7 +224,8 @@ def training(
             ToTensord(keys=["image", "label12"]),
         ]
     )
-    binarizing = AsDiscrete(threshold=0.5)
+    # binarizing = AsDiscrete(threshold=0.5)
+    binarizing = AsDiscrete(threshold_values=True, logit_thresh=0.5)
 
     dict_train_data_paths = [
         {
@@ -266,7 +267,8 @@ def training(
 
     if segmodel == "unet":
         model = UNet(
-            spatial_dims=3,
+            # spatial_dims=3,
+            dimensions=3,
             in_channels=1,
             out_channels=1,
             act="PRELU",
@@ -375,8 +377,14 @@ def training(
             model.eval()
             with torch.no_grad():
                 dice_metric12 = DiceMetric(include_background=True, reduction="mean")
+                # post_trans = Compose(
+                #     [Activations(sigmoid=True), AsDiscrete(threshold=0.5)]
+                # )
                 post_trans = Compose(
-                    [Activations(sigmoid=True), AsDiscrete(threshold=0.5)]
+                    [
+                        Activations(sigmoid=True),
+                        AsDiscrete(threshold_values=True, logit_thresh=0.5),
+                    ]
                 )
                 epoch_metric_vector = list()
                 for val_data in val_loader:
@@ -387,6 +395,9 @@ def training(
                     val_labels12 = binarizing(val_labels12)
                     val_outputs = model(val_inputs)
                     val_outputs = post_trans(val_outputs)
+
+                    # np_val_outputs = val_outputs.detach().cpu().numpy()
+                    # print(np.unique(np_val_outputs))
 
                     dice_metric12(y_pred=val_outputs, y=val_labels12)
                     dice12 = dice_metric12.aggregate().item()

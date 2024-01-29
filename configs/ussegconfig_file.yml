@@ -26,9 +26,11 @@ USme_end: "meshfaceUS.obj"
 
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USseg_trained_models/"
 # segmodel: "nnunetv1_loic_by_william"
-# segmodel: "unet"
-segmodel: "unet_lr1.0_epoch1001_batch2"
+segmodel: "unet"
+# segmodel: "unet_lr1.0_epoch1001_batch2"
+# segmodel: "vnet_lr1.0_epoch1001_batch4"
 training_target: "single_target_training"
+# training_target: "double_targets_training"
 
 cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
 cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']

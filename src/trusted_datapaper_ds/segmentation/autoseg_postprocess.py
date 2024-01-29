@@ -151,7 +151,7 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    postprocess1 = 0  # Resupsampling
+    postprocess1 = 1  # Resupsampling
     postprocess2 = 1  # meshing
     postprocess3 = 0
 
