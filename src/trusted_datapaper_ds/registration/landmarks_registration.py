@@ -9,13 +9,15 @@ from natsort import natsorted
 from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.utils import makedir, parse_args
 
+np.random.seed(42)
 
-def compute_transform(
+
+def ldks_transform(
     dt_mov,
     dt_fix,
     model,
     use234=True,
-    mov_noise_std=None,
+    mov_noise_std=0,
     noising_iteration=0,
     output_folder=None,
 ):  # In real resolution
@@ -24,12 +26,12 @@ def compute_transform(
         dt_fix.number_of_ldks == dt_mov.number_of_ldks
     ), "mov and fix must have the same number of points."
 
-    if mov_noise_std is None or mov_noise_std == 0:
+    if mov_noise_std == 0:
         assert (
             noising_iteration == 0
         ), "If mov_noise_std is None or 0, noising_iteration must be 0"
 
-    if mov_noise_std is not None:
+    if mov_noise_std != 0:
         dt_mov.noising(mov_noise_std)
 
     if use234:
@@ -69,23 +71,18 @@ def compute_transform(
             T[i, j] = matrix.GetElement(i, j)
 
     if output_folder is not None:
-        if mov_noise_std is None:
+        if mov_noise_std == 0:
             folder_suffix = "std" + str(0.0)
         else:
             folder_suffix = "std" + str(mov_noise_std) + ".0"
 
         ID = dt_fix.individual_name
 
-        if noising_iteration == 0:
-            output_path = join(
-                output_folder, "ldks_transforms_" + folder_suffix, ID + "Tinit.txt"
-            )
-        else:
-            output_path = join(
-                output_folder,
-                "ldks_transforms_" + folder_suffix,
-                ID + "Tinit" + str(noising_iteration) + ".txt",
-            )
+        output_path = join(
+            output_folder,
+            "ldks_transforms_" + folder_suffix,
+            ID + "Tinit" + str(noising_iteration) + ".txt",
+        )
 
         np.savetxt(output_path, T)
 
@@ -97,37 +94,37 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    model = config["ldks_model"]
-    mov_location = config["USldks_location"]
-    fix_location = config["CTldks_location"]
-    mov_files = natsorted(glob(join(mov_location, "*_ldkUS.txt")))
+    ldks_model = config["ldks_model"]
+    pcd_model = config["pcd_model"]
 
-    output_folder = config["initreg_location"]
+    movldk_location = config["USldks_location"]
+    fixldk_location = config["CTldks_location"]
 
-    mov_noise_std = 0
-    number_of_iterations = 1
+    movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
 
-    if mov_noise_std is None:
-        folder_suffix = "std" + str(0.0)
-    else:
-        folder_suffix = "std" + str(mov_noise_std) + ".0"
+    ldkreg_output_folder = config["initreg_location"]
 
-    makedir(join(output_folder, "ldks_transforms_" + folder_suffix))
+    movldk_noise_std = 2
+    number_of_iterations = 2
 
-    for mov_file in mov_files:
-        dt_mov = dt.Landmarks(mov_file, "gt")
-        ID = dt_mov.individual_name
-        fix_file = join(fix_location, ID + "_ldkCT.txt")
-        dt_fix = dt.Landmarks(fix_file, "gt")
+    ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
+
+    makedir(join(ldkreg_output_folder, "ldks_transforms_" + ldkfolder_suffix))
+
+    for movldk_file in movldk_files:
+        dt_movldk = dt.Landmarks(movldk_file, "gt")
+        ID = dt_movldk.individual_name
+        fixldk_file = join(fixldk_location, ID + "_ldkCT.txt")
+        dt_fixldk = dt.Landmarks(fixldk_file, "gt")
 
         for i in range(number_of_iterations):
             print("processing ID: ", ID)
-            compute_transform(
-                dt_mov,
-                dt_fix,
-                model,
+            ldks_transform(
+                dt_movldk,
+                dt_fixldk,
+                ldks_model,
                 use234=True,
-                mov_noise_std=mov_noise_std,
+                mov_noise_std=movldk_noise_std,
                 noising_iteration=i,
-                output_folder=output_folder,
+                output_folder=ldkreg_output_folder,
             )

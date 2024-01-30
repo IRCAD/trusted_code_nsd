@@ -303,8 +303,8 @@ def training(
             out_channels=1,
             act=("elu", {"inplace": True}),
             dropout_prob=0.5,
-            dropout_prob_down=0.5,
-            dropout_prob_up=(0.5, 0.5),
+            # dropout_prob_down=0.5,
+            # dropout_prob_up=(0.5, 0.5),
             dropout_dim=3,
         ).to(device)
 

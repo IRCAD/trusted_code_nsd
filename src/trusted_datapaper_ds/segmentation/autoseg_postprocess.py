@@ -20,7 +20,9 @@ def reupsampling_nib(imgnib, prednib, modality, clean=True):
 
     newsize = list(imgnib.shape)
 
-    resized_prednib = dt.resiz_nib_data(prednib, newsize, interpolmode="trilinear")
+    resized_prednib = dt.resiz_nib_data(
+        prednib, newsize, interpolmode="trilinear", binary=True
+    )
 
     if clean:
         if modality == "US":
@@ -134,7 +136,7 @@ def meshing_pcding_and_saving_nii_mask_list(
 
 
 def main1(config, predpath_list, output_folder):
-    reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=True)
+    reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=False)
     return
 
 

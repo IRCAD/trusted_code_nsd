@@ -9,9 +9,10 @@ import numpy as np
 import pandas as pd
 import yaml
 from natsort import natsorted
+from scipy.spatial.distance import dice as sci_dice
 
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.metrics import Dice, Haus95Mask, HausMesh, MeanNNDistance
+from trusted_datapaper_ds.metrics import Haus95Mask, HausMesh, MeanNNDistance
 from trusted_datapaper_ds.utils import makedir, parse_args
 
 
@@ -62,6 +63,7 @@ def segeval(
         print("Processing: ", ID)
 
         magt_file = join(magt_folder, ID + config[modality + "ma_end"])
+        magt = dt.Mask(magt_file, annotatorID="gt", split=modality == "CT")
 
         megt_file = join(config["gtmesh_location"], ID + config[modality + "me_end"])
         megt = dt.Mesh(megt_file, annotatorID="gt")
@@ -79,9 +81,19 @@ def segeval(
         ), "The meshes are from different individuals"
 
         # Evaluate Dice score and Hausdorff95 metrics between masks:
+        # try:
+        #     dice = Dice(maauto_file, magt_file)
+        #     dice1 = dice.evaluate_overlap()
+        # except ValueError:
+        #     error_message = (
+        #         "There is an error when computing Dice for individual " + ID + ". \n"
+        #     )
+        #     print(error_message)
+
         try:
-            dice = Dice(maauto_file, magt_file)
-            dice1 = dice.evaluate_overlap()
+            magt_flat = magt.nparray.flatten()
+            maauto_flat = maauto.nparray.flatten()
+            dice1 = sci_dice(magt_flat, maauto_flat)
         except ValueError:
             error_message = (
                 "There is an error when computing Dice for individual " + ID + ". \n"
@@ -130,6 +142,7 @@ def segeval(
             "nndst": nndst1,
         }
         df = df.append(values, ignore_index=True)
+        print(df)
 
     df.to_csv(csv_file, index=False)
 

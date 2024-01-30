@@ -38,6 +38,8 @@ __author__ = "William NDZIMBONG"
 __copyright__ = "William NDZIMBONG"
 __license__ = "MIT"
 
+np.random.seed(42)
+
 
 class Image:
     """
@@ -658,10 +660,10 @@ def fuse_masks(
     # Data resizing to increase the running speed, if needed
     if resizing is not None:
         nparray_nibimg = resiz_nparray(
-            nparray_nibimg, resizing, interpolmode="trilinear"
+            nparray_nibimg, resizing, interpolmode="trilinear", binary=False
         )
         nparray_nibprob = resiz_nparray(
-            nparray_nibprob, resizing, interpolmode="trilinear"
+            nparray_nibprob, resizing, interpolmode="trilinear", binary=False
         )
 
     # Normalise intensity of nparray_nibimg
@@ -697,7 +699,7 @@ def fuse_masks(
             int(trusted_img.size[2]),
         ]
         nparray_nib_fused = resiz_nparray(
-            nparray_nib_fused, init_size, interpolmode="trilinear"
+            nparray_nib_fused, init_size, interpolmode="trilinear", binary=False
         )
         nparray_nibprob = np.asarray(nparray_nibprob, np.float32)
 
@@ -763,7 +765,7 @@ def plot_arrays(arrays):
     plt.show()
 
 
-def resiz_nparray(input_nparray, newsize, interpolmode):
+def resiz_nparray(input_nparray, newsize, interpolmode, binary):
     """
     Resize a numpy array into a specified new size.
 
@@ -786,20 +788,17 @@ def resiz_nparray(input_nparray, newsize, interpolmode):
             mode=interpolmode,
         )
 
-    binarising = AsDiscrete(threshold=0.5)
+    resized_array0 = post_resiz(addchanel_tensor)
+    resized_nparray = np.asarray(resized_array0).squeeze(0)
 
-    resized_tensor0 = post_resiz(addchanel_tensor)
-
-    resized_nparray = np.asarray(resized_tensor0).squeeze(0)
-    resized_tensor = binarising(resized_nparray)
-    resized_nparray = resized_tensor.numpy()
-
-    del (resized_tensor0, resized_tensor)
+    if binary:
+        resized_nparray[resized_nparray > 0.5] = 1.0
+        resized_nparray[resized_nparray <= 0.5] = 0.0
 
     return resized_nparray
 
 
-def resiz_nib_data(input_nib, newsize, interpolmode):
+def resiz_nib_data(input_nib, newsize, interpolmode, binary):
     """
     Resize a nibabel object a specified new size.
 
@@ -811,7 +810,7 @@ def resiz_nib_data(input_nib, newsize, interpolmode):
     input_nparray = input_nib.get_fdata()
     affine = input_nib.affine
 
-    resized_nparray = resiz_nparray(input_nparray, newsize, interpolmode)
+    resized_nparray = resiz_nparray(input_nparray, newsize, interpolmode, binary)
 
     resized_nib = nib.Nifti1Image(resized_nparray, affine)
 

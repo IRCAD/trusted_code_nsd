@@ -2,13 +2,20 @@ import math
 
 import numpy as np
 from monai.metrics import DiceMetric, HausdorffDistanceMetric
-from monai.transforms import AsDiscrete, Compose, EnsureChannelFirst, LoadImage
+from monai.transforms import AddChannel, AsDiscrete, Compose, LoadImage, ToTensor
 
 from trusted_datapaper_ds import geometry_utils as gu
 from trusted_datapaper_ds.dataprocessing import data as dt
 
-process = Compose([LoadImage(), EnsureChannelFirst(), AsDiscrete(threshold=0.5)])
-
+# process = Compose([LoadImage(), EnsureChannelFirst(), AsDiscrete(threshold=0.5)])
+process = Compose(
+    [
+        LoadImage(image_only=True),
+        AddChannel(),
+        ToTensor(),
+        AsDiscrete(threshold_values=True),
+    ]
+)
 dice_metric = DiceMetric(include_background=True, reduction="mean")
 
 haus_mask_metric = HausdorffDistanceMetric(
@@ -54,7 +61,8 @@ class Haus95Mask:
         gt = process(self.gt_file)
         pred = pred.unsqueeze(0)  # Need to be a batch-first Tensor (BCHW[D])
         gt = gt.unsqueeze(0)  # Need to be a batch-first Tensor (BCHW[D])
-        haus_mask_metric(y_pred=pred, y=gt, spacing=self.spacing)
+        # haus_mask_metric(y_pred=pred, y=gt, spacing=self.spacing)
+        haus_mask_metric(y_pred=pred, y=gt)
         haus_mask = haus_mask_metric.aggregate().item()
         haus_mask_metric.reset()
         return haus_mask
