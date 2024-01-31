@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<propertyfile version="1.1" name="" comment="Written by ImFusionLib, 2023-01-16 09:46:38">
+	<param name="workspaceVersion">20</param>
+	<property name="Datasets">
+		<property name="Data">
+			<param name="name">fixed_img</param>
+			<param name="original">1</param>
+			<param name="topDown">1</param>
+			<param name="uid">data0</param>
+		</property>
+		<property name="Data">
+			<param name="name">moving_img</param>
+			<param name="original">1</param>
+			<param name="topDown">1</param>
+			<param name="uid">data1</param>
+		</property>
+	</property>
+	<property name="Interface">
+		<param name="outputUids">"data0" "data1" </param>
+		<param name="inputUids"/>
+	</property>
+	<property name="Algorithms">
+		<property name="NIFTI File">
+			<param name="location">%(fixed_img_path)</param>
+			<param name="execute">1</param>
+			<param name="inputUids"/>
+			<param name="outputUids">"data0" </param>
+		</property>
+		<property name="Set Modality">
+			<param name="modality">2</param>
+			<param name="resetDisplayOptions">0</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data0" </param>
+			<param name="outputUids"/>
+		</property>
+		<property name="NIFTI File">
+			<param name="location">%(moving_img_path)</param>
+			<param name="execute">1</param>
+			<param name="inputUids"/>
+			<param name="outputUids">"data1" </param>
+		</property>
+		<property name="Set Modality">
+			<param name="modality">4</param>
+			<param name="resetDisplayOptions">0</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data1" </param>
+			<param name="outputUids"/>
+		</property>
+		<property name="Image Registration">
+			<param name="image2IsMoving">0</param>
+			<param name="verbose">1</param>
+			<param name="Mode">Linear</param>
+			<param name="preprocessingOptions">17</param>
+			<param name="maxVRAM">512</param>
+			<param name="targetRelSpacing">0.5</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data1" "data0" </param>
+			<param name="outputUids"/>
+			<property name="Linear">
+				<param name="rigid">%(rigid_transform)</param>
+				<param name="affine">%(affine_transform)</param>
+				<property name="Optimizer">
+					<param name="dim">12</param>
+					<param name="type">34</param>
+					<param name="logConsole">1</param>
+					<param name="abortParTol">0.01</param>
+					<param name="minimize">0</param>
+					<param name="updateProgress">1</param>
+					<param name="updateOnlyIfBetter">1</param>
+					<param name="progressUpdateDisplay">1</param>
+					<param name="progressText">Registering...</param>
+					<param name="mode">0</param>
+					<param name="stepSize">1</param>
+					<param name="abortFunAbs">1</param>
+					<param name="abortParAbs">1</param>
+				</property>
+				<property name="SimilarityMeasureFactory">
+					<param name="mode">%(metric)</param>
+					<param name="device">1</param>
+					<property name="SimilarityMeasure">
+						<param name="useImg1Mask">0</param>
+						<param name="useImg2Mask">0</param>
+						<param name="absolute">1</param>
+						<param name="patchSize">%(patchSize)</param>
+						<param name="absCorr">1</param>
+						<param name="weighting">1</param>
+					</property>
+				</property>
+			</property>
+		</property>
+		<property name="NIFTI File">
+			<param name="location">%(moved_img_path)</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data1" </param>
+			<param name="outputUids"/>
+		</property>
+		<property name="Delete Data">
+			<param name="execute">1</param>
+			<param name="inputUids">"data0" </param>
+			<param name="outputUids"/>
+		</property>
+		<property name="Delete Data">
+			<param name="execute">1</param>
+			<param name="inputUids">"data1" </param>
+			<param name="outputUids"/>
+		</property>
+	</property>
+</propertyfile>

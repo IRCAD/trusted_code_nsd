@@ -9,38 +9,11 @@ from natsort import natsorted
 from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.utils import makedir, parse_args
 
-np.random.seed(42)
+# np.random.seed(42)
 
 
-def ldks_transform(
-    dt_mov,
-    dt_fix,
-    model,
-    use234=True,
-    mov_noise_std=0,
-    noising_iteration=0,
-    output_folder=None,
-):  # In real resolution
+def compute_landmarks_transform(mov, fix, model):
     assert model in ["affine", "similarity", "rigid"]
-    assert (
-        dt_fix.number_of_ldks == dt_mov.number_of_ldks
-    ), "mov and fix must have the same number of points."
-
-    if mov_noise_std == 0:
-        assert (
-            noising_iteration == 0
-        ), "If mov_noise_std is None or 0, noising_iteration must be 0"
-
-    if mov_noise_std != 0:
-        dt_mov.noising(mov_noise_std)
-
-    if use234:
-        mov = dt_mov.nparray[[2, 3, 4], :]
-        fix = dt_fix.nparray[[2, 3, 4], :]
-    else:
-        mov = dt_mov.nparray
-        fix = dt_fix.nparray
-
     n = fix.shape[0]
     fix_point = vtk.vtkPoints()
     fix_point.SetNumberOfPoints(n)
@@ -70,18 +43,45 @@ def ldks_transform(
         for j in range(4):
             T[i, j] = matrix.GetElement(i, j)
 
+    return T
+
+
+def ldks_transform(
+    dt_mov,
+    dt_fix,
+    model,
+    use234=True,
+    mov_noise_std=0,
+    iteration=0,
+    output_folder=None,
+):
+    assert (
+        dt_fix.number_of_ldks == dt_mov.number_of_ldks
+    ), "mov and fix must have the same number of points."
+
+    if mov_noise_std != 0:
+        dt_mov.noising(mov_noise_std)
+
+    if use234:
+        mov = dt_mov.nparray[[2, 3, 4], :]
+        fix = dt_fix.nparray[[2, 3, 4], :]
+    else:
+        mov = dt_mov.nparray
+        fix = dt_fix.nparray
+
+    T = compute_landmarks_transform(mov, fix, model)
+
     if output_folder is not None:
         if mov_noise_std == 0:
-            folder_suffix = "std" + str(0.0)
+            "std" + str(0.0)
         else:
-            folder_suffix = "std" + str(mov_noise_std) + ".0"
+            "std" + str(mov_noise_std) + ".0"
 
         ID = dt_fix.individual_name
 
         output_path = join(
             output_folder,
-            "ldks_transforms_" + folder_suffix,
-            ID + "Tinit" + str(noising_iteration) + ".txt",
+            ID + "Tinit" + str(iteration) + ".txt",
         )
 
         np.savetxt(output_path, T)
@@ -90,6 +90,8 @@ def ldks_transform(
 
 
 if __name__ == "__main__":
+    np.random.seed(0)
+
     args = parse_args()
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
@@ -109,7 +111,13 @@ if __name__ == "__main__":
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 
-    makedir(join(ldkreg_output_folder, "ldks_transforms_" + ldkfolder_suffix))
+    if ldkreg_output_folder is not None:
+        ldkregspecific_output_folder = join(
+            ldkreg_output_folder, "ldks_transforms_" + ldkfolder_suffix
+        )
+        makedir(ldkregspecific_output_folder)
+    else:
+        ldkregspecific_output_folder = None
 
     for movldk_file in movldk_files:
         dt_movldk = dt.Landmarks(movldk_file, "gt")
@@ -125,6 +133,6 @@ if __name__ == "__main__":
                 ldks_model,
                 use234=True,
                 mov_noise_std=movldk_noise_std,
-                noising_iteration=i,
-                output_folder=ldkreg_output_folder,
+                iteration=i,
+                output_folder=ldkregspecific_output_folder,
             )

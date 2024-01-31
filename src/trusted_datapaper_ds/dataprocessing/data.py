@@ -38,7 +38,7 @@ __author__ = "William NDZIMBONG"
 __copyright__ = "William NDZIMBONG"
 __license__ = "MIT"
 
-np.random.seed(42)
+# np.random.seed(42)
 
 
 class Image:
@@ -158,7 +158,7 @@ class Image:
         else:
             raise ValueError("The suffix file basename must content 'img' or 'mask'.")
 
-        itk_shifed = sitk.Resample(
+        itk_shifted = sitk.Resample(
             itk_ref_img,
             itk_ref_img,
             tx,
@@ -167,11 +167,11 @@ class Image:
         )
 
         if shifted_dirname is not None:
-            itk_shifed_path = join(shifted_dirname, self.basename)
-            sitk.WriteImage(itk_shifed, itk_shifed_path)
-            print("itk_shifed data saved as: ", itk_shifed_path)
+            itk_shifted_path = join(shifted_dirname, self.basename)
+            sitk.WriteImage(itk_shifted, itk_shifted_path)
+            print("itk_shifted data saved as: ", itk_shifted_path)
 
-        return itk_shifed
+        return itk_shifted
 
 
 class Mask:
