@@ -139,6 +139,19 @@ python -c 'import torch;print(torch.__version__)'
 *** REGISTRATION ***
 #### Inference
 
+2- BCPD
+- Put the uncompressed folder "bcpd-master" in  "~/trusted_datapaper_ds/src/trusted_datapaper_ds/registration".
+
+3- ImFusionSuite
+- Get the installer file "BaseImFusionSuite-2.44.1-22.04.deb" and
+the License key(s) for Base ImFusion Suite, from ImFusion,
+- Open a terminal window and navigate to the directory containing the .deb file
+- run the command: sudo apt-get install -f
+- run the installation command: sudo dpkg --install BaseImFusionSuite-2.44.1-22.04.deb
+- launch the ImFusionSuite interface with the command: ImFusionSuite
+- activate your License by entering your License key
+- now you can use ImFusionSuite by launching the interface (command: ImFusionSuite), of with our python script provided
+
 
 ### Evaluation
 

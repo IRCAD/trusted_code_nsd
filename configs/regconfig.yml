@@ -21,4 +21,4 @@ CTimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA
 similarity_metric: "LNCC"
 # similarity_metric: "LC2"
 
-imf_temp_folder: ""
+imf_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/imf_temp_folder"

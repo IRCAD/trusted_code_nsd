@@ -1,4 +1,6 @@
 import os
+import subprocess
+import time
 from glob import glob
 from os.path import join
 
@@ -17,73 +19,69 @@ from trusted_datapaper_ds.utils import makedir, parse_args
 def imfusion_transform(
     imfusion_workspace_file,
     ID,
-    moving_nib,
-    fix_nib,
     model: str,
     similarity_metric,
     iteration,
-    fix_temp_folder,
-    mov0_temp_folder,
-    mov1_temp_folder,
+    fix_temp_path,
+    mov0_temp_path,
+    mov1_temp_path,
     output_folder,
 ):
     assert model in ["affine", "rigid"]
 
-    moving_affine = moving_nib.affine
-
-    mov0_temp_path = join(mov0_temp_folder, ID + "tempUS0.nii")
-    mov1_temp_path = join(mov1_temp_folder, ID + "tempUS1.nii")
-    fix_temp_path = join(fix_temp_folder, ID + "tempCT.nii")
-
-    """ Data reading """
-    nib.save(moving_nib, mov0_temp_path)
-    nib.save(fix_nib, fix_temp_path)
+    global imf_process
 
     if model == "rigid":
-        os.system(
-            "ImFusionSuite"
+        imf_process = subprocess.call(
+            " ImFusionSuite "
             + imfusion_workspace_file
-            + "fixed_img_path="
+            + " fixed_img_path="
             + fix_temp_path
-            + "moving_img_path="
+            + " moving_img_path="
             + mov0_temp_path
-            + "rigid_transform="
+            + " rigid_transform="
             + str(1)
-            + "affine_transform="
+            + " affine_transform="
             + str(0)
-            + "metric="
+            + " metric="
             + similarity_metric
-            + "patchSize="
+            + " patchSize="
             + str(3)
-            + "moved_img_path="
-            + mov1_temp_path
+            + " moved_img_path="
+            + mov1_temp_path,
+            shell=True,
         )
-        os.system("taskkill /im ImFusionSuite.exe")
 
     if model == "affine":
-        os.system(
-            "ImFusionSuite"
+        imf_process = subprocess.call(
+            " ImFusionSuite "
             + imfusion_workspace_file
-            + "fixed_img_path="
+            + " fixed_img_path="
             + fix_temp_path
-            + "moving_img_path="
+            + " moving_img_path="
             + mov0_temp_path
-            + "rigid_transform="
+            + " rigid_transform="
             + str(0)
-            + "affine_transform="
+            + " affine_transform="
             + str(1)
-            + "metric="
+            + " metric="
             + similarity_metric
-            + "patchSize="
+            + " patchSize="
             + str(3)
-            + "moved_img_path="
-            + mov1_temp_path
+            + " moved_img_path="
+            + mov1_temp_path,
+            shell=True,
         )
-        os.system("taskkill /im ImFusionSuite.exe")
+
+    time.sleep(5)
+
+    moving_nib = nib.load(mov0_temp_path)
+    moving_affine = moving_nib.affine
 
     moved_nib = nib.load(mov1_temp_path)
     moved_affine = moved_nib.affine
-    del moved_nib
+
+    del moved_nib, moving_nib
 
     os.remove(mov0_temp_path)
     os.remove(mov1_temp_path)
@@ -149,7 +147,7 @@ if __name__ == "__main__":
             + "_"
             + ldkfolder_suffix,
         )
-        makedir(imfreg_output_folder)
+        makedir(imfspecific_output_folder)
     else:
         imfspecific_output_folder = None
 
@@ -172,7 +170,9 @@ if __name__ == "__main__":
         mov1_temp_path = join(mov1_temp_folder, ID + "mov1temp.nii")
         fix_temp_path = join(fix_temp_folder, ID + "fixtemp.nii")
 
-        fiximg0_nib = dt_fiximg.origin(new_origin=[0, 0, 0], shifted_dirname=None)
+        fiximg0_itk = dt_fiximg.shift_origin(new_origin=[0, 0, 0], shifted_dirname=None)
+        sitk.WriteImage(fiximg0_itk, fix_temp_path)
+        fiximg0_nib = nib.load(fix_temp_path)
 
         movldk_file = join(movldk_location, ID + "_ldkUS.txt")
         dt_movldk = dt.Landmarks(movldk_file, "gt")
@@ -189,24 +189,25 @@ if __name__ == "__main__":
                 iteration=i,
                 output_folder=ldkregspecific_output_folder,
             )
-
+            print("T_ldks computed")
             movimg_itk = dt_movimg.itkimg
             movimg_itk_Tldks = resample_itk(movimg_itk, T_ldks)
             sitk.WriteImage(movimg_itk_Tldks, mov0_temp_path)
             movimg_nib_Tldks = nib.load(mov0_temp_path)
+            print("movimg_nib_Tldks loaded")
 
             Tfine = imfusion_transform(
-                imfusion_workspace_file,
+                imfusion_workspace_file=imfusion_workspace_file,
                 ID=ID,
-                moving_nib=movimg_nib_Tldks,
-                fix_nib=fiximg0_nib,
                 model=config["refine_model"],
                 similarity_metric=config["similarity_metric"],
                 iteration=i,
-                fix_temp_folder=fix_temp_folder,
-                mov0_temp_folder=mov0_temp_folder,
-                mov1_temp_folder=mov1_temp_folder,
+                fix_temp_path=fix_temp_path,
+                mov0_temp_path=mov0_temp_path,
+                mov1_temp_path=mov1_temp_path,
                 output_folder=imfspecific_output_folder,
             )
+
+            imf_process.kill
 
             print(Tfine)
