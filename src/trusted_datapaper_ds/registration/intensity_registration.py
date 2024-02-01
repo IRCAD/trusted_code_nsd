@@ -27,7 +27,7 @@ def imfusion_transform(
     mov1_temp_folder,
     output_folder,
 ):
-    assert model in ["affine", "similarity", "rigid"]
+    assert model in ["affine", "rigid"]
 
     moving_affine = moving_nib.affine
 

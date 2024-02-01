@@ -25,12 +25,10 @@ def icp_transform(
     iteration,
     output_folder,
 ):
-    assert model in ["affine", "similarity", "rigid"]
+    assert model in ["affine", "rigid"]
 
     if model == "rigid":
         transform_type = "RigidBody"
-    elif model == "similarity":
-        transform_type = "Similarity"
     elif model == "affine":
         transform_type = "Affine"
 
@@ -52,8 +50,6 @@ def icp_transform(
 
     if transform_type == "RigidBody":
         icp_transform.GetLandmarkTransform().SetModeToRigidBody()
-    elif transform_type == "Similarity":
-        icp_transform.GetLandmarkTransform().SetModeToSimilarity()
     elif transform_type == "Affine":
         icp_transform.GetLandmarkTransform().SetModeToAffine()
 
@@ -86,7 +82,7 @@ def bcpd_transform(
     temp_folder,
     output_folder,
 ):
-    assert model in ["affine", "similarity", "rigid"]
+    assert model in ["affine", "rigid"]
 
     print("Running BCPD ----------------")
 
@@ -107,17 +103,6 @@ def bcpd_transform(
             + " -x "
             + temp_fix_pcd_path
             + " -w0.1 -l1e9 -g0.1 -ux  -K70 -J300 -n50 -p -d7 -e0.3 -f0.3 -o "
-            + ID
-            + " -sy"
-        )
-    if model == "similarity":
-        os.system(
-            join(regpack_dir, "bcpd-master", "bcpd")
-            + " -y "
-            + temp_moving_pcd_path
-            + " -x "
-            + temp_fix_pcd_path
-            + " -w0.1 -l1e8 -g0.1 -ux  -K70 -J300 -n50 -p -d7 -e0.3 -f0.3 -o "
             + ID
             + " -sy"
         )
@@ -149,11 +134,6 @@ def bcpd_transform(
     # estimate a 4*4 transform matrix
     if model == "rigid":
         T = compute_landmarks_transform(mov=moving_pcd_nparray, fix=y, model="rigid")
-
-    if model == "similarity":
-        T = compute_landmarks_transform(
-            mov=moving_pcd_nparray, fix=y, model="similarity"
-        )
 
     if model == "affine":
         T = compute_landmarks_transform(mov=moving_pcd_nparray, fix=y, model="affine")
