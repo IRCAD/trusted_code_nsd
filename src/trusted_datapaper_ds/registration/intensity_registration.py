@@ -1,4 +1,5 @@
 import os
+import signal
 import subprocess
 import time
 from glob import glob
@@ -6,6 +7,7 @@ from os.path import join
 
 import nibabel as nib
 import numpy as np
+import psutil
 import SimpleITK as sitk
 import yaml
 from landmarks_registration import ldks_transform
@@ -22,6 +24,7 @@ def imfusion_transform(
     model: str,
     similarity_metric,
     iteration,
+    time_sleep,
     fix_temp_path,
     mov0_temp_path,
     mov1_temp_path,
@@ -53,7 +56,7 @@ def imfusion_transform(
         )
 
     if model == "affine":
-        imf_process = subprocess.call(
+        imf_process = subprocess.Popen(
             " ImFusionSuite "
             + imfusion_workspace_file
             + " fixed_img_path="
@@ -73,7 +76,28 @@ def imfusion_transform(
             shell=True,
         )
 
-    time.sleep(5)
+    # Sleep for some time
+    time.sleep(time_sleep)
+
+    # Find the PID of ImFusionSuite process
+    found_imfusion = False
+    for proc in psutil.process_iter(["pid", "name"]):
+        if "ImFusion" in proc.info["name"]:
+            found_imfusion = True
+            PID = proc.info["pid"]
+            break
+
+    # Kill the ImFusionSuite process if found
+    if found_imfusion:
+        try:
+            os.kill(PID, signal.SIGTERM)
+            print(f"ImFusionSuite process with PID {PID} terminated")
+        except OSError:
+            print(f"Failed to terminate ImFusionSuite process with PID {PID}")
+    else:
+        print("ImFusionSuite process not found")
+
+    # imf_process.terminate()
 
     moving_nib = nib.load(mov0_temp_path)
     moving_affine = moving_nib.affine
@@ -92,7 +116,7 @@ def imfusion_transform(
     if output_folder is not None:
         output_path = join(output_folder, ID + "Tfine" + str(iteration) + ".txt")
         np.savetxt(output_path, T)
-        print("Tfine saved successfully !")
+        print("Tfine saved successfully as: ", output_path)
 
     return T
 
@@ -114,6 +138,7 @@ if __name__ == "__main__":
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
     movldk_noise_std = 0
     number_of_iterations = 1
+    time_sleep = 20
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 
@@ -202,12 +227,9 @@ if __name__ == "__main__":
                 model=config["refine_model"],
                 similarity_metric=config["similarity_metric"],
                 iteration=i,
+                time_sleep=time_sleep,
                 fix_temp_path=fix_temp_path,
                 mov0_temp_path=mov0_temp_path,
                 mov1_temp_path=mov1_temp_path,
                 output_folder=imfspecific_output_folder,
             )
-
-            imf_process.kill
-
-            print(Tfine)
