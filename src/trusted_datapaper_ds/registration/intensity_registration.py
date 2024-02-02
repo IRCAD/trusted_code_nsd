@@ -18,24 +18,19 @@ from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.utils import makedir, parse_args
 
 
-def imfusion_transform(
+def single_trials_imfusion_transform(
     imfusion_workspace_file,
-    ID,
     model: str,
     similarity_metric,
-    iteration,
     time_sleep,
     fix_temp_path,
     mov0_temp_path,
     mov1_temp_path,
-    output_folder,
 ):
     assert model in ["affine", "rigid"]
 
-    global imf_process
-
     if model == "rigid":
-        imf_process = subprocess.call(
+        subprocess.Popen(
             " ImFusionSuite "
             + imfusion_workspace_file
             + " fixed_img_path="
@@ -56,7 +51,7 @@ def imfusion_transform(
         )
 
     if model == "affine":
-        imf_process = subprocess.Popen(
+        subprocess.Popen(
             " ImFusionSuite "
             + imfusion_workspace_file
             + " fixed_img_path="
@@ -75,8 +70,6 @@ def imfusion_transform(
             + mov1_temp_path,
             shell=True,
         )
-
-    # Sleep for some time
     time.sleep(time_sleep)
 
     # Find the PID of ImFusionSuite process
@@ -85,19 +78,12 @@ def imfusion_transform(
         if "ImFusion" in proc.info["name"]:
             found_imfusion = True
             PID = proc.info["pid"]
-            break
-
-    # Kill the ImFusionSuite process if found
-    if found_imfusion:
-        try:
             os.kill(PID, signal.SIGTERM)
             print(f"ImFusionSuite process with PID {PID} terminated")
-        except OSError:
-            print(f"Failed to terminate ImFusionSuite process with PID {PID}")
-    else:
-        print("ImFusionSuite process not found")
+            os.system("killall -s HUP ImFusionSuite")
 
-    # imf_process.terminate()
+    if not found_imfusion:
+        print("ImFusionSuite process not found")
 
     moving_nib = nib.load(mov0_temp_path)
     moving_affine = moving_nib.affine
@@ -105,18 +91,65 @@ def imfusion_transform(
     moved_nib = nib.load(mov1_temp_path)
     moved_affine = moved_nib.affine
 
-    del moved_nib, moving_nib
+    T = moved_affine @ np.linalg.inv(moving_affine)
 
+    del moved_nib, moving_nib
     os.remove(mov0_temp_path)
     os.remove(mov1_temp_path)
 
-    T = moved_affine @ np.linalg.inv(moving_affine)
+    return T
 
-    # imfusion outputs saving
-    if output_folder is not None:
-        output_path = join(output_folder, ID + "Tfine" + str(iteration) + ".txt")
-        np.savetxt(output_path, T)
-        print("Tfine saved successfully as: ", output_path)
+
+def many_trials_imfusion_transform(
+    imfusion_workspace_file,
+    ID,
+    model: str,
+    similarity_metric,
+    iteration,
+    init_time_sleep,
+    max_number_of_trials,
+    fix_temp_path,
+    mov0_temp_path,
+    mov1_temp_path,
+    output_folder,
+):
+    time_sleep = init_time_sleep
+    Tnocomputed = True
+    counter = 0
+    while Tnocomputed and counter <= max_number_of_trials:
+        try:
+            T = single_trials_imfusion_transform(
+                imfusion_workspace_file,
+                model,
+                similarity_metric,
+                time_sleep,
+                fix_temp_path,
+                mov0_temp_path,
+                mov1_temp_path,
+            )
+            Tnocomputed = False
+        except Exception as e:
+            counter += 1
+            time_sleep += init_time_sleep
+            print("Exception found: ", e)
+            print("......... wait, I'm trying again with more waiting time!")
+
+    if Tnocomputed:
+        print(
+            "Finnally, I was not able to compute the transform after "
+            + str(max_number_of_trials)
+            + " trials, and a max time equal to :",
+            str(max_number_of_trials * init_time_sleep),
+            "seconds",
+        )
+        print("I returned None.")
+        T = None
+    else:
+        # imfusion outputs saving
+        if output_folder is not None:
+            output_path = join(output_folder, ID + "Tfine" + str(iteration) + ".txt")
+            np.savetxt(output_path, T)
+            print("Tfine saved successfully as: ", output_path)
 
     return T
 
@@ -138,7 +171,8 @@ if __name__ == "__main__":
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
     movldk_noise_std = 0
     number_of_iterations = 1
-    time_sleep = 20
+    init_time_sleep = 5  # Note about the max_time_sleep (4*time_sleep)
+    max_number_of_trials = 4
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 
@@ -221,13 +255,14 @@ if __name__ == "__main__":
             movimg_nib_Tldks = nib.load(mov0_temp_path)
             print("movimg_nib_Tldks loaded")
 
-            Tfine = imfusion_transform(
+            Tfine = many_trials_imfusion_transform(
                 imfusion_workspace_file=imfusion_workspace_file,
                 ID=ID,
                 model=config["refine_model"],
                 similarity_metric=config["similarity_metric"],
                 iteration=i,
-                time_sleep=time_sleep,
+                init_time_sleep=init_time_sleep,
+                max_number_of_trials=max_number_of_trials,
                 fix_temp_path=fix_temp_path,
                 mov0_temp_path=mov0_temp_path,
                 mov1_temp_path=mov1_temp_path,
