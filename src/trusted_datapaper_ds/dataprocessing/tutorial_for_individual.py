@@ -310,7 +310,7 @@ if __name__ == "__main__":
     splitCTmask1 = 0
     splitCTmaskgt = 0
     shift_origin = 0
-    fuse_CTmask = 0
+    fuse_CTmask = 1
     fuse_USmask = 0
     fuse_landmark = 0
     mesh_to_pcd = 0

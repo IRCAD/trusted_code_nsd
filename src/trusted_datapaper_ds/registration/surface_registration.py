@@ -119,7 +119,7 @@ def bcpd_transform(
         )
 
     currentdir = os.getcwd()
-    # time.sleep(0.2)
+
     os.rename(
         join(currentdir, ID + "y.txt"),
         join(currentdir, ID + "y" + str(iteration) + "_" + model + ".txt"),
@@ -169,8 +169,8 @@ if __name__ == "__main__":
     movldk_location = config["USldks_location"]
     fixldk_location = config["CTldks_location"]
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
-    movldk_noise_std = 0
-    number_of_iterations = 1
+    movldk_noise_std = 20
+    number_of_iterations = 2
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 
@@ -278,17 +278,17 @@ if __name__ == "__main__":
                     [o3dpcd_mov, o3dpcd_fix],
                     width=720,
                     height=720,
-                    window_name=ID + " Before init",
+                    window_name=ID + " Before initialization (fix-red, mov-green)",
                 )
                 o3d.visualization.draw_geometries(
                     [o3dpcd_mov_Tldks, o3dpcd_fix],
                     width=720,
                     height=720,
-                    window_name=ID + " After init",
+                    window_name=ID + " After initialization (fix-red, mov-green)",
                 )
                 o3d.visualization.draw_geometries(
                     [o3dpcd_mov_Tfine, o3dpcd_fix],
                     width=720,
                     height=720,
-                    window_name=ID + " After icp",
+                    window_name=ID + " After refinement (fix-red, mov-green)",
                 )

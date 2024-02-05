@@ -20,15 +20,20 @@ mesh_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DA
 pcd_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_pcdTXT/"
 
 segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/US/"
+
 USimg_end: "_imgUS.nii.gz"
 USma_end: "_maskUS.nii.gz"
 USme_end: "meshfaceUS.obj"
 
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USseg_trained_models/"
-# segmodel: "nnunetv1_loic_by_william"
-# segmodel: "unet"
-segmodel: "nnunetv1_loic"
-# segmodel: "_vnet_lr1.0_epoch1001_batch4"
+
+segmodel: "unet_test"
+# segmodel: "vnet_lr1.0_epoch1001_batch2"
+
+list_segmodels: ["unet_test"]
+list_training_target: ["single_target_training"]
+# list_training_target: ["single_target_training", "double_targets_training"]
+
 training_target: "single_target_training"
 # training_target: "double_targets_training"
 

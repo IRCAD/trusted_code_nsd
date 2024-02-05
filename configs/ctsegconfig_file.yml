@@ -28,10 +28,12 @@ CTma_end: "_maskCT.nii.gz"
 CTme_end: "meshfaceCT.obj"
 
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CTseg_trained_models/"
-# segmodel: "nnunetv1_loic_by_william"
-# segmodel: "unet"
-segmodel: "vnet_lr1.0_epoch1001_batch2"
+
+segmodel: "unet_lr1.0_epoch1001_batch2"
 training_target: "double_targets_training"
+
+list_segmodels: ["vnet_lr1.0_epoch1001_batch4", "unet_lr1.0_epoch1001_batch4", "vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
+list_training_target: ["single_target_training", "double_targets_training"]
 
 
 cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
@@ -39,10 +41,3 @@ cv2: ['47', '01', '74', '14', '33', '24', '72', '51', '64']
 cv3: ['05', '57', '43', '94', '131', '11', '54', '12', '15', '17']
 cv4: ['21', '03', '97', '27', '23', '09', '61', '32', '53', '119']
 cv5: ['125', '20', '42', '99', '02', '87', '37', '38', '107', '31']
-
-# # For evaluation
-# cv1: ['84R', '116R', '114R', '98R', '118R', '44R', '101R', '88R', '84L', '116L', '114L', '98L', '118L', '04L', '44L', '101L', '88L']
-# cv2: ['47R', '01R', '74R', '14R', '33R', '24R', '72R', '51R', '64R', '47L', '01L', '74L', '14L', '33L', '24L', '72L', '51L', '64L']
-# cv3: ['05R', '57R', '43R', '94R', '131R', '11R', '54R', '12R', '15R', '17R', '05L', '57L', '43L', '94L', '131L', '11L', '54L', '12L', '15L', '17L']
-# cv4: ['21R', '03R', '97R', '27R', '23R', '09R', '61R', '32R', '53R', '119R', '21L', '03L', '97L', '27L', '23L', '09L', '61L', '32L', '53L', '119L']
-# cv5: ['125R', '20R', '42R', '99R', '02R', '87R', '37R', '38R', '107R', '31R', '125L', '20L', '42L', '99L', '02L', '87L', '37L', '38L', '107L', '31L']

@@ -27,6 +27,7 @@ from monai.transforms import (
     AsDiscrete,
     Compose,
     EnsureChannelFirst,
+    EnsureType,
     LoadImage,
     NormalizeIntensity,
     Resize,
@@ -237,7 +238,7 @@ class Mask:
                         mode=interpolmode,
                         align_corners=True,
                     ),
-                    AsDiscrete(threshold=0.5),
+                    AsDiscrete(threshold_values=True),
                 ]
             )
         else:
@@ -249,7 +250,7 @@ class Mask:
                         spatial_size=newsize,
                         mode=interpolmode,
                     ),
-                    AsDiscrete(threshold=0.5),
+                    AsDiscrete(threshold_values=True),
                 ]
             )
         resized_nparray0 = post_resiz(self.path)
@@ -685,11 +686,11 @@ def fuse_masks(
     connectivity = 6
     nparray_nibimg = np.expand_dims(nparray_nibimg, axis=0)
 
-    nparray_nib_fused = maxflow.maxflow(
+    nparray_fused = maxflow.maxflow(
         nparray_nibimg, Prob, npmaxflow_lamda, sigma, connectivity
     )
-    nparray_nib_fused = np.squeeze(nparray_nib_fused, axis=0)
-    nparray_nib_fused = np.asarray(nparray_nib_fused, np.float32)
+    nparray_fused = np.squeeze(nparray_fused, axis=0)
+    nparray_fused = np.asarray(nparray_fused, np.float32)
 
     # Turn back to the initial shape, if a resizing has been done
     if resizing is not None:
@@ -698,16 +699,11 @@ def fuse_masks(
             int(trusted_img.size[1]),
             int(trusted_img.size[2]),
         ]
-        nparray_nib_fused = resiz_nparray(
-            nparray_nib_fused, init_size, interpolmode="trilinear", binary=False
+        nparray_fused = resiz_nparray(
+            nparray_fused, init_size, interpolmode="trilinear", binary=True
         )
-        nparray_nibprob = np.asarray(nparray_nibprob, np.float32)
 
-    # Discretization of the fused mask
-    nparray_nib_fused[nparray_nib_fused <= 0.5] = 0.0
-    nparray_nib_fused[nparray_nib_fused > 0.5] = 1.0
-
-    fused_nib = nib.Nifti1Image(nparray_nib_fused, trusted_img.nibaffine)
+    fused_nib = nib.Nifti1Image(nparray_fused, trusted_img.nibaffine)
 
     if fused_dirname is not None:
         img_suffix = "_img" + trusted_img.modality + ".nii.gz"
@@ -774,6 +770,9 @@ def resiz_nparray(input_nparray, newsize, interpolmode, binary):
     Returns:
         ...
     """
+    binarizing = Compose(
+        [EnsureType(data_type="tensor"), AsDiscrete(threshold_values=True)]
+    )
 
     addchanel_tensor = torch.unsqueeze((torch.from_numpy(input_nparray)), 0)
     if interpolmode == "trilinear":
@@ -788,12 +787,12 @@ def resiz_nparray(input_nparray, newsize, interpolmode, binary):
             mode=interpolmode,
         )
 
-    resized_array0 = post_resiz(addchanel_tensor)
-    resized_nparray = np.asarray(resized_array0).squeeze(0)
+    resized_tensor0 = post_resiz(addchanel_tensor)
 
     if binary:
-        resized_nparray[resized_nparray > 0.5] = 1.0
-        resized_nparray[resized_nparray <= 0.5] = 0.0
+        resized_tensor0 = binarizing(resized_tensor0)
+
+    resized_nparray = np.asarray(resized_tensor0).squeeze(0)
 
     return resized_nparray
 
