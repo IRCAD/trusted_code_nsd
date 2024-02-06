@@ -107,7 +107,7 @@ if __name__ == "__main__":
     ldkreg_output_folder = config["initreg_location"]
 
     movldk_noise_std = 2
-    number_of_iterations = 2
+    number_of_iterations = int(config["iternumb"])
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 

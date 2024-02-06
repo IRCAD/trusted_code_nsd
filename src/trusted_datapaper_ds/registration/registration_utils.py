@@ -1,4 +1,5 @@
 import numpy as np
+import open3d as o3d
 import SimpleITK as sitk
 import vtk
 
@@ -113,3 +114,68 @@ def resample_itk(img_itk, transform_matrix):
     )
 
     return img_resampled_itk
+
+
+def voxel2array(grid_index_array, array_shape):
+    """
+    convert a voxel_grid_index array to a fixed size array
+    (N*3)->(voxel_size*voxel_size*voxel_size)
+
+    :input grid_index_array: get from o3d.voxel_grid.get_voxels()
+    :input array_shape: shape of the output. Here it is fixed to make sure that the output array could
+                        content all the CT voxels
+    :return array_voxel: array with shape(voxel_size*voxel_size*voxel_size),the grid_index in
+    """
+    array_voxel = np.zeros((array_shape[2], array_shape[1], array_shape[0]))
+    array_voxel[
+        grid_index_array[:, 2], grid_index_array[:, 1], grid_index_array[:, 0]
+    ] = 1
+
+    array_voxel = np.rot90(array_voxel, axes=(1, 2))
+    array_voxel = np.rot90(array_voxel, axes=(1, 2))
+
+    return array_voxel
+
+
+def voxelization(o3dpcd, ref_itk):
+    ref_voxelsize = np.max(np.array(ref_itk.GetSpacing()))
+    ref_shape = np.array(ref_itk.GetSize())
+
+    pcdgrid = o3d.geometry.VoxelGrid.create_from_point_cloud_within_bounds(
+        o3dpcd,
+        voxel_size=ref_voxelsize,  # to keep the mm
+        min_bound=[0, 0, 0],
+        max_bound=np.array([0, 0, 0])
+        + np.array([ref_shape[0], ref_shape[1], ref_shape[2]]),
+    )
+
+    # Get voxels
+    pcdvoxel_list = pcdgrid.get_voxels()
+    grid_index_list = list(map(lambda x: x.grid_index, pcdvoxel_list))
+    grid_index_array = np.array(grid_index_list)
+    pcdarray = voxel2array(grid_index_array=grid_index_array, array_shape=ref_shape)
+    pcdarray = pcdarray.astype(np.int32)
+
+    return pcdarray
+
+
+def array_to_itkmask(nparray: np.int32, ref_itk):
+    ref_spacing = np.array(ref_itk.GetSpacing())
+    voxel_size = np.max(ref_spacing)
+
+    _itk = sitk.GetImageFromArray(nparray)
+    _itk.SetSpacing(ref_spacing)  # IMPORTANT TO SET THE SPACING
+    _itk.SetDirection(list(ref_itk.GetDirection()))
+    _itk.SetOrigin(list(ref_itk.GetOrigin()))
+
+    # Resampling (if necessary to position the mask in the initial direction. But here it is not necessary)
+    tx = sitk.AffineTransform(3)
+    tx.SetMatrix(np.diag(ref_spacing / voxel_size).flatten().tolist())
+
+    out_itk = sitk.Resample(_itk, _itk, tx, sitk.sitkNearestNeighbor, 0.0)
+    # Edge closing
+    out_itk = sitk.BinaryMorphologicalClosing(out_itk, [10, 10, 10])
+    # Hole filling to obtain the region
+    out_itk = sitk.BinaryFillhole(out_itk, fullyConnected=False, foregroundValue=1.0)
+
+    return out_itk

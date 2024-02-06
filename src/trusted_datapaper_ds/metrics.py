@@ -3,9 +3,9 @@ import math
 import numpy as np
 from monai.metrics import DiceMetric
 from monai.transforms import AsDiscrete, Compose, EnsureType
+from numpy import linalg as LA
 
 from trusted_datapaper_ds import geometry_utils as gu
-from trusted_datapaper_ds.dataprocessing import data as dt
 
 process = Compose([EnsureType(data_type="tensor"), AsDiscrete(threshold_values=True)])
 
@@ -13,12 +13,9 @@ dice_metric = DiceMetric(include_background=False, reduction="mean")
 
 
 class Dice:
-    def __init__(self, pred_file, gt_file):
-        dtpred = dt.Mask(pred_file, "auto")
-        dtgt = dt.Mask(gt_file, "gt")
-        self.prednparray = dtpred.nparray
-        self.gtnparray = dtgt.nparray
-        self.spacing = dtgt.spacing
+    def __init__(self, prednparray, gtnparray):
+        self.prednparray = prednparray
+        self.gtnparray = gtnparray
         self.pred = process(self.prednparray)
         self.gt = process(self.gtnparray)
         return
@@ -89,3 +86,11 @@ class HausMesh:
         d_total = max(np.average(d1val), np.average(d2val))
 
         return d_total
+
+
+class MeanTRE:
+    def evaluate_pcd(self, pcd1, pcd2):
+        a = np.asarray(pcd1.points)
+        b = np.asarray(pcd2.points)
+        d = LA.norm(a - b, axis=1)
+        return np.mean(d)

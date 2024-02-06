@@ -170,7 +170,7 @@ if __name__ == "__main__":
     fixldk_location = config["CTldks_location"]
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
     movldk_noise_std = 20
-    number_of_iterations = 2
+    number_of_iterations = int(config["iternumb"])
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 

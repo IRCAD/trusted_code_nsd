@@ -170,7 +170,7 @@ if __name__ == "__main__":
     fixldk_location = config["CTldks_location"]
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
     movldk_noise_std = 0
-    number_of_iterations = 1
+    number_of_iterations = int(config["iternumb"])
     init_time_sleep = 5  # Note about the max_time_sleep (4*time_sleep)
     max_number_of_trials = 4
 

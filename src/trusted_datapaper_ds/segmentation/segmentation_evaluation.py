@@ -41,8 +41,8 @@ def segeval(maauto, magt, megt, meauto):
     print("Processing: ", ID)
 
     # Evaluate Dice score and Hausdorff95 metrics between masks:
-    dice = Dice(maauto.path, magt.path)
     try:
+        dice = Dice(maauto.nparray, magt.nparray)
         dice1 = dice.evaluate_dice()
     except ValueError:
         error_message = (
