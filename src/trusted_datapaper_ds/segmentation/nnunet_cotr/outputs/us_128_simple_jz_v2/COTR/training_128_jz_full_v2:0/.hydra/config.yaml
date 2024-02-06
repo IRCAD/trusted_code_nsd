@@ -55,7 +55,7 @@ training:
   epochs: 1000
   iter: 250
   online_validation: true
-  eval_step: 1
+  eval_step: 2
   batch_size: 2
   num_workers: 4
   crop_size:

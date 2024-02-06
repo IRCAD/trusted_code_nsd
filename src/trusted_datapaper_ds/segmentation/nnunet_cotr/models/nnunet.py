@@ -66,7 +66,7 @@ class ConvDropoutNormNonlin(nn.Module):
         self.conv_op = conv_op
         self.norm_op = norm_op
 
-        if isinstance(self.conv_kwargs["stride"], int):
+        if not isinstance(self.conv_kwargs["stride"], int):
             self.conv_kwargs["stride"] = tuple(self.conv_kwargs["stride"])
 
         self.conv = self.conv_op(input_channels, output_channels, **self.conv_kwargs)

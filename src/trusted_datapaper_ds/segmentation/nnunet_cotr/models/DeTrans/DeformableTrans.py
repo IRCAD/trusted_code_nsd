@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import normal_
 
-from .ops.modules import MSDeformAttn
+from .ops.modules.ms_deform_attn import MSDeformAttn
 
 
 class DeformableTransformer(nn.Module):

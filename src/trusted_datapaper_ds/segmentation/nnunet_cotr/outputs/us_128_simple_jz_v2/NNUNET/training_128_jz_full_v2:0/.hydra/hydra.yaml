@@ -113,13 +113,13 @@ hydra:
     - hydra.mode=MULTIRUN
     task:
     - model=nnunet
-    - dataset=us_128_double_jz_v2
+    - dataset=us_128_simple_jz_v2
     - training=training_128_jz_v2
     - dataset.cv=cv1
   job:
-    name: mainDoubleV2
+    name: mainV2
     chdir: null
-    override_dirname: dataset.cv=cv1,dataset=us_128_double_jz_v2,model=nnunet,training=training_128_jz_v2
+    override_dirname: dataset.cv=cv1,dataset=us_128_simple_jz_v2,model=nnunet,training=training_128_jz_v2
     id: '0'
     num: 0
     config_name: default
@@ -148,7 +148,7 @@ hydra:
     choices:
       training: training_128_jz_v2
       model: nnunet
-      dataset: us_128_double_jz_v2
+      dataset: us_128_simple_jz_v2
       hydra/env: default
       hydra/callbacks: null
       hydra/job_logging: default

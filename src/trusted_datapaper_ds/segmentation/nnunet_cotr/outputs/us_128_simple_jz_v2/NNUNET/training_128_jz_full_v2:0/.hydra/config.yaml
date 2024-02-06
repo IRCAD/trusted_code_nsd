@@ -62,7 +62,7 @@ training:
   optim: sgd
   lr: 0.01
   weight_decay: 1.0e-05
-  epochs: 10
+  epochs: 1000
   iter: 250
   online_validation: true
   eval_step: 2
@@ -74,7 +74,7 @@ training:
   - 128
   do_clip: true
   do_schedul: true
-  loss: Dice
+  loss: CrossDice
   pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA/medseg_results
   augmentations:
     rotate:
