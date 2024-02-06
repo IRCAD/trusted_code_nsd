@@ -31,8 +31,7 @@ segmodel: "unet_test"
 # segmodel: "vnet_lr1.0_epoch1001_batch2"
 
 list_segmodels: ["unet_test"]
-list_training_target: ["single_target_training"]
-# list_training_target: ["single_target_training", "double_targets_training"]
+list_training_target: ["single_target_training", "double_targets_training"]
 
 training_target: "single_target_training"
 # training_target: "double_targets_training"

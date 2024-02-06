@@ -1,0 +1,99 @@
+dataset:
+  name: us_128_simple_jz_v2
+  path:
+    pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA
+    im: ${dataset.path.pth}/USimg_128_t
+    seg1: ${dataset.path.pth}/USmask_a1_128
+    seg2: ${dataset.path.pth}/USmask_a2_128
+    seg12: ${dataset.path.pth}/USmask_mf_128
+  im_size:
+  - 128
+  - 128
+  - 128
+  len: 39
+  classes: 1
+  cv: cv1
+model:
+  name: COTR
+  model: cotr
+  net_num_pool_op_kernel_sizes:
+  - - 2
+    - 2
+    - 2
+  - - 2
+    - 2
+    - 2
+  - - 2
+    - 2
+    - 2
+  - - 2
+    - 2
+    - 2
+  net_conv_kernel_sizes:
+  - - 3
+    - 3
+    - 3
+  - - 3
+    - 3
+    - 3
+  - - 3
+    - 3
+    - 3
+  - - 3
+    - 3
+    - 3
+  feature_size: 0
+training:
+  name: training_128_jz_full_v2
+  dbg: true
+  gpu: 0
+  use_gpu: true
+  only_val: false
+  optim: sgd
+  lr: 0.01
+  weight_decay: 1.0e-05
+  epochs: 1000
+  iter: 250
+  online_validation: true
+  eval_step: 1
+  batch_size: 2
+  num_workers: 4
+  crop_size:
+  - 128
+  - 128
+  - 128
+  do_clip: true
+  do_schedul: true
+  loss: CrossDice
+  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA/medseg_results
+  augmentations:
+    rotate:
+      x_:
+      - -0.5235987755982988
+      - 0.5235987755982988
+      y_:
+      - -0.5235987755982988
+      - 0.5235987755982988
+      z_:
+      - -0.5235987755982988
+      - 0.5235987755982988
+      p_: 0.2
+    scale:
+      min_: 0.7
+      max_: 1.4
+      p_: 0.2
+    gamma:
+      g_:
+      - 0.7
+      - 1.5
+      p_: 0.3
+  inference:
+    stride:
+    - 1
+    - 1
+    - 1
+  checkpoint:
+    save: 2
+    load: false
+    load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
+    path: ${model.pth}/${model.name}/checkpoint

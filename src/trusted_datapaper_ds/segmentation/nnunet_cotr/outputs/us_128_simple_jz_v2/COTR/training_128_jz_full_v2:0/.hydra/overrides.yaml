@@ -1,0 +1,4 @@
+- model=cotr
+- dataset=us_128_simple_jz_v2
+- training=training_128_jz_v2
+- dataset.cv=cv1

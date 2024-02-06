@@ -1,0 +1,15 @@
+name: us_128_simple_jz_v2
+path:
+  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA
+
+  im: ${dataset.path.pth}/USimg_128_t
+  seg1: ${dataset.path.pth}/USmask_a1_128
+  seg2: ${dataset.path.pth}/USmask_a2_128
+  seg12: ${dataset.path.pth}/USmask_mf_128
+
+im_size: [128,128,128]
+
+len: 39
+classes: 1
+
+cv: cv1

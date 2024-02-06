@@ -15,10 +15,6 @@ from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.metrics import Dice, HausMesh, MeanNNDistance
 from trusted_datapaper_ds.utils import makedir, parse_args
 
-# def single_segeval(nib_pred, nib_gt, o3dmesh_pred, o3dmesh_gt):
-
-#     return  dice, hmask, hmesh, nndst
-
 
 def loader(maauto_files, magt_files, meauto_files, megt_files):
     for maauto_file, magt_file, meauto_file, megt_file in zip_longest(

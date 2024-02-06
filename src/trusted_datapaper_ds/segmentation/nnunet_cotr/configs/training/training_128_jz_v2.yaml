@@ -1,0 +1,46 @@
+name: training_128_jz_full_v2
+dbg: True
+gpu: 0
+use_gpu: True
+only_val: False
+
+
+optim: sgd
+lr: 1e-2
+weight_decay: 1e-5
+epochs: 1000
+iter: 250
+online_validation: True
+eval_step: 2
+batch_size: 2
+num_workers: 4
+crop_size: [128,128,128]
+do_clip: True
+do_schedul: True
+loss: CrossDice
+
+# pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/CT_DATA/medseg_results
+pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA/medseg_results
+
+augmentations:
+  rotate:
+    x_: [-0.5235987755982988, 0.5235987755982988]
+    y_: [-0.5235987755982988, 0.5235987755982988]
+    z_: [-0.5235987755982988, 0.5235987755982988]
+    p_: 0.2
+  scale:
+    min_: 0.7
+    max_: 1.4
+    p_: 0.2
+  gamma:
+    g_: [0.7, 1.5]
+    p_: 0.3
+
+inference:
+  stride: [1,1,1]
+
+checkpoint:
+  save: 2
+  load: False
+  load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
+  path: ${model.pth}/${model.name}/checkpoint

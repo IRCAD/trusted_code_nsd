@@ -103,10 +103,6 @@ def training(
     indiv = config[cv]
     print("indiv = ", indiv)
 
-    # path = join(output_folder, "out.txt")
-
-    # sys.stdout = open(path, "w")
-
     all_img_paths = natsorted(glob(join(input_folder, "*.nii.gz")))
     valid_img_paths = [
         join(input_folder, i + config[modality + "img_end"])
@@ -264,7 +260,7 @@ def training(
     """## Create Model, Loss, Optimizer"""
     device = torch.device("cuda:0")
 
-    if segmodel == "unet":
+    if segmodel == "unet_test":
         model = UNet(
             dimensions=3,
             in_channels=1,
@@ -294,7 +290,7 @@ def training(
 
         optimizer = torch.optim.SGD(model.parameters(), lr=lr, weight_decay=wdecay)
 
-    if segmodel == "vnet":
+    if segmodel == "vnet_test":
         model = VNet(
             spatial_dims=3,
             in_channels=1,
@@ -458,6 +454,7 @@ def training(
 def main(config, modality, segmodel, lr, wdecay, nb_epochs):
     data_location = config["data_location"]
     output_location = config["output_location"]
+    double_targets_training = config["training_target"] == "double_targets_training"
 
     # for cv in ['cv1', 'cv2', 'cv3', 'cv4', 'cv5']:
     for cv in ["cv1"]:
@@ -471,20 +468,7 @@ def main(config, modality, segmodel, lr, wdecay, nb_epochs):
             lr,
             wdecay,
             nb_epochs,
-            double_targets_training=False,
-        )
-
-        training(
-            config,
-            modality,
-            cv,
-            segmodel,
-            data_location,
-            output_location,
-            lr,
-            wdecay,
-            nb_epochs,
-            double_targets_training=True,
+            double_targets_training=double_targets_training,
         )
 
 
@@ -495,6 +479,7 @@ if __name__ == "__main__":
 
     modality = config["modality"]
     segmodel = config["segmodel"]
+
     lr = 1e-0
     wdecay = 1e-5
     nb_epochs = 1001

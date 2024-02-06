@@ -9,19 +9,12 @@ with me, to avoid some confilcts.
 ## conda create -n trusted_env2 python=3.9
 ## conda activate trusted_env2
 
-## pip install --upgrade pip
-## pip install torch torchvision torchaudio (lastest versions)
-
-python -c 'import torch;print(torch.backends.cudnn.version())'
-python -c 'import torch;print(torch.__version__)'
-(8902  ,  2.1.2+cu121) at this date: 19/01/2024
+pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 
 #1 Specific to MONAI (It will also add many suitable requirements)
-## cd src/MONAI/ (This MONAI folder comes from the command: git clone https://github.com/Project-MONAI/MONAI.git run the 19/01/2024)
 ## pip install -e '.[all]'
-## python -c "import monai; print(monai.__version__)"  (to check the monai version: 1.3.0)
-## cd ../..
+## monai==0.9.0
 
 #2 General (for our needs)
 ## pip install pandas==1.3.0
@@ -37,13 +30,17 @@ python -c 'import torch;print(torch.__version__)'
 ## pip install numpymaxflow==0.0.6
 
 
-#3 Specific to nnUNetv1
+#3 Specific to nnUNetv1 (loic things)
 ## cd src/nnUNet/  (This nnUNet folder comes from the command: git clone https://github.com/MIC-DKFZ/nnUNet.git run the 19/01/2024)
 ## git checkout nnunetv1
 ## pip install -e .
 ## cd ../..
+## hydra-core
+## telegram_send
 
-
+#################################################
+####################  NO USED ###################
+#################################################
 #4 Specific to CoTr (which uses his local nnUNetv1)
 #4_1 Option 1: Just use the CoTr folder provided in "trusted_datapaper_ds/src/"
 ## cd src/CoTr/nnUNet/
@@ -77,6 +74,9 @@ python -c 'import torch;print(torch.__version__)'
 # In the same file replace lines 267 and 268 (tr_keys = splits[0]['train'] , and   val_keys = splits[0]['val']),
 # by (tr_keys = splits[self.fold]['train'] , and   val_keys = splits[self.fold]['val'])
 
+#################################################
+####################  NO USED ###################
+#################################################
 
 #5 (REALLY OPTIONNAL): DEVELOPMENT ONLY PACKAGES (could also be kept in a separate environment file):
 ## pip install pytest
@@ -123,8 +123,13 @@ python -c 'import torch;print(torch.__version__)'
 
 *** SEGMENTATION ***
 #### Training in 128
+- resize all the data in 128-128-128 (see the tutorial)
+-
 
 
+- To train or infer nnunet or CoTr:
+. cd src/trusted_datapaper_ds/segmentation/nnunet_cotr
+python mainV2.py -m model=nnunet dataset=us_128_simple_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
 
 #### Inference in 128 and upsampling
 

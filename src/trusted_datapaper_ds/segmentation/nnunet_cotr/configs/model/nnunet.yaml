@@ -1,0 +1,9 @@
+name: NNUNET
+model: nnunet
+
+
+net_num_pool_op_kernel_sizes: [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
+net_conv_kernel_sizes: [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]
+
+feature_size: 0
+base_num_features: 32
