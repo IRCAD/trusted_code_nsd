@@ -2,8 +2,9 @@
 In this file, we analyse the fused manual segmentations versus each annotator.
 """
 
+import os
+import re
 from glob import glob
-from itertools import zip_longest
 from os.path import join
 
 import numpy as np
@@ -17,13 +18,24 @@ from trusted_datapaper_ds.utils import makedir, parse_args
 
 
 def loader(maauto_files, magt_files, meauto_files, megt_files):
-    for maauto_file, magt_file, meauto_file, megt_file in zip_longest(
-        maauto_files, magt_files, meauto_files, megt_files
-    ):
+    for maauto_file in maauto_files:
+        maauto_basename = os.path.basename(maauto_file)
+        a = re.search("_mask", maauto_basename).start()
+        ID = maauto_basename[:a]
+
         maauto = dt.Mask(maauto_file, "auto", split=modality == "CT")
-        magt = dt.Mask(magt_file, annotatorID="gt", split=modality == "CT")
-        megt = dt.Mesh(megt_file, annotatorID="gt")
-        meauto = dt.Mesh(meauto_file, annotatorID="auto")
+
+        magt_partbasename = ID + "_mask"
+        magt_file = next(s for s in magt_files if magt_partbasename in s)
+        magt = dt.Mask(magt_file, "gt")
+
+        megt_partbasename = ID + "meshface"
+        megt_file = next(s for s in megt_files if megt_partbasename in s)
+        megt = dt.Mesh(megt_file, "gt")
+
+        meauto_partbasename = ID + "meshface"
+        meauto_file = next(s for s in meauto_files if meauto_partbasename in s)
+        meauto = dt.Mesh(meauto_file, "gt")
 
         yield maauto, magt, megt, meauto
 
@@ -91,7 +103,7 @@ def main(csv_file, maauto_files, magt_files, meauto_files, megt_files):
     ):
         values = segeval(maauto, magt, megt, meauto)
         df = df.append(values, ignore_index=True)
-        # print(df)
+        print(df)
 
     df.to_csv(csv_file, index=False)
 
@@ -106,7 +118,7 @@ if __name__ == "__main__":
     modality = config["modality"]
     results_folder = config["segresults_folder"]
 
-    list_segmodel = config["list_segmodels"]
+    list_segmodel = config["list_evalsegmodels"]
     list_training_target = config["list_training_target"]
 
     for segmodel in list_segmodel:

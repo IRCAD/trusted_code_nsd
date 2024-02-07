@@ -210,7 +210,7 @@ training:
   dbg: true
   gpu: 0
   use_gpu: true
-  only_val: false
+  only_val: true
   optim: sgd
   lr: 0.01
   weight_decay: 1.0e-05
@@ -256,6 +256,6 @@ training:
     - 1
   checkpoint:
     save: 2
-    load: false
+    load: true
     load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
     path: ${model.pth}/${model.name}/checkpoint

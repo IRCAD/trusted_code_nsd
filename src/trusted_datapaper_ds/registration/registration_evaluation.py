@@ -31,7 +31,6 @@ def loader(
     ldfix_files,
 ):
     for Tfine_file in Tfine_files:
-        Tfine_file = ""
         Tfine_basename = os.path.basename(Tfine_file)
         a = re.search("Tfine", Tfine_basename).start()
         b = re.search("Tfine", Tfine_basename).end()
@@ -82,8 +81,8 @@ def regeval(ID, iteration, ref_itk, Tinit, Tfine, megtfix, megtmov, ldfix, ldmov
     prod = np.prod(Tfine_flatten)
     assert not np.isnan(prod), "There is a NaN in this matrix. Abandon this case!"
 
-    ldfix0 = ldfix[[0], :]
-    ldmov0 = ldmov[[0], :]
+    ldfix0 = ldfix.nparray[[0], :]
+    ldmov0 = ldmov.nparray[[0], :]
 
     o3dfix0 = o3d.geometry.PointCloud()
     o3dfix0.points = o3d.utility.Vector3dVector(ldfix0)
@@ -100,10 +99,10 @@ def regeval(ID, iteration, ref_itk, Tinit, Tfine, megtfix, megtmov, ldfix, ldmov
     o3dmovpcd_Tfine = copy.deepcopy(o3dmovpcd_Tinit).transform(Tfine)
 
     arrayfixpcd = voxelization(o3dfixpcd, ref_itk)
-    arraymov0pcd_Tfine = voxelization(o3dmovpcd_Tfine, ref_itk)
+    arraymovpcd_Tfine = voxelization(o3dmovpcd_Tfine, ref_itk)
 
     fixitkmask = array_to_itkmask(arrayfixpcd, ref_itk)
-    movitkmask_Tfine = array_to_itkmask(arraymov0pcd_Tfine, ref_itk)
+    movitkmask_Tfine = array_to_itkmask(arraymovpcd_Tfine, ref_itk)
 
     fix_resampled_array = sitk.GetArrayFromImage(fixitkmask)
     mov_resampled_array = sitk.GetArrayFromImage(movitkmask_Tfine)
@@ -188,7 +187,7 @@ def main(
             ID, iteration, ref_itk, Tinit, Tfine, megtfix, megtmov, ldfix, ldmov
         )
         df = df.append(values, ignore_index=True)
-        # print(df)
+        print(df)
 
     df.to_csv(csv_file, index=False)
 
@@ -223,11 +222,11 @@ if __name__ == "__main__":
                 + "regresults.csv",
             )
 
-            refimg_folder = config["CTimg_location"]
+            refimg_folder = config["CTimg_origin0_location"]
             Tinit_folder = join(config["transfo_location"], init_case)
             Tfine_folder = join(config["transfo_location"], refinement_case)
-            megtfix_folder = config["CTmesh_location"]
-            megtmov_folder = config["USmesh_location"]
+            megtfix_folder = config["CTgtmesh_location"]
+            megtmov_folder = config["USgtmesh_location"]
             ldmov_folder = config["USldks_location"]
             ldfix_folder = config["CTldks_location"]
 

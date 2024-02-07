@@ -473,7 +473,8 @@ class Trainer:
             )
 
     def run_eval(self, *args, **kwargs):
-        self.load_checkpoint(os.path.join(self.path, "checkpoint", "latest.pt"))
+        self.load_checkpoint(os.path.join(self.path, "checkpoint", "best.pt"))
+        print("loaded checkpoint: ", os.path.join(self.path, "checkpoint", "best.pt"))
 
         self.model.eval()
 
@@ -509,6 +510,7 @@ class Trainer:
     def load_checkpoint(self, txt=None):
         if txt is None:
             txt = self.load_path
+            print("checkpoint loaded: ", txt)
 
         checkpoint = torch.load(txt)
         self.model.load_state_dict(checkpoint["state_dict"])

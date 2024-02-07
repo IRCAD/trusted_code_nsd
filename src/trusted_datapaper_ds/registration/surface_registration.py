@@ -102,7 +102,7 @@ def bcpd_transform(
             + temp_moving_pcd_path
             + " -x "
             + temp_fix_pcd_path
-            + " -w0.1 -l1e9 -g0.1 -ux  -K70 -J300 -n50 -p -d7 -e0.3 -f0.3 -o "
+            + " -w0.1 -l1e9 -g0.1 -ux  -K70 -J300 -n50 -N30 -p -d7 -e0.3 -f0.3 -o "
             + ID
             + " -sy"
         )
@@ -113,7 +113,7 @@ def bcpd_transform(
             + temp_moving_pcd_path
             + " -x "
             + temp_fix_pcd_path
-            + " -w0.1 -l1e4 -g0.1 -ux  -K70 -J300 -n50 -p -d7 -e0.3 -f0.3 -o "
+            + " -w0.1 -l1e4 -g0.1 -ux  -K70 -J300 -n50 -N30 -p -d7 -e0.3 -f0.3 -o "
             + ID
             + " -sy"
         )
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    visualization = True
+    visualization = False
     icp = False
     bcpd = True
 
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     movldk_location = config["USldks_location"]
     fixldk_location = config["CTldks_location"]
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
-    movldk_noise_std = 20
+    movldk_noise_std = 0
     number_of_iterations = int(config["iternumb"])
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
@@ -177,8 +177,12 @@ if __name__ == "__main__":
     assert number_of_iterations > 0, "You should set at least one iteration"
 
     refine_model = config["refine_model"]
-    movmesh_location = config["USmesh_location"]
-    fixmesh_location = config["CTmesh_location"]
+    movmesh_location = join(
+        config["USautomesh_location"], config["segmodel"], config["training_target"]
+    )
+    fixmesh_location = join(
+        config["CTautomesh_location"], config["segmodel"], config["training_target"]
+    )
     movmesh_files = natsorted(glob(join(movmesh_location, "*meshfaceUS.obj")))
 
     ldkreg_output_folder = config["initreg_location"]

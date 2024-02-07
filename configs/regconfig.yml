@@ -14,18 +14,28 @@ ldks_model: "similarity"
 refine_model: "affine"
 # refine_model: "rigid"
 
-iternumb: 2
+iternumb: 1
 
-USmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
-CTmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
+USgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
+CTgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
+
+USautomesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mesh/"
+CTautomesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mesh/"
+
+segmodel: "nnunetv1_loic"  # ALWAYS (in our case)
+training_target: "double_targets_training"  # ALWAYS (in our case)
+
 
 bcpd_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/bcdp_temp_folder"
 regpack_dir: "src/trusted_datapaper_ds/registration"
 
 USimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_images/"
-CTimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_images/"
+CTimg_origin0_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CTimg_origin0/"
 
 # similarity_metric: "LNCC"
 similarity_metric: "LC2"
 
 imf_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/imf_temp_folder"
+
+init_cases: ["ldks_transforms_std0.0"]
+refinement_cases: ["bcpd_transforms_affine_std0.0"]

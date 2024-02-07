@@ -153,7 +153,7 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    postprocess1 = 0  # Resupsampling
+    postprocess1 = 1  # Resupsampling
     postprocess2 = 1  # meshing
     postprocess3 = 0
 
@@ -163,35 +163,43 @@ if __name__ == "__main__":
     if postprocess1:
         img_folder = config["img_location"]
         input_folder = join(
-            config["seg128location"], config["segmodel"], config["training_target"]
+            config["seg128location"], config["evalsegmodel"], config["training_target"]
         )
         predpath_list = natsorted(glob(join(input_folder, "*.nii.gz")))
         output_folder = join(
-            config["mask_seglocation"], config["segmodel"], config["training_target"]
+            config["mask_seglocation"],
+            config["evalsegmodel"],
+            config["training_target"],
         )
         main1(config, predpath_list, output_folder)
 
     if postprocess2:
         pred_folder = join(
-            config["mask_seglocation"], config["segmodel"], config["training_target"]
+            config["mask_seglocation"],
+            config["evalsegmodel"],
+            config["training_target"],
         )
         maskpath_list = natsorted(glob(join(pred_folder, "*.nii.gz")))
         mesh_folder = join(
-            config["mesh_seglocation"], config["segmodel"], config["training_target"]
+            config["mesh_seglocation"],
+            config["evalsegmodel"],
+            config["training_target"],
         )
         pcd_folder = join(
-            config["pcd_seglocation"], config["segmodel"], config["training_target"]
+            config["pcd_seglocation"], config["evalsegmodel"], config["training_target"]
         )
         main2(config, maskpath_list, mesh_folder, pcd_folder)
 
     if postprocess3:
         mask_folder = join(
-            config["mask_seglocation"], config["segmodel"], config["training_target"]
+            config["mask_seglocation"],
+            config["evalsegmodel"],
+            config["training_target"],
         )
         maskpath_list = natsorted(glob(join(mask_folder, "*.nii.gz")))
         split_dirname = join(
             config["splitmask_seglocation"],
-            config["segmodel"],
+            config["evalsegmodel"],
             config["training_target"],
         )
         makedir(split_dirname)

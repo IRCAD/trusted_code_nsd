@@ -2,7 +2,7 @@ name: training_128_jz_full_v2
 dbg: True
 gpu: 0
 use_gpu: True
-only_val: False
+only_val: True
 
 
 optim: sgd
@@ -41,6 +41,6 @@ inference:
 
 checkpoint:
   save: 2
-  load: False
+  load: True
   load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
   path: ${model.pth}/${model.name}/checkpoint

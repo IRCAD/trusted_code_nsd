@@ -478,7 +478,7 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     modality = config["modality"]
-    segmodel = config["segmodel"]
+    segmodel = config["trainsegmodel"]
 
     lr = 1e-0
     wdecay = 1e-5

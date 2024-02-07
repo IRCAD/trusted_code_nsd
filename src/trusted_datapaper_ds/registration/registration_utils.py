@@ -139,21 +139,21 @@ def voxel2array(grid_index_array, array_shape):
 
 def voxelization(o3dpcd, ref_itk):
     ref_voxelsize = np.max(np.array(ref_itk.GetSpacing()))
-    ref_shape = np.array(ref_itk.GetSize())
+    ref_size = np.array(ref_itk.GetSize())
 
     pcdgrid = o3d.geometry.VoxelGrid.create_from_point_cloud_within_bounds(
         o3dpcd,
         voxel_size=ref_voxelsize,  # to keep the mm
         min_bound=[0, 0, 0],
         max_bound=np.array([0, 0, 0])
-        + np.array([ref_shape[0], ref_shape[1], ref_shape[2]]),
+        + np.array([ref_size[0], ref_size[1], ref_size[2]]),
     )
 
     # Get voxels
     pcdvoxel_list = pcdgrid.get_voxels()
     grid_index_list = list(map(lambda x: x.grid_index, pcdvoxel_list))
     grid_index_array = np.array(grid_index_list)
-    pcdarray = voxel2array(grid_index_array=grid_index_array, array_shape=ref_shape)
+    pcdarray = voxel2array(grid_index_array=grid_index_array, array_shape=ref_size)
     pcdarray = pcdarray.astype(np.int32)
 
     return pcdarray

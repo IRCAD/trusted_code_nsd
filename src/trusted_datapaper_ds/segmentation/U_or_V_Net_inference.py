@@ -156,9 +156,11 @@ if __name__ == "__main__":
     modality = config["modality"]
     for cv in ["cv2", "cv3", "cv4", "cv5"]:
         # for cv in ["cv1"]:
-        model_name = config["segmodel"]
+        model_name = config["evalsegmodel"]
         output_folder = join(
-            config["mask_seglocation"], config["segmodel"], config["training_target"]
+            config["mask_seglocation"],
+            config["evalsegmodel"],
+            config["training_target"],
         )  # Here the outputs are already upsampled
 
         weight_file = join(
