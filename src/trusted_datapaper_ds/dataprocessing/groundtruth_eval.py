@@ -1,18 +1,24 @@
 """
 In this file, we analyse the fused manual segmentations versus each annotator.
 """
-
 from os.path import join
 
 import numpy as np
 import pandas as pd
+import yaml
 from natsort import natsorted
 
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.metrics import Dice, Haus95Mask, HausMesh, MeanNNDistance
+from trusted_datapaper_ds.metrics import Dice, HausMesh, MeanNNDistance
+from trusted_datapaper_ds.utils import (
+    build_many_mask_analist,
+    build_many_me_ld_analist,
+    makedir,
+    parse_args,
+)
 
 
-def datanalysis(
+def gteval(
     modality,
     analysis_folder,
     ma1_files,
@@ -53,14 +59,18 @@ def datanalysis(
     for i, magt_file in enumerate(magt_files):
         dice1 = np.nan
         dice2 = np.nan
-        haus1 = np.nan
-        haus2 = np.nan
 
         magt = dt.Mask(magt_file, annotatorID="gt")
+        ma1 = dt.Mask(ma1_files[i], annotatorID="1")
+        ma2 = dt.Mask(ma2_files[i], annotatorID="2")
+
         if modality == "US":
             assert magt.modality == "US", "The mask seems not to be for a US image"
         if modality == "CT":
             assert magt.modality == "CT", "The mask seems not to be for a CT image"
+
+        assert magt.individual_name == ma1.individual_name
+        assert magt.individual_name == ma2.individual_name
 
         ID = magt.individual_name
 
@@ -68,26 +78,13 @@ def datanalysis(
 
         # Evaluate Dice score and Hausdorff95 metrics between masks:
         try:
-            dice = Dice(ma1_files[i], magt_file)
-            dice1 = dice.evaluate_overlap()
-            dice = Dice(ma2_files[i], magt_file)
-            dice2 = dice.evaluate_overlap()
+            dice = Dice(ma1.nparray, magt.nparray)
+            dice1 = dice.evaluate_dice()
+            dice = Dice(ma2.nparray, magt.nparray)
+            dice2 = dice.evaluate_dice()
         except ValueError:
             error_message = (
                 "There is an error when computing Dice for individual " + ID + ". \n"
-            )
-            print(error_message)
-
-        try:
-            haus = Haus95Mask(ma1_files[i], magt_file)
-            haus1 = haus.evaluate_overlap()
-            haus = Haus95Mask(ma2_files[i], magt_file)
-            haus2 = haus.evaluate_overlap()
-        except ValueError:
-            error_message = (
-                "There is an error when computing Haus95Mask for individual "
-                + ID
-                + ". \n"
             )
             print(error_message)
 
@@ -96,10 +93,9 @@ def datanalysis(
             "kidney_id": ID,
             "dice1": dice1,
             "dice2": dice2,
-            "h95mask1": haus1,
-            "h95mask2": haus2,
         }
         df_dice = df_dice.append(values, ignore_index=True)
+        print(df_dice)
 
     df_dice.to_csv(csv_dice_file, index=False)
 
@@ -180,7 +176,115 @@ def datanalysis(
             "lm7_dist": lm_dist1[6],
         }
         df_othermetric = df_othermetric.append(values, ignore_index=True)
+        print(df_othermetric)
 
     df_othermetric.to_csv(csv_othermetric_file, index=False)
 
     return
+
+
+def main(config):
+    usdata_analysis = bool(config["usdata_analysis"])
+    ctdata_analysis = bool(config["ctdata_analysis"])
+
+    allct = natsorted(
+        config["CTfold"]["cv1"]
+        + config["CTfold"]["cv2"]
+        + config["CTfold"]["cv3"]
+        + config["CTfold"]["cv4"]
+        + config["CTfold"]["cv5"]
+    )
+    allct_with_side = natsorted([j + "L" for j in allct] + [j + "R" for j in allct])
+    allus = natsorted(
+        config["USfold"]["cv1"]
+        + config["USfold"]["cv2"]
+        + config["USfold"]["cv3"]
+        + config["USfold"]["cv4"]
+        + config["USfold"]["cv5"]
+    )
+
+    ctlist_with_side = allct_with_side
+
+    ctlist = allct
+    uslist = allus
+
+    if usdata_analysis:
+        modality = "US"
+        usdatanalysis_folder = join(config["myDATA"], config["US_analysis_folder"])
+        makedir(usdatanalysis_folder)
+
+        USlike_IDlist = uslist
+        CTlike_IDlist = None
+
+        usma1_files, usma2_files, usmagt_files = build_many_mask_analist(
+            modality, config, USlike_IDlist, CTlike_IDlist
+        )
+
+        (
+            usme1_files,
+            usme2_files,
+            usmegt_files,
+            usld1_files,
+            usld2_files,
+            usldgt_files,
+        ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
+
+        gteval(
+            modality,
+            usdatanalysis_folder,
+            usma1_files,
+            usma2_files,
+            usmagt_files,
+            usme1_files,
+            usme2_files,
+            usmegt_files,
+            usld1_files,
+            usld2_files,
+            usldgt_files,
+        )
+
+    if ctdata_analysis:
+        modality = "CT"
+        ctdatanalysis_folder = join(config["myDATA"], config["CT_analysis_folder"])
+        makedir(ctdatanalysis_folder)
+
+        # For CT Masks
+        USlike_IDlist = None
+        CTlike_IDlist = ctlist
+        ctma1_files, ctma2_files, ctmagt_files = build_many_mask_analist(
+            modality, config, USlike_IDlist, CTlike_IDlist
+        )
+
+        # For CT Meshes and Landmarks which are name like US ones
+        USlike_IDlist = ctlist_with_side
+        CTlike_IDlist = None
+        (
+            ctme1_files,
+            ctme2_files,
+            ctmegt_files,
+            ctld1_files,
+            ctld2_files,
+            ctldgt_files,
+        ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
+
+        gteval(
+            modality,
+            ctdatanalysis_folder,
+            ctma1_files,
+            ctma2_files,
+            ctmagt_files,
+            ctme1_files,
+            ctme2_files,
+            ctmegt_files,
+            ctld1_files,
+            ctld2_files,
+            ctldgt_files,
+        )
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    with open(args.config_path, "r") as yaml_file:
+        config = yaml.safe_load(yaml_file)
+
+    main(config)

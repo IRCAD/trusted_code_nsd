@@ -14,8 +14,8 @@ from os.path import join
 import yaml
 from natsort import natsorted
 
+from src.trusted_datapaper_ds.dataprocessing.groundtruth_eval import gteval
 from trusted_datapaper_ds.dataprocessing import data as dt
-from trusted_datapaper_ds.dataprocessing.datanalysis_new import datanalysis
 from trusted_datapaper_ds.utils import (
     build_analist,
     build_many_mask_analist,
@@ -411,7 +411,7 @@ def main(
             usldgt_files,
         ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
 
-        datanalysis(
+        gteval(
             modality,
             usdatanalysis_folder,
             usma1_files,
@@ -451,7 +451,7 @@ def main(
             ctldgt_files,
         ) = build_many_me_ld_analist(modality, config, USlike_IDlist, CTlike_IDlist)
 
-        datanalysis(
+        gteval(
             modality,
             ctdatanalysis_folder,
             ctma1_files,
@@ -474,24 +474,24 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     allct = natsorted(
-        config["ctfold"]["cv1"]
-        + config["ctfold"]["cv2"]
-        + config["ctfold"]["cv3"]
-        + config["ctfold"]["cv4"]
-        + config["ctfold"]["cv5"]
+        config["CTfold"]["cv1"]
+        + config["CTfold"]["cv2"]
+        + config["CTfold"]["cv3"]
+        + config["CTfold"]["cv4"]
+        + config["CTfold"]["cv5"]
     )
     allct_with_side = natsorted([j + "L" for j in allct] + [j + "R" for j in allct])
     allus = natsorted(
-        config["usfold"]["cv1"]
-        + config["usfold"]["cv2"]
-        + config["usfold"]["cv3"]
-        + config["usfold"]["cv4"]
-        + config["usfold"]["cv5"]
+        config["USfold"]["cv1"]
+        + config["USfold"]["cv2"]
+        + config["USfold"]["cv3"]
+        + config["USfold"]["cv4"]
+        + config["USfold"]["cv5"]
     )
 
-    ctcv1 = config["ctfold"]["cv1"]
+    ctcv1 = config["CTfold"]["cv1"]
     ctcv1_with_side = natsorted([j + "L" for j in ctcv1] + [j + "R" for j in ctcv1])
-    uscv1 = config["usfold"]["cv1"]
+    uscv1 = config["USfold"]["cv1"]
 
     # ctlist_with_side = ctcv1_with_side
     # ctlist = ctcv1

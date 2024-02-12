@@ -1,25 +1,12 @@
 from os.path import join
 
 import numpy as np
-
-# from kidney_processing.metrics import *
 import pandas as pd
 import yaml
 from scipy import stats
 from statsmodels.stats.descriptivestats import sign_test
 
-from trusted_datapaper_ds.utils import parse_args
-
-
-def detect_outliers(data, k=1.5):
-    # change K to 2 or 1.5. This can be what you need it to be.
-    q1, q3 = np.percentile(data, [25, 75])
-    iqr = q3 - q1
-    lower_bound = np.median(data) - k * iqr
-    upper_bound = np.median(data) + k * iqr
-    outliers = data[(data < lower_bound) | (data > upper_bound)]
-    number_of_outliers = len(outliers)
-    return number_of_outliers
+from trusted_datapaper_ds.utils import detect_outliers, parse_args
 
 
 def seg_analysis(config, seg_evaluation_outputs_folder: str):
@@ -27,8 +14,6 @@ def seg_analysis(config, seg_evaluation_outputs_folder: str):
 
     resultfile_csv = join(seg_evaluation_outputs_folder, "segresults.csv")
     resultdf = pd.read_csv(resultfile_csv, index_col=0)
-
-    summarydf = pd.DataFrame()
 
     if modality == "US":
         cv_list = ["uscv1", "uscv2", "uscv3", "uscv4", "uscv5"]
@@ -58,7 +43,6 @@ def seg_analysis(config, seg_evaluation_outputs_folder: str):
             cv_df = cv_df.append(cv_values, ignore_index=True)
 
         # print(cv_df)
-
         dice_mean = cv_df.dice.mean()
         dice_mean_list.append(dice_mean)
         haus95_mask_mean = cv_df.h95mesh.mean()
@@ -66,23 +50,13 @@ def seg_analysis(config, seg_evaluation_outputs_folder: str):
         dst_nn_mean = cv_df.nndst.mean()
         dst_nn_mean_list.append(dst_nn_mean)
 
-        values = {
-            "cv": cv_str,
-            "mean_dice": dice_mean,
-            "mean_h95mesh": haus95_mask_mean,
-            "dst_mean_nn": dst_nn_mean,
-        }
-        summarydf = summarydf.append(values, ignore_index=True)
+    dice_mean = np.mean(dice_mean_list)
+    h95_mean = np.mean(h95_mean_list)
+    nn_mean = np.mean(dst_nn_mean_list)
 
-    dice_mean = summarydf.mean_dice.mean()
-    h95_mean = summarydf.mean_h95mesh.mean()
-    nn_mean = summarydf.dst_mean_nn.mean()
-    dice_std = summarydf.mean_dice.std()
-    h95_std = summarydf.mean_h95mesh.std()
-    nn_std = summarydf.dst_mean_nn.std()
-    dice_median = summarydf.mean_dice.median()
-    h95_median = summarydf.mean_h95mesh.median()
-    nn_median = summarydf.dst_mean_nn.median()
+    dice_std = np.std(dice_mean_list)
+    h95_std = np.std(h95_mean_list)
+    nn_std = np.std(dst_nn_mean_list)
 
     return (
         dice_mean_list,
@@ -94,9 +68,6 @@ def seg_analysis(config, seg_evaluation_outputs_folder: str):
         dice_std,
         nn_std,
         h95_std,
-        dice_median,
-        nn_median,
-        h95_median,
     )
 
 
@@ -133,9 +104,6 @@ def main(config):
         dice1_std,
         nn1_std,
         h1_std,
-        dice1_median,
-        nn1_median,
-        h1_median,
     ) = seg_analysis(config, seg_evaluation_outputs_folder=reffolder)
 
     ref_dice_mean_list = (
@@ -167,9 +135,6 @@ def main(config):
                 dice_std,
                 nn_std,
                 h95_std,
-                dice_median,
-                nn_median,
-                h95_median,
             ) = seg_analysis(
                 config, seg_evaluation_outputs_folder=seg_evaluation_outputs_folder
             )
@@ -303,7 +268,6 @@ def main(config):
                 "modality": modality,
                 "segmodel": segmodel,
                 "target_kind": target_kind,
-                "median": np.round(dice_median, 4),
                 "mean": np.round(dice_mean, 4),
                 "std": np.round(dice_std, 4),
                 "shapiro_pvalue": np.round(dice_shapiro_pvalue, 4),
@@ -320,7 +284,6 @@ def main(config):
                 "modality": modality,
                 "segmodel": segmodel,
                 "target_kind": target_kind,
-                "median": np.round(h95_median, 4),
                 "mean": np.round(h95_mean, 4),
                 "std": np.round(h95_std, 4),
                 "shapiro_pvalue": np.round(h95_shapiro_pvalue, 4),
@@ -337,7 +300,6 @@ def main(config):
                 "modality": modality,
                 "segmodel": segmodel,
                 "target_kind": target_kind,
-                "median": np.round(nn_median, 4),
                 "mean": np.round(nn_mean, 4),
                 "std": np.round(nn_std, 4),
                 "shapiro_pvalue": np.round(nn_shapiro_pvalue, 4),

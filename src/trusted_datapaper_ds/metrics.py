@@ -7,7 +7,9 @@ from numpy import linalg as LA
 
 from trusted_datapaper_ds import geometry_utils as gu
 
-process = Compose([EnsureType(data_type="tensor"), AsDiscrete(threshold_values=True)])
+process = Compose(
+    [EnsureType(data_type="tensor"), AsDiscrete(threshold=0.5, threshold_values=True)]
+)
 
 dice_metric = DiceMetric(include_background=False, reduction="mean")
 

@@ -159,8 +159,8 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     visualization = False
-    icp = False
-    bcpd = True
+    icp = config["regmethod"] == "ICP"
+    bcpd = config["regmethod"] == "BCPD"
 
     us_color = np.array([0.0, 1.0, 0.0])
     ct_color = np.array([1.0, 0.0, 0.0])
@@ -168,9 +168,9 @@ if __name__ == "__main__":
     ldks_model = config["ldks_model"]
     movldk_location = config["USldks_location"]
     fixldk_location = config["CTldks_location"]
-    movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
-    movldk_noise_std = 0
+    movldk_noise_std = config["noise_std"]
     number_of_iterations = int(config["iternumb"])
+    movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     )
     movmesh_files = natsorted(glob(join(movmesh_location, "*meshfaceUS.obj")))
 
-    ldkreg_output_folder = config["initreg_location"]
+    ldkreg_output_folder = config["transfo_location"]
     if ldkreg_output_folder is not None:
         ldkregspecific_output_folder = join(
             ldkreg_output_folder, "ldks_transforms_" + ldkfolder_suffix
@@ -195,28 +195,28 @@ if __name__ == "__main__":
         ldkregspecific_output_folder = None
 
     if icp:
-        icpreg_output_folder = config["surfreg_location"]
+        icpreg_output_folder = config["transfo_location"]
         if icpreg_output_folder is not None:
             icpspecific_output_folder = join(
                 icpreg_output_folder,
-                "icp_transforms_" + refine_model + "_" + ldkfolder_suffix,
+                "ICP_transforms_" + refine_model + "_" + ldkfolder_suffix,
             )
             makedir(icpspecific_output_folder)
         else:
             icpspecific_output_folder = None
 
     if bcpd:
-        bcpdreg_output_folder = config["surfreg_location"]
+        bcpdreg_output_folder = config["transfo_location"]
         if bcpdreg_output_folder is not None:
             bcpdspecific_output_folder = join(
                 bcpdreg_output_folder,
-                "bcpd_transforms_" + refine_model + "_" + ldkfolder_suffix,
+                "BCPD_transforms_" + refine_model + "_" + ldkfolder_suffix,
             )
             makedir(bcpdspecific_output_folder)
         else:
             bcpdspecific_output_folder = None
 
-        bcpd_temp_folder = config["bcpd_temp_folder"]
+        bcpd_temp_folder = config["BCPD_temp_folder"]
         makedir(bcpd_temp_folder)
 
     for movmesh_file in movmesh_files:

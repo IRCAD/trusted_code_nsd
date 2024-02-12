@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
 
-    ldkreg_output_folder = config["initreg_location"]
+    ldkreg_output_folder = config["transfo_location"]
 
     movldk_noise_std = 2
     number_of_iterations = int(config["iternumb"])

@@ -238,7 +238,7 @@ class Mask:
                         mode=interpolmode,
                         align_corners=True,
                     ),
-                    AsDiscrete(threshold_values=True),
+                    AsDiscrete(threshold=0.5, threshold_values=True),
                 ]
             )
         else:
@@ -250,7 +250,7 @@ class Mask:
                         spatial_size=newsize,
                         mode=interpolmode,
                     ),
-                    AsDiscrete(threshold_values=True),
+                    AsDiscrete(threshold=0.5, threshold_values=True),
                 ]
             )
         resized_nparray0 = post_resiz(self.path)
@@ -771,7 +771,10 @@ def resiz_nparray(input_nparray, newsize, interpolmode, binary):
         ...
     """
     binarizing = Compose(
-        [EnsureType(data_type="tensor"), AsDiscrete(threshold_values=True)]
+        [
+            EnsureType(data_type="tensor"),
+            AsDiscrete(threshold=0.5, threshold_values=True),
+        ]
     )
 
     addchanel_tensor = torch.unsqueeze((torch.from_numpy(input_nparray)), 0)

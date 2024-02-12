@@ -2,6 +2,8 @@ import argparse
 import os
 from os.path import isfile, join
 
+import numpy as np
+
 
 def parse_args():
     PARSER = argparse.ArgumentParser(description="")
@@ -28,6 +30,17 @@ def makedir(folder):
     return
 
 
+def detect_outliers(data, k=1.5):
+    # change K to 2 or 1.5. This can be what you need it to be.
+    q1, q3 = np.percentile(data, [25, 75])
+    iqr = q3 - q1
+    lower_bound = np.median(data) - k * iqr
+    upper_bound = np.median(data) + k * iqr
+    outliers = data[(data < lower_bound) | (data > upper_bound)]
+    number_of_outliers = len(outliers)
+    return number_of_outliers
+
+
 def build_analist(
     data_config, modality, datatype, annotatorID, USlike_IDlist=None, CTlike_IDlist=None
 ):
@@ -36,8 +49,8 @@ def build_analist(
     INPUTS:
         data_config: the yaml object containing the elements in config_file.yml
         modality(respect the word case):
-                'us' for Ultrasound
-                'ct' for CT
+                'US' for Ultrasound
+                'CT' for CT
         datatype:
                 'img' for image
                 'ma' for mask
@@ -52,13 +65,13 @@ def build_analist(
     OUTPUT:
         data_path_list: the list of data paths
     """
-    assert modality in ["us", "ct"], " modality must be in ['us', 'ct'] "
+    assert modality in ["US", "CT"], " modality must be in ['US', 'CT'] "
     assert datatype in [
         "img",
         "ma",
         "me",
         "ld",
-    ], " datatype must be 'us' or 'ct' in ['img', 'ma', 'me', 'ld'] "
+    ], " datatype must be 'US' or 'CT' in ['img', 'ma', 'me', 'ld'] "
     assert annotatorID in [
         "gt",
         "annotator1",
@@ -74,9 +87,9 @@ def build_analist(
         ma_middle = ""
         me_middle = ""
     else:
-        if modality == "ct":
+        if modality == "CT":
             ma_middle = "_" + config[annotatorID]
-        if modality == "us":
+        if modality == "US":
             ma_middle = config[annotatorID]
 
         me_middle = config[annotatorID]
@@ -104,12 +117,12 @@ def build_analist(
 
     if datatype == "ma":
         if USlike_IDlist is not None:
-            if modality == "ct":
+            if modality == "CT":
                 print("You are building a list of split kidney masks in CT")
-                start = "ctspma"
-            if modality == "us":
+                start = "CTspma"
+            if modality == "US":
                 print("You are building a list of kidney masks in US")
-                start = "usma"
+                start = "USma"
             IDlist = USlike_IDlist
 
             data_path_list = [
@@ -129,21 +142,21 @@ def build_analist(
             ]
 
         if CTlike_IDlist is not None:
-            assert modality == "ct", "modality must be 'ct' "
+            assert modality == "CT", "modality must be 'CT' "
             print("You are building a list of double kidney masks in CT")
             IDlist = CTlike_IDlist
             data_path_list = [
                 join(
                     config["data_location"],
-                    config["ctma" + config[annotatorID] + "fol"],
-                    individual + ma_middle + config["ctma_end"],
+                    config["CTma" + config[annotatorID] + "fol"],
+                    individual + ma_middle + config["CTma_end"],
                 )
                 for individual in IDlist
                 if isfile(
                     join(
                         config["data_location"],
-                        config["ctma" + config[annotatorID] + "fol"],
-                        individual + ma_middle + config["ctma_end"],
+                        config["CTma" + config[annotatorID] + "fol"],
+                        individual + ma_middle + config["CTma_end"],
                     )
                 )
             ]

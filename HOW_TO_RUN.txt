@@ -13,8 +13,7 @@ pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu1
 
 
 #1 Specific to MONAI (It will also add many suitable requirements)
-## pip install -e '.[all]'
-## monai==0.9.0
+## pip install monai[all]==0.9.0
 
 #2 General (for our needs)
 ## pip install pandas==1.3.0

@@ -195,7 +195,7 @@ if __name__ == "__main__":
     else:
         ldkregspecific_output_folder = None
 
-    imfreg_output_folder = config["intensityreg_location"]
+    imfreg_output_folder = config["transfo_location"]
     if imfreg_output_folder is not None:
         imfspecific_output_folder = join(
             imfreg_output_folder,

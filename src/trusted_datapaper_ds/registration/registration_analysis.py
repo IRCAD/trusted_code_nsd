@@ -1,25 +1,12 @@
 from os.path import join
 
 import numpy as np
-
-# from kidney_processing.metrics import *
 import pandas as pd
 import yaml
 from scipy import stats
 from statsmodels.stats.descriptivestats import sign_test
 
-from trusted_datapaper_ds.utils import parse_args
-
-
-def detect_outliers(data, k=1.5):
-    # change K to 2 or 1.5. This can be what you need it to be.
-    q1, q3 = np.percentile(data, [25, 75])
-    iqr = q3 - q1
-    lower_bound = np.median(data) - k * iqr
-    upper_bound = np.median(data) + k * iqr
-    outliers = data[(data < lower_bound) | (data > upper_bound)]
-    number_of_outliers = len(outliers)
-    return number_of_outliers
+from trusted_datapaper_ds.utils import detect_outliers, parse_args
 
 
 def reg_analysis(config, reg_evaluation_outputs_folder, std):
@@ -27,8 +14,6 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
         reg_evaluation_outputs_folder, "std" + str(std) + "results.csv"
     )
     resultdf = pd.read_csv(resultfile_csv, index_col=0)
-
-    summarydf = pd.DataFrame()
 
     cv_list = ["cv1", "cv2", "cv3", "cv4", "cv5"]
 
@@ -43,7 +28,7 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
         cv_df = pd.DataFrame()
 
         for ID in cv:
-            tre = np.round((resultdf.dst_TRE0.loc[ID] * 100), 3)
+            tre = np.round(resultdf.dst_TRE0.loc[ID], 3)
             dice = np.round((resultdf.monai_dice.loc[ID] * 100), 3)
             h95mesh = np.round(resultdf.monai_h95.loc[ID], 3)
             nndst = np.round(resultdf.dst_nn.loc[ID], 3)
@@ -67,27 +52,15 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
         dst_nn_mean = cv_df.nndst.mean()
         dst_nn_mean_list.append(dst_nn_mean)
 
-        values = {
-            "cv": cv_str,
-            "mean_tre": tre_mean,
-            "mean_dice": dice_mean,
-            "mean_h95mesh": haus95_mask_mean,
-            "dst_mean_nn": dst_nn_mean,
-        }
-        summarydf = summarydf.append(values, ignore_index=True)
+    tre_mean = np.mean(tre_mean_list)
+    dice_mean = np.mean(dice_mean_list)
+    h95_mean = np.mean(h95_mean_list)
+    nn_mean = np.mean(dst_nn_mean_list)
 
-    tre_mean = summarydf.mean_tre.mean()
-    dice_mean = summarydf.mean_dice.mean()
-    h95_mean = summarydf.mean_h95mesh.mean()
-    nn_mean = summarydf.dst_mean_nn.mean()
-    tre_std = summarydf.mean_tre.std()
-    dice_std = summarydf.mean_dice.std()
-    h95_std = summarydf.mean_h95mesh.std()
-    nn_std = summarydf.dst_mean_nn.std()
-    tre_median = summarydf.mean_tre.median()
-    dice_median = summarydf.mean_dice.median()
-    h95_median = summarydf.mean_h95mesh.median()
-    nn_median = summarydf.dst_mean_nn.median()
+    tre_std = np.std(tre_mean_list)
+    dice_std = np.std(dice_mean_list)
+    h95_std = np.std(h95_mean_list)
+    nn_std = np.std(dst_nn_mean_list)
 
     return (
         tre_mean_list,
@@ -102,14 +75,10 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
         dice_std,
         nn_std,
         h95_std,
-        tre_median,
-        dice_median,
-        nn_median,
-        h95_median,
     )
 
 
-def main(config):
+def main(config, std=0.0):
     """
     :param:
     :return:
@@ -126,7 +95,6 @@ def main(config):
 
     refmethod = config["refmethod"]
     reftransform = config["reftransform"]
-    std = 0.0
 
     print("PROCESSING THE REFERENCES: ")
     print("ref: ", refmethod, " ", reftransform)
@@ -146,11 +114,7 @@ def main(config):
         dice1_std,
         nn1_std,
         h1_std,
-        tre1_median,
-        dice1_median,
-        nn1_median,
-        h1_median,
-    ) = reg_analysis(config, seg_evaluation_outputs_folder=reffolder, std=std)
+    ) = reg_analysis(config, reg_evaluation_outputs_folder=reffolder, std=std)
 
     ref_tre_mean_list = tre1_mean_list.copy()
     ref_dice_mean_list = dice1_mean_list.copy()
@@ -183,13 +147,9 @@ def main(config):
                 dice_std,
                 nn_std,
                 h95_std,
-                tre_median,
-                dice_median,
-                nn_median,
-                h95_median,
             ) = reg_analysis(
                 config,
-                seg_evaluation_outputs_folder=reg_evaluation_outputs_folder,
+                reg_evaluation_outputs_folder=reg_evaluation_outputs_folder,
                 std=std,
             )
 
@@ -361,9 +321,8 @@ def main(config):
                 pass
 
             tre_values = {
-                "refmethod": refmethod,
-                "reftransform": reftransform,
-                "median": np.round(tre_median, 4),
+                "regmethod": regmethod,
+                "regtransform": regtransform,
                 "mean": np.round(tre_mean, 4),
                 "std": np.round(tre_std, 4),
                 "shapiro_pvalue": np.round(tre_shapiro_pvalue, 4),
@@ -377,9 +336,8 @@ def main(config):
             tre = tre.append(tre_values, ignore_index=True)
 
             dice_values = {
-                "refmethod": refmethod,
-                "reftransform": reftransform,
-                "median": np.round(dice_median, 4),
+                "regmethod": regmethod,
+                "regtransform": regtransform,
                 "mean": np.round(dice_mean, 4),
                 "std": np.round(dice_std, 4),
                 "shapiro_pvalue": np.round(dice_shapiro_pvalue, 4),
@@ -393,9 +351,8 @@ def main(config):
             dice = dice.append(dice_values, ignore_index=True)
 
             h95_values = {
-                "refmethod": refmethod,
-                "reftransform": reftransform,
-                "median": np.round(h95_median, 4),
+                "regmethod": regmethod,
+                "regtransform": regtransform,
                 "mean": np.round(h95_mean, 4),
                 "std": np.round(h95_std, 4),
                 "shapiro_pvalue": np.round(h95_shapiro_pvalue, 4),
@@ -409,9 +366,8 @@ def main(config):
             h95 = h95.append(h95_values, ignore_index=True)
 
             nn_values = {
-                "refmethod": refmethod,
-                "reftransform": reftransform,
-                "median": np.round(nn_median, 4),
+                "regmethod": regmethod,
+                "regtransform": regtransform,
                 "mean": np.round(nn_mean, 4),
                 "std": np.round(nn_std, 4),
                 "shapiro_pvalue": np.round(nn_shapiro_pvalue, 4),
@@ -444,4 +400,4 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    main(config)
+    main(config, std=0.0)

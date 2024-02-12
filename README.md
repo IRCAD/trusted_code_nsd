@@ -17,30 +17,104 @@ A longer description of your project goes here...
 
 ## Installation
 
-In order to set up the necessary environment:
-
-1. review and uncomment what you need in `environment.yml` and create an environment `trusted` with the help of [conda]:
+1. Clone the repo:
    ```
-   conda env create -f environment.yml
-   ```
-2. activate the new environment with:
-   ```
-   conda activate trusted
+   git clone https://git.ircad.fr/wndzimbong/trusted_datapaper_ds.git
+   cd trusted_datapaper_ds
    ```
 
-> **_NOTE:_**  The conda environment will have trusted_datapaper_ds installed in editable mode.
-> Some changes, e.g. in `setup.cfg`, might require you to run `pip install -e .` again.
-
-
-Optional and needed only once after `git clone`:
-
-3. install several [pre-commit] git hooks with:
-   ```bash
-   pre-commit install
-   # You might also want to run `pre-commit autoupdate`
+2. Environment setting:
    ```
-   and checkout the configuration under `.pre-commit-config.yaml`.
-   The `-n, --no-verify` flag of `git commit` can be used to deactivate pre-commit hooks temporarily.
+   conda create -n trusted_env python=3.9
+
+   conda activate trusted_env
+
+   pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+
+   pip install monai[all]==0.9.0
+   pip install pandas==1.3.0
+   pip install lxml
+   pip install connected-components-3d==3.12.4
+   pip install statsmodels==0.14.1
+   pip install natsort==8.4.0
+   pip install vtk==9.3.0
+   pip install jupyterlab (lastest version)
+   pip install open3d==0.15.2
+   pip install opencv-contrib-python==4.9.0.80
+   pip install plyfile==1.0.3
+   pip install numpymaxflow==0.0.6
+
+   pip install -e .
+
+   ```
+
+3. Note about the naming convension
+
+   An annotator could be: "1", "2" or "gt" for data analysis, and: "1", "2", "gt" or "auto" for the other modules
+
+4. Estimate the ground-truth masks
+
+   In the file configs/anaconfig.yml, set the values of:
+   myUS_fusedmasks_location, myCT_fusedmasks_location, fuse_USmask, fuse_CTmask, as you want, and run the command
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py --config_path configs/anaconfig.yml
+   ```
+   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [384, 256, 256] just for the US data which are quite big. Depending to your memory, you can set different values.
+
+
+5. Estimate the ground-truth landmarks
+
+   In the file configs/anaconfig.yml, set the values of:
+   myUS_fusedlandmarks_location, myCT_fusedlandmarks_location, fuse_USlandmark, fuse_CTlandmark, as you want, and run the command
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/estimate_gtldks.py --config_path configs/anaconfig.yml
+   ```
+
+6. Convert masks to meshes
+
+   In the file configs/anaconfig.yml, set the values of:
+   myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh, as you want, and run the command
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/convert_mask_to_mesh.py --config_path configs/anaconfig.yml
+   ```
+
+
+7. Split CT masks
+
+   In the file configs/anaconfig.yml, set the values of:
+   myDATA, splitCTmask, annotator_splitCTmask, as you want, and run the command
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/splitCTmask.py --config_path configs/anaconfig.yml
+   ```
+
+
+8. Ground-truth comparison with annotators
+
+   In the file configs/anaconfig.yml, set the values of:
+   US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis, as you want, and run the command
+
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/groundtruth_eval.py --config_path configs/anaconfig.yml
+   ```
+
+9. Ground-truth statistical analysis
+   ```
+
+   ```
+
+
+10.
+   ```
+
+   ```
+
+
+11.
+   ```
+
+   ```
+
+
 
 4. install [nbstripout] git hooks to remove the output cells of committed notebooks with:
    ```bash
@@ -82,7 +156,6 @@ Then take a look into the `scripts` and `notebooks` folders.
 │   ├── processed           <- The final, canonical data sets for modeling.
 │   └── raw                 <- The original, immutable data dump.
 ├── docs                    <- Directory for Sphinx documentation in rst or md.
-├── environment.yml         <- The conda environment file for reproducibility.
 ├── models                  <- Trained and serialized models, model predictions,
 │                              or model summaries.
 ├── notebooks               <- Jupyter notebooks. Naming convention is a number (for

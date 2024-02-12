@@ -1,7 +1,6 @@
 """
 In this file, we analyse the fused manual segmentations versus each annotator.
 """
-
 import copy
 import os
 import re
@@ -30,7 +29,7 @@ def loader(
     ldmov_files,
     ldfix_files,
 ):
-    for Tfine_file in Tfine_files:
+    for Tfine_file in Tfine_files[:10]:
         Tfine_basename = os.path.basename(Tfine_file)
         a = re.search("Tfine", Tfine_basename).start()
         b = re.search("Tfine", Tfine_basename).end()
@@ -187,7 +186,7 @@ def main(
             ID, iteration, ref_itk, Tinit, Tfine, megtfix, megtmov, ldfix, ldmov
         )
         df = df.append(values, ignore_index=True)
-        print(df)
+        # print(df)
 
     df.to_csv(csv_file, index=False)
 
@@ -200,51 +199,53 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     results_folder = config["regresults"]
-    makedir(join(results_folder))
 
-    init_cases = config["init_cases"]
-    refinement_cases = config["refinement_cases"]
+    init_cases = ["ldks_transforms_std" + std_case for std_case in config["std_cases"]]
 
-    for init_case in init_cases:
-        for refinement_case in refinement_cases:
-            print(refinement_case)
+    for refinement_method in config["refinement_methods"]:
+        for transform_model in config["transform_models"]:
+            for std_case in config["std_cases"]:
+                init_case = "ldks_transforms_std" + std_case
+                refinement_case = (
+                    refinement_method
+                    + "_transforms_"
+                    + transform_model
+                    + "_std"
+                    + std_case
+                )
+                print(refinement_case)
+                makedir(join(results_folder, refinement_method, transform_model))
 
-            csv_file = join(
-                results_folder,
-                "INIT"
-                + "_"
-                + init_case
-                + "_"
-                + "FINE"
-                + "_"
-                + refinement_case
-                + "_"
-                + "regresults.csv",
-            )
+                csv_file = join(
+                    results_folder,
+                    refinement_method,
+                    transform_model,
+                    "std" + std_case + "results.csv",
+                )
 
-            refimg_folder = config["CTimg_origin0_location"]
-            Tinit_folder = join(config["transfo_location"], init_case)
-            Tfine_folder = join(config["transfo_location"], refinement_case)
-            megtfix_folder = config["CTgtmesh_location"]
-            megtmov_folder = config["USgtmesh_location"]
-            ldmov_folder = config["USldks_location"]
-            ldfix_folder = config["CTldks_location"]
+                refimg_folder = config["CTimg_origin0_location"]
+                Tinit_folder = join(config["transfo_location"], init_case)
+                Tfine_folder = join(config["transfo_location"], refinement_case)
+                megtfix_folder = config["CTgtmesh_location"]
+                megtmov_folder = config["USgtmesh_location"]
+                ldmov_folder = config["USldks_location"]
+                ldfix_folder = config["CTldks_location"]
 
-            refimg_files = natsorted(glob(join(refimg_folder, "*.nii.gz")))
-            Tinit_files = natsorted(glob(join(Tinit_folder, "*.txt")))
-            Tfine_files = natsorted(glob(join(Tfine_folder, "*.txt")))
-            megtfix_files = natsorted(glob(join(megtfix_folder, "*.obj")))
-            megtmov_files = natsorted(glob(join(megtmov_folder, "*.obj")))
-            ldmov_files = natsorted(glob(join(ldmov_folder, "*.txt")))
-            ldfix_files = natsorted(glob(join(ldfix_folder, "*.txt")))
+                refimg_files = natsorted(glob(join(refimg_folder, "*.nii.gz")))
+                Tinit_files = natsorted(glob(join(Tinit_folder, "*.txt")))
+                Tfine_files = natsorted(glob(join(Tfine_folder, "*.txt")))
+                megtfix_files = natsorted(glob(join(megtfix_folder, "*.obj")))
+                megtmov_files = natsorted(glob(join(megtmov_folder, "*.obj")))
+                ldmov_files = natsorted(glob(join(ldmov_folder, "*.txt")))
+                ldfix_files = natsorted(glob(join(ldfix_folder, "*.txt")))
 
-            main(
-                csv_file,
-                refimg_files,
-                Tinit_files,
-                Tfine_files,
-                megtfix_files,
-                megtmov_files,
-                ldmov_files,
-                ldfix_files,
-            )
+                main(
+                    csv_file,
+                    refimg_files,
+                    Tinit_files,
+                    Tfine_files,
+                    megtfix_files,
+                    megtmov_files,
+                    ldmov_files,
+                    ldfix_files,
+                )

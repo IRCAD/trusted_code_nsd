@@ -3,8 +3,8 @@
 refmethod: "bcpd"
 reftransform: "affine"
 
-list_regmethods: []
-list_regtransforms: []
+list_regmethods: ["icp", "bcpd", "lncc", "lc2"]
+list_regtransforms: ["rigid", "affine"]
 
 regresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/reg_results"
 

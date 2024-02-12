@@ -1,20 +1,31 @@
 
+# The folder where the GT landmarks in .txt are located
 USldks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_landmarks/GT_estimated_ldksUS/"
 CTldks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 
-initreg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
-surfreg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
-intensityreg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
-
+# Where you like to create the folders that will content the estimated transformations
 transfo_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/"
 
+# Where you like to create the folders that will content the different results csv files
 regresults: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/reg_results"
 
+# The transform model for landmarks (global) registration
 ldks_model: "similarity"
-refine_model: "affine"
-# refine_model: "rigid"
 
-iternumb: 1
+# The noise introduce in the moving landmarks position
+noise_std: 10 # Values are in [0, 2, 4, 6, 8, 10]
+
+# The transform model for registration refinement
+refine_model: "rigid" # or "rigid"
+
+# The surface based registration method
+regmethod: "ICP" # or BCPD
+
+# The similarity_metric for ImFusion intensity-based method:
+similarity_metric: "LC2" # or "LNCC"
+
+# The number of registration repetitions you want to run per pairs of volumes.
+iternumb: 5
 
 USgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
 CTgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
@@ -32,10 +43,13 @@ regpack_dir: "src/trusted_datapaper_ds/registration"
 USimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_images/"
 CTimg_origin0_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/CT_DATA/CTimg_origin0/"
 
-# similarity_metric: "LNCC"
-similarity_metric: "LC2"
 
 imf_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/imf_temp_folder"
 
-init_cases: ["ldks_transforms_std0.0"]
-refinement_cases: ["bcpd_transforms_affine_std0.0"]
+# refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2"]
+# transform_models: ["affine", "rigid"]
+# std_cases: ["0.0", "2.0", "4.0", "6.0", "8.0", "10.0"]
+
+refinement_methods: ["ICP"]
+transform_models: ["affine", "rigid"]
+std_cases: ["0.0", "2.0", "4.0", "6.0", "8.0", "10.0"]
