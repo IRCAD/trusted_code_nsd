@@ -13,43 +13,44 @@ regresults: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRU
 ldks_model: "similarity"
 
 # The noise introduce in the moving landmarks position
-noise_std: 10 # Values are in [0, 2, 4, 6, 8, 10]
+noise_std: 0 # Values are in [0, 2, 4, 6, 8, 10]
 
 # The transform model for registration refinement
-refine_model: "rigid" # or "rigid"
+refine_model: "affine" # or "rigid"
 
 # The surface based registration method
 regmethod: "ICP" # or BCPD
 
 # The similarity_metric for ImFusion intensity-based method:
-similarity_metric: "LC2" # or "LNCC"
+similarity_metric: "LNCC" # or "LC2"
 
 # The number of registration repetitions you want to run per pairs of volumes.
-iternumb: 5
+# Must be at leat equal to 1
+# If noise_std is 0, iternumb must be equl to 1
+iternumb: 1
 
-USgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
-CTgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
-
+# For surface-based refinement
 USautomesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mesh/"
 CTautomesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mesh/"
 
-segmodel: "nnunetv1_loic"  # ALWAYS (in our case)
+segmodel: "nnunet"  # ALWAYS (in our case)
 training_target: "double_targets_training"  # ALWAYS (in our case)
-
 
 bcpd_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/bcdp_temp_folder"
 regpack_dir: "src/trusted_datapaper_ds/registration"
 
+# For intensity-based refinement
 USimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_images/"
-CTimg_origin0_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CTimg_origin0/"
-
+CTimg_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_images/"
 
 imf_temp_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/imf_temp_folder"
 
-# refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2"]
-# transform_models: ["affine", "rigid"]
-# std_cases: ["0.0", "2.0", "4.0", "6.0", "8.0", "10.0"]
+# For evaluation
+USgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
+CTgtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
 
-refinement_methods: ["ICP"]
+CTimg_origin0_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CTimg_origin0/"
+
+refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2"]
 transform_models: ["affine", "rigid"]
 std_cases: ["0.0", "2.0", "4.0", "6.0", "8.0", "10.0"]

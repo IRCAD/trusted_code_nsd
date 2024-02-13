@@ -169,7 +169,7 @@ if __name__ == "__main__":
     movldk_location = config["USldks_location"]
     fixldk_location = config["CTldks_location"]
     movldk_files = natsorted(glob(join(movldk_location, "*_ldkUS.txt")))
-    movldk_noise_std = 0
+    movldk_noise_std = config["noise_std"]
     number_of_iterations = int(config["iternumb"])
     init_time_sleep = 5  # Note about the max_time_sleep (4*time_sleep)
     max_number_of_trials = 4
@@ -179,6 +179,10 @@ if __name__ == "__main__":
     similarity_metric = config["similarity_metric"]
 
     assert number_of_iterations > 0, "You should set at least one iteration"
+    assert number_of_iterations > 0
+
+    if movldk_noise_std == 0:
+        assert number_of_iterations == 1
 
     refine_model = config["refine_model"]
 
@@ -186,7 +190,7 @@ if __name__ == "__main__":
     fiximg_location = config["CTimg_location"]
     movimg_files = natsorted(glob(join(movimg_location, "*_imgUS.nii.gz")))
 
-    ldkreg_output_folder = config["initreg_location"]
+    ldkreg_output_folder = config["transfo_location"]
     if ldkreg_output_folder is not None:
         ldkregspecific_output_folder = join(
             ldkreg_output_folder, "ldks_transforms_" + ldkfolder_suffix

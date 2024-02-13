@@ -322,7 +322,7 @@ def main(config):
 
     nn_pth = join(segresults_folder, "nn_summaryresults.csv")
     nn.to_csv(nn_pth, index=False)
-    print("nn summar results saved as: ", nn_pth)
+    print("nn summary results saved as: ", nn_pth)
 
     return
 

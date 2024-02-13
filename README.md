@@ -77,17 +77,16 @@ A longer description of your project goes here...
 # Data processing and analysis
 
 ### 3. Notes:
-
-   - The config file used i this section is "configs/anaconfig.yml"
-   - In this file, set "data_location" properly
+   - config file: configs/anaconfig.yml
+   - config variables to set: data_location
    - Check that the structure of the folder "TRUSTED_submission" and the convension naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
    - In out python scripts, an annotator is represented by the values: "1" for annotator 1, "2" for annotator 2, "gt" for ground-truth segmentations, and "auto" for automatic segmentations
 
 
 ### 4. To estimate the ground-truth masks
-
-   In the file configs/anaconfig.yml, set the values of:
-   myUS_fusedmasks_location, myCT_fusedmasks_location, fuse_USmask, fuse_CTmask, as you want, and run the command
+   - config file: configs/anaconfig.yml
+   - config variables to set: myUS_fusedmasks_location, myCT_fusedmasks_location, fuse_USmask, fuse_CTmask
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py --config_path configs/anaconfig.yml
    ```
@@ -95,84 +94,78 @@ A longer description of your project goes here...
 
 
 ### 5. To estimate the ground-truth landmarks
-
-   In the file configs/anaconfig.yml, set the values of:
-   myUS_fusedlandmarks_location, myCT_fusedlandmarks_location, fuse_USlandmark, fuse_CTlandmark, as you want, and run the command
+   - config file: configs/anaconfig.yml
+   - config variables to set: myUS_fusedlandmarks_location, myCT_fusedlandmarks_location, fuse_USlandmark, fuse_CTlandmark
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtldks.py --config_path configs/anaconfig.yml
    ```
 
 ### 6. To convert masks to meshes
-
-   In the file configs/anaconfig.yml, set the values of:
-   myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh, as you want, and run the command
+   - config file: configs/anaconfig.yml
+   - config variables to set: myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/convert_mask_to_mesh.py --config_path configs/anaconfig.yml
    ```
 
 
 ### 7. To split CT masks
-
-   In the file configs/anaconfig.yml, set the values of:
-   myDATA, splitCTmask, annotator_splitCTmask, as you want, and run the command
+   - config file: configs/anaconfig.yml
+   - config variables to set: myDATA, splitCTmask, annotator_splitCTmask
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/splitCTmask.py --config_path configs/anaconfig.yml
    ```
 
 
 ### 8. To compare ground-truth estimated masks with annotator segmentations
-
-   In the file configs/anaconfig.yml, set the values of:
-   US_analysis_folder, CT_analysis_folder, usdata_eval and ctdata_eval, as you want, and run the command
-
+   - config file: configs/anaconfig.yml
+   - config variables to set: US_analysis_folder, CT_analysis_folder, usdata_eval and ctdata_eval
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/groundtruth_eval.py --config_path configs/anaconfig.yml
    ```
 
 ### 9. To compute the statistical summary of the comparison in 8-
-
-   In the file configs/anaconfig.yml, set the values of:
-   US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis, as you want, and run the command
-
+   - config file: configs/anaconfig.yml
+   - config variables to set: US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/dataanalysis.py --config_path configs/anaconfig.yml
    ```
 
 ### 10. Data resizing
-   In the file configs/anaconfig.yml, set the values of:
-   usdata_resize, ctdata_resize, newsize, annotator_dataresize, as you want, and run the command
-
+   - config file: configs/anaconfig.yml
+   - config variables to set: usdata_resize, ctdata_resize, newsize, annotator_dataresize
+   - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/data_resizing.py --config_path configs/anaconfig.yml
    ```
 
 # Automatic segmentation
 
-## Processes in CT data
+## Segmentation processes in CT data
 
 ### 11. 3D UNet or VNet models training
-
-   In the file configs/ctsegconfig.yml, set properly the values of:
-   - data_location, the path to the folder "TRUSTED_submission"
-   - img_location, the path to the folder containing the original CT images
-   - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending to the modality, the models, ... etc
-   The other meanings are given as comments in that .yml file
-   - The learning rate, weight_decay, number of epochs are fixed in the file "src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py" (line 82-84)
-
-   Run the command:
-
+   - config file: configs/ctsegconfig.yml
+   - config variables to set:
+      - data_location, the path to the folder "TRUSTED_submission"
+      - img_location, the path to the folder containing the original CT images
+      - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending to the modality, the models, ... etc
+   - Note: the learning rate, weight_decay, number of epochs are fixed in the file "src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py" (line 82-84)
+   - command:
    ```
    python src/trusted_datapaper_ds/segmentation/U_or_V_Net_training.py  --config_path configs/ctsegconfig.yml
    ```
 
 ### 12. 3D UNet or VNet inference
-
-   In the file configs/ctsegconfig.yml, set properly the values of:
-   - trained_models_location, where your training folders are located
-   - list_UVnetmodels and list_training_target, depending on what you want to infer
-   - mask_seglocation, where the outputs masks in the original size are save by model and training target
-
-   Run the command:
+   - config file: configs/ctsegconfig.yml
+   - config variables to set:
+      - trained_models_location, where your training folders are located
+      - list_UVnetmodels and list_training_target, depending on what you want to infer
+      - mask_seglocation, where the outputs masks in the original size are save by model and training target
+   - command:
    ```
    python src/trusted_datapaper_ds/segmentation/U_or_V_Net_inference.py  --config_path configs/ctsegconfig.yml
    ```
@@ -187,17 +180,16 @@ A longer description of your project goes here...
    - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/dataset, there is four .yml to set properly depending on what you want to train. Particularly, set the values of:
       - path.pth
       - cv
-   corresponding to what you want
-   - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training, there is a single file "training_128_jz_v2.yaml" to set properly depending on how you want to train. Particularly, set the values of:
+   corresponding to what you want.
+   - config file: src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml
+   - config variables to set:
       - only_val and checkpoint.load to False, to launch a training
       - pth, to set the training results location (Remember the change it if you change the data modality)
    - **Important note about only_val and checkpoint.load:**
       - when only_val==False and checkpoint.load==False , a new training is launched
       - when only_val==False and checkpoint.load==True , the last training continues using the "latest.pt", if it exists
       - when only_val==True, the evaluation in run using the "best.pt" if it exists
-
-
-   Run the command:
+   - command:
    ```
    cd src/trusted_datapaper_ds/segmentation/nnunet_cotr
    ```
@@ -216,8 +208,10 @@ A longer description of your project goes here...
 
 
 ### 14. nnUNet or CoTr models inference
+   - config file: /src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml
+   - config variables to set: only_val and checkpoint.load to True
+   - command: same command as for training
 
-   For inference of these models, in the file "/src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml", set the values of only_val and checkpoint.load to True and run the same command as for training.
    The segmentation masks with the size 128-128-128 will be located into the folder: "~/MedSeg/CT_DATA/medseg_results/~".
    For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organized in the following structure:
 
@@ -253,28 +247,84 @@ A longer description of your project goes here...
 
 
 ### 15. Automatic segmentation post-processing
-Apply different post-processings (upsampling, meshing, splitCT) to the masks obtain in inference. Set the values of list_othermodels, list_training_target, upsampling, meshing, splitCT  in the file configs/ctsegconfig.yml, depending on what you have and want to post-process.
-Then run the command:
+Apply different post-processings (upsampling, meshing, splitCT) to the masks obtain in inference.
+   - config file: configs/ctsegconfig.yml
+   - config variables to set: ist_othermodels, list_training_target, upsampling, meshing, splitCT
+   - command:
    ```
    python src/trusted_datapaper_ds/segmentation/autoseg_postprocess.py  --config_path configs/ctsegconfig.yml
    ```
 
 ### 16. Segmentation evaluation
-Set the values of segresults_folder, list_othermodels, list_UVnetmodels, list_training_target in the file configs/ctsegconfig.yml, depending on what you have and want to post-process.
-Then run the command:
+   - config file: configs/ctsegconfig.yml
+   - config variables to set: segresults_folder, list_othermodels, list_UVnetmodels, list_training_target
+   - command:
    ```
    python src/trusted_datapaper_ds/segmentation/segmentation_evaluation.py  --config_path configs/ctsegconfig.yml
    ```
 
-### 17. Segmentation statistical analysis
-Set the values of modality, refmodel, reftarget, list_segmodels, segresults_folder in thefile configs/seganalysis.yml, and run:
-
+### 17. Segmentation results statistical analysis
+   - config file: configs/seganalysis.yml
+   - config variables to set: modality, refmodel, reftarget, list_segmodels, segresults_folder
+   - command:
    ```
    python src/trusted_datapaper_ds/segmentation/segmentation_analysis.py  --config_path configs/seganalysis.yml
    ```
 
+## Segmentation processes in US data
+
+**Follow the same steps with the corresponding command and config file obtained by changing "CT" to "US" or "ct" to "us"**
+
+
 
 # Registration
+
+### 18. Landmarks registration (global)
+   - config file: configs/regconfig.yml
+   - config variables to set: USldks_location, CTldks_location, ldks_model, transfo_location, noise_std, iternumb
+   - command:
+   ```
+   python src/trusted_datapaper_ds/registration/landmarks_registration.py  --config_path configs/regconfig.yml
+   ```
+
+### 19. Landmarks registration (global) + Surface-based registration (refinement)
+   - config file: configs/regconfig.yml
+   - config variables to set: regmethod, ldks_model, USldks_location, CTldks_location, noise_std, iternumb, refine_model, USautomesh_location, CTautomesh_location, transfo_location, BCPD_temp_folder, regpack_dir
+   - command:
+   ```
+   python src/trusted_datapaper_ds/registration/surface_registration.py  --config_path configs/regconfig.yml
+   ```
+
+### 20. Landmarks registration (global) + Intensity-based registration (refinement)
+   - config file: configs/regconfig.yml
+   - config variables to set: similarity_metric, ldks_model, USldks_location, CTldks_location, noise_std, iternumb, refine_model, USimg_location, CTimg_location, transfo_location, regpack_dir, imf_temp_folder
+   - command:
+   ```
+   python src/trusted_datapaper_ds/registration/intensity_registration.py  --config_path configs/regconfig.yml
+   ```
+
+### 20. Registration evaluation
+   - config file: configs/regconfig.yml
+   - config variables to set: CTimg_origin0_location, refinement_methods, transform_models, std_cases, transfo_location, CTgtmesh_location, USgtmesh_location, USldks_location, CTldks_location
+   - command:
+   ```
+   python src/trusted_datapaper_ds/registration/registration_evaluation.py  --config_path configs/regconfig.yml
+   ```
+
+### 20. Registration results statistical analysis
+   - config file: configs/reganalysis.yml
+   - config variables to set: refmethod, reftransform, list_regmethods, list_regtransforms, regresults_folder
+   - command:
+   ```
+    python src/trusted_datapaper_ds/registration/registration_analysis.py  --config_path configs/reganalysis.yml
+   ```
+
+   - config file:
+   - config variables to set:
+   - command:
+   ```
+
+   ```
 
 
 

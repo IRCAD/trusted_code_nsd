@@ -97,7 +97,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     ldks_model = config["ldks_model"]
-    pcd_model = config["pcd_model"]
 
     movldk_location = config["USldks_location"]
     fixldk_location = config["CTldks_location"]
@@ -106,7 +105,7 @@ if __name__ == "__main__":
 
     ldkreg_output_folder = config["transfo_location"]
 
-    movldk_noise_std = 2
+    movldk_noise_std = config["noise_std"]
     number_of_iterations = int(config["iternumb"])
 
     ldkfolder_suffix = "std" + str(movldk_noise_std) + ".0"

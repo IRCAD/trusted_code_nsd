@@ -28,10 +28,10 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
         cv_df = pd.DataFrame()
 
         for ID in cv:
-            tre = np.round(resultdf.dst_TRE0.loc[ID], 3)
-            dice = np.round((resultdf.monai_dice.loc[ID] * 100), 3)
-            h95mesh = np.round(resultdf.monai_h95.loc[ID], 3)
-            nndst = np.round(resultdf.dst_nn.loc[ID], 3)
+            tre = np.round(resultdf.tre.loc[ID], 3)
+            dice = np.round((resultdf.dice.loc[ID] * 100), 3)
+            h95mesh = np.round(resultdf.h95mesh.loc[ID], 3)
+            nndst = np.round(resultdf.nndst.loc[ID], 3)
 
             cv_values = {
                 "kidney_id": ID,
@@ -382,15 +382,19 @@ def main(config, std=0.0):
 
     tre_pth = join(regresults_folder, "tre_summaryresults.csv")
     tre.to_csv(tre_pth, index=False)
+    print("tre summary results saved as: ", tre_pth)
 
     dice_pth = join(regresults_folder, "dice_summaryresults.csv")
     dice.to_csv(dice_pth, index=False)
+    print("dice summary results saved as: ", dice_pth)
 
     h95_pth = join(regresults_folder, "h95_summaryresults.csv")
     h95.to_csv(h95_pth, index=False)
+    print("h95 summary results saved as: ", h95_pth)
 
     nn_pth = join(regresults_folder, "nn_summaryresults.csv")
     nn.to_csv(nn_pth, index=False)
+    print("nn summary results saved as: ", nn_pth)
 
     return
 
