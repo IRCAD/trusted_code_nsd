@@ -118,7 +118,7 @@ if __name__ == "__main__":
     modality = config["modality"]
     results_folder = config["segresults_folder"]
 
-    list_segmodel = config["list_evalsegmodels"]
+    list_segmodel = config["list_segmodels"]
     list_training_target = config["list_training_target"]
 
     for segmodel in list_segmodel:

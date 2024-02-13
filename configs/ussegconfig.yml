@@ -1,48 +1,58 @@
-data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission"
-output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
-
 auto: "auto"
 modality: "US"
-img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_images/"
 
-gtmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_masks/GT_estimated_masksUS/"
-gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/US_DATA/US_meshes/GT_estimated_meshesUS"
+data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
+img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_images/"
 
-US128imgfol: "US_DATA/USimg128/"
-US128ma1fol: "US_DATA/USmask128/Annotator1/"
-US128ma2fol: "US_DATA/USmask128/Annotator2/"
-US128magtfol: "US_DATA/USmask128/GT_estimated_masksUS/"
+output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
 
-seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask128/"
-
-mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask/"
-mesh_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mesh/"
-pcd_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_pcdTXT/"
-
-segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/US/"
-
-USimg_end: "_imgUS.nii.gz"
-USma_end: "_maskUS.nii.gz"
-USme_end: "meshfaceUS.obj"
-
-trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USseg_trained_models/"
-
-trainsegmodel: "unet"
-
-evalsegmodel: "cotr_loic_by_william"
-# evalsegmodel: "vnet_lr1.0_epoch1001_batch2"
-
-# training_target: "single_target_training"
-training_target: "double_targets_training"
-
-list_evalsegmodels: ["cotr_loic_by_william"]
-list_training_target: ["double_targets_training"]
-
+# Cross validation splits
 cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
 cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']
 cv3: ['05R', '57R', '57L', '43R', '43L', '94R', '131L', '11R', '11L', '54R', '12L', '15R', '17L']
 cv4: ['21R', '21L', '03R', '03L', '97R', '97L', '27R', '27L', '23R', '23L', '53L', '119R']
 cv5: ['125R', '125L', '20R', '42R', '99R', '02R', '02L', '87R', '87L', '37R', '38R', '38L']
+
+# US data suffixes
+USimg_end: "_imgUS.nii.gz"
+USma_end: "_maskUS.nii.gz"
+USme_end: "meshfaceUS.obj"
+
+# For UNet and VNet training
+trainsegmodel: "unet" # or "vnet"
+training_target: "double_targets_training" # or "single_target_training"
+# The list of the test folders, in a 5-fold cross-validation prespective
+cv_list: ['cv1', 'cv2', 'cv3', 'cv4', 'cv5']
+
+# Resized ([128-128-128]) training data
+US128imgfol: "US_DATA/USimg128/"
+US128ma1fol: "US_DATA/USmask128/Annotator1/"
+US128ma2fol: "US_DATA/USmask128/Annotator2/"
+US128magtfol: "US_DATA/USmask128/GT_estimated_masksUS/"
+
+# Location of the training weight
+trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USseg_trained_models/"
+
+# In inference and evaluation
+list_segmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
+list_training_target: ["single_target_training", "double_targets_training"]
+
+# Resized ([128-128-128])  output masks (just for nnunet and cotr) from trained models
+seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask128/"
+
+# Output masks from trained models with their original size, and the corresponding split masks, meshes and point clouds
+mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask/"
+mesh_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mesh/"
+pcd_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_pcdTXT/"
+
+# Ground-truth masks with their original size, split masks and meshes for evaluation
+gtmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_masks/GT_estimated_masksUS/"
+gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_meshes/GT_estimated_meshesUS"
+
+# Segmentation evaluation results
+segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/US/"
+
+
 
 # nnUNet SECTION
 # The dataset ID.

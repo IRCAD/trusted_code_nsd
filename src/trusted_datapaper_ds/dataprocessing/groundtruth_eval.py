@@ -182,8 +182,8 @@ def gteval(
 
 
 def main(config):
-    usdata_analysis = bool(config["usdata_analysis"])
-    ctdata_analysis = bool(config["ctdata_analysis"])
+    usdata_eval = bool(config["usdata_eval"])
+    ctdata_eval = bool(config["ctdata_eval"])
 
     allct = natsorted(
         config["CTfold"]["cv1"]
@@ -206,7 +206,7 @@ def main(config):
     ctlist = allct
     uslist = allus
 
-    if usdata_analysis:
+    if usdata_eval:
         modality = "US"
         usdatanalysis_folder = join(config["myDATA"], config["US_analysis_folder"])
         makedir(usdatanalysis_folder)
@@ -241,7 +241,7 @@ def main(config):
             usldgt_files,
         )
 
-    if ctdata_analysis:
+    if ctdata_eval:
         modality = "CT"
         ctdatanalysis_folder = join(config["myDATA"], config["CT_analysis_folder"])
         makedir(ctdatanalysis_folder)

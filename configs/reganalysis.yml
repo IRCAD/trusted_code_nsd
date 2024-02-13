@@ -6,7 +6,7 @@ reftransform: "affine"
 list_regmethods: ["icp", "bcpd", "lncc", "lc2"]
 list_regtransforms: ["rigid", "affine"]
 
-regresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_MedImA_submission/reg_results"
+regresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/reg_results"
 
 cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
 cv2: ['47R', '01R', '01L', '74R', '14R', '14L', '33L', '72L', '51R', '51L']

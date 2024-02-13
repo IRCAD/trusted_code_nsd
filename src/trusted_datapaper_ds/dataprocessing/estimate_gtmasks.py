@@ -19,7 +19,7 @@ def main(
     if fuse_USmask:
         fused_dirname = config["myUS_fusedmasks_location"]
         makedir(fused_dirname)
-        for ind in uslist:
+        for ind in uslist[54:]:
             print("PROCESSING: ", ind)
             k_side = ind[-1]
             individual = ind[:-1]
