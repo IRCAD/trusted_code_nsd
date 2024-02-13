@@ -102,16 +102,6 @@ def meshing_pcding_and_saving_nii_mask_list(
                 mask_cleaning=False,
             )
 
-            # In this situation, there is not need to return something
-
-            # return (
-            #     o3d_meshCT_L,
-            #     o3d_meshCT_R,
-            #     o3d_pcdCT_L,
-            #     o3d_pcdCT_R,
-            #     mask_cleaned_nib,
-            # )
-
         if modality == "US":
             (
                 o3d_meshUS,
@@ -126,13 +116,6 @@ def meshing_pcding_and_saving_nii_mask_list(
                 pcd_dirname=pcd_folder,
                 mask_cleaning=False,
             )
-            # In this situation, there is not need to return something
-
-            # return (
-            #     o3d_meshUS,
-            #     o3d_pcdUS,
-            #     mask_cleaned_nib,
-            # )
 
 
 def main1(config, predpath_list, output_folder):
@@ -153,57 +136,74 @@ if __name__ == "__main__":
     with open(args.config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
-    postprocess1 = 1  # Resupsampling
-    postprocess2 = 1  # meshing
-    postprocess3 = 0
+    upsampling = bool(config["upsampling"])  # upsampling
+    meshing = bool(config["meshing"])  # meshing
+    splitCT = False
+
+    list_training_target = config["list_training_target"]
 
     if config["modality"] == "CT":
-        postprocess3 = 1
+        splitCT = bool(config["splitCT"])  # split CT
 
-    if postprocess1:
-        img_folder = config["img_location"]
-        input_folder = join(
-            config["seg128location"], config["evalsegmodel"], config["training_target"]
-        )
-        predpath_list = natsorted(glob(join(input_folder, "*.nii.gz")))
-        output_folder = join(
-            config["mask_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )
-        main1(config, predpath_list, output_folder)
+    if upsampling:
+        print("UPSAMPLING")
+        for segmodel in config["list_othermodels"]:
+            for training_target in list_training_target:
+                print(segmodel)
+                print(training_target)
+                img_folder = config["img_location"]
+                input_folder = join(config["seg128location"], segmodel, training_target)
+                predpath_list = natsorted(glob(join(input_folder, "*.nii.gz")))
+                output_folder = join(
+                    config["mask_seglocation"],
+                    segmodel,
+                    training_target,
+                )
+                main1(config, predpath_list, output_folder)
 
-    if postprocess2:
-        pred_folder = join(
-            config["mask_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )
-        maskpath_list = natsorted(glob(join(pred_folder, "*.nii.gz")))
-        mesh_folder = join(
-            config["mesh_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )
-        pcd_folder = join(
-            config["pcd_seglocation"], config["evalsegmodel"], config["training_target"]
-        )
-        main2(config, maskpath_list, mesh_folder, pcd_folder)
+    if meshing:
+        print("MESHING")
+        segmodels = config["list_othermodels"] + config["list_UVnetmodels"]
 
-    if postprocess3:
-        mask_folder = join(
-            config["mask_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )
-        maskpath_list = natsorted(glob(join(mask_folder, "*.nii.gz")))
-        split_dirname = join(
-            config["splitmask_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )
-        makedir(split_dirname)
+        for segmodel in segmodels:
+            for training_target in list_training_target:
+                print(segmodel)
+                print(training_target)
+                pred_folder = join(
+                    config["mask_seglocation"],
+                    segmodel,
+                    training_target,
+                )
+                maskpath_list = natsorted(glob(join(pred_folder, "*.nii.gz")))
+                mesh_folder = join(
+                    config["mesh_seglocation"],
+                    segmodel,
+                    training_target,
+                )
+                pcd_folder = join(config["pcd_seglocation"], segmodel, training_target)
+                main2(config, maskpath_list, mesh_folder, pcd_folder)
 
-        for maskpath in maskpath_list:
-            ctmask = dt.Mask(maskpath, annotatorID=config["auto"])
-            nibL, nibR = ctmask.split(split_dirname=split_dirname)
+    if splitCT:
+        print("SPLIT CT")
+        segmodels = config["list_othermodels"] + config["list_UVnetmodels"]
+
+        for segmodel in segmodels:
+            for training_target in list_training_target:
+                print(segmodel)
+                print(training_target)
+                mask_folder = join(
+                    config["mask_seglocation"],
+                    segmodel,
+                    training_target,
+                )
+                maskpath_list = natsorted(glob(join(mask_folder, "*.nii.gz")))
+                split_dirname = join(
+                    config["splitmask_seglocation"],
+                    segmodel,
+                    training_target,
+                )
+                makedir(split_dirname)
+
+                for maskpath in maskpath_list:
+                    ctmask = dt.Mask(maskpath, annotatorID=config["auto"])
+                    nibL, nibR = ctmask.split(split_dirname=split_dirname)

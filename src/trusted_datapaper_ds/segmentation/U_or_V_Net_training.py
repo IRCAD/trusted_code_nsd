@@ -260,7 +260,7 @@ def training(
     """## Create Model, Loss, Optimizer"""
     device = torch.device("cuda:0")
 
-    if segmodel == "unet_test":
+    if segmodel == "unet":
         model = UNet(
             dimensions=3,
             in_channels=1,
@@ -290,7 +290,7 @@ def training(
 
         optimizer = torch.optim.SGD(model.parameters(), lr=lr, weight_decay=wdecay)
 
-    if segmodel == "vnet_test":
+    if segmodel == "vnet":
         model = VNet(
             spatial_dims=3,
             in_channels=1,

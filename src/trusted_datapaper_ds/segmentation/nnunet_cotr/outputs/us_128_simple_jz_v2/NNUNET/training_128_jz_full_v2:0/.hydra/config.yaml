@@ -1,7 +1,7 @@
 dataset:
   name: us_128_simple_jz_v2
   path:
-    pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA
+    pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/US_DATA
     im: ${dataset.path.pth}/USimg_128_t
     seg1: ${dataset.path.pth}/USmask_a1_128
     seg2: ${dataset.path.pth}/USmask_a2_128
@@ -58,7 +58,7 @@ training:
   dbg: true
   gpu: 0
   use_gpu: true
-  only_val: false
+  only_val: true
   optim: sgd
   lr: 0.01
   weight_decay: 1.0e-05
@@ -75,7 +75,7 @@ training:
   do_clip: true
   do_schedul: true
   loss: CrossDice
-  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA/medseg_results
+  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/US_DATA/medseg_results
   augmentations:
     rotate:
       x_:
@@ -104,6 +104,6 @@ training:
     - 1
   checkpoint:
     save: 2
-    load: false
+    load: true
     load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
     path: ${model.pth}/${model.name}/checkpoint

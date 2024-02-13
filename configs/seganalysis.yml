@@ -1,10 +1,10 @@
 auto: "auto"
 modality: "US"
 
-refmodel: "nnunetv1_loic"
+refmodel: "nnunet"
 reftarget: "double_targets_training"
 
-list_evalsegmodels: ["unet_lr1.0_epoch1001_batch4", "vnet_lr1.0_epoch1001_batch4", "nnunetv1_loic", "cotr_loic"]
+list_segmodels: ["unet_lr1.0_epoch1001_batch2", "vnet_lr1.0_epoch1001_batch2", "nnunet", "cotr"]
 list_training_target: ["single_target_training", "double_targets_training"]
 
 segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/"

@@ -131,7 +131,7 @@ hydra:
         item_sep: ','
         exclude_keys: []
   runtime:
-    version: 1.3.2
+    version: 1.3.1
     version_base: '1.1'
     cwd: /home/wndzimbong/IRCAD_DOSSIER/scaffold_PROJECTS/trusted_datapaper_ds/src/trusted_datapaper_ds/segmentation/nnunet_cotr
     config_sources:

@@ -114,7 +114,7 @@ def main(config):
 
     """ Build the means for all the methods"""
 
-    list_segmodel = config["list_evalsegmodels"]
+    list_segmodel = config["list_segmodels"]
     list_training_target = config["list_training_target"]
 
     for segmodel in list_segmodel:
@@ -314,12 +314,15 @@ def main(config):
 
     dice_pth = join(segresults_folder, "dice_summaryresults.csv")
     dice.to_csv(dice_pth, index=False)
+    print("dice summary results saved as: ", dice_pth)
 
     h95_pth = join(segresults_folder, "h95_summaryresults.csv")
     h95.to_csv(h95_pth, index=False)
+    print("h95 summary results saved as: ", h95_pth)
 
     nn_pth = join(segresults_folder, "nn_summaryresults.csv")
     nn.to_csv(nn_pth, index=False)
+    print("nn summar results saved as: ", nn_pth)
 
     return
 

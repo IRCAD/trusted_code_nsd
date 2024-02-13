@@ -58,6 +58,14 @@ A longer description of your project goes here...
 
    pip install numpymaxflow==0.0.6
 
+   pip install hydra-core==1.3.1
+
+   pip install telegram-send==0.35
+
+   pip install batchgenerators==0.23
+
+   pip install nnunet==1.7.1
+
    pip install -e .
 
    ```
@@ -140,7 +148,7 @@ A longer description of your project goes here...
 
 # Automatic segmentation
 
-## Segmentation in CT data
+## Processes in CT data
 
 ### 11. 3D UNet or VNet models training
 
@@ -154,34 +162,39 @@ A longer description of your project goes here...
    Run the command:
 
    ```
-   python src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py  --config_path configs/ctsegconfig.yml
+   python src/trusted_datapaper_ds/segmentation/U_or_V_Net_training.py  --config_path configs/ctsegconfig.yml
    ```
 
 ### 12. 3D UNet or VNet inference
 
    In the file configs/ctsegconfig.yml, set properly the values of:
    - trained_models_location, where your training folders are located
-   - list_segmodels and list_training_target, depending on what you want to infer
+   - list_UVnetmodels and list_training_target, depending on what you want to infer
    - mask_seglocation, where the outputs masks in the original size are save by model and training target
 
    Run the command:
    ```
-   python src/trusted_datapaer_ds/segmentation/U_or_V_Net_inference.py  --config_path configs/ctsegconfig.yml
+   python src/trusted_datapaper_ds/segmentation/U_or_V_Net_inference.py  --config_path configs/ctsegconfig.yml
    ```
+   The outputs of these inferences have their original sizes
 
 ### 13. nnUNet or CoTr models training
 
    - Manually create a specific folder to train the model: ~/MedSeg/CT_DATA
    - Create 4 subfolders in ~/MedSeg/CT_DATA, named:
-      USimg_128_t, USmask_a1_128, USmask_a2_128 and USmask_mf_128,
+      CTUSimg_128_t, CTmask_a1_128, CTmask_a2_128 and CTmask_mf_128,
       containing respectively the resized images, resized masks from annotator1, resized masks from annotator2 and resized ground-truth masks
    - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/dataset, there is four .yml to set properly depending on what you want to train. Particularly, set the values of:
-      . path.pth
-      . cv
+      - path.pth
+      - cv
    corresponding to what you want
-   - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training,, there is a single file "training_128_jz_v2.yaml" to set properly depending on how you want to train. Particularly, set the values of:
-      . only_val and checkpoint.load to False, to launch a training
-      . pth, to set the training results location
+   - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training, there is a single file "training_128_jz_v2.yaml" to set properly depending on how you want to train. Particularly, set the values of:
+      - only_val and checkpoint.load to False, to launch a training
+      - pth, to set the training results location (Remember the change it if you change the data modality)
+   - **Important note about only_val and checkpoint.load:**
+      - when only_val==False and checkpoint.load==False , a new training is launched
+      - when only_val==False and checkpoint.load==True , the last training continues using the "latest.pt", if it exists
+      - when only_val==True, the evaluation in run using the "best.pt" if it exists
 
 
    Run the command:
@@ -191,12 +204,12 @@ A longer description of your project goes here...
 
    To launch the training of nnunet with single training target, with testing fold cv1, run the command:
    ```
-   python mainV2.py -m model=nnunet dataset=us_128_simple_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
+   python mainV2.py -m model=nnunet dataset=ct_128_simple_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
    ```
 
    To launch the training of nnunet with double training target, with testing fold cv1, run the command:
    ```
-   python mainDoubleV2.py -m model=nnunet dataset=us_128_double_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
+   python mainDoubleV2.py -m model=nnunet dataset=ct_128_double_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
    ```
 
    In the command above, use: mainV2.py or mainDoubleV2.py, the model's value nnunet or cotr, and dataset's value ct_128_simple_jz_v2 or ct_128_double_jz_v2 depending on what you need
@@ -206,7 +219,7 @@ A longer description of your project goes here...
 
    For inference of these models, in the file "/src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml", set the values of only_val and checkpoint.load to True and run the same command as for training.
    The segmentation masks with the size 128-128-128 will be located into the folder: "~/MedSeg/CT_DATA/medseg_results/~".
-   For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organized by thefollowing structure:
+   For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organized in the following structure:
 
    ```
    ├── CT_DATA/
@@ -230,14 +243,38 @@ A longer description of your project goes here...
    │   │   │   │   ├── 02_maskCT.nii.gz
    │   │   │   │   ├── ...
    ```
+   The outputs of these inferences have the size [128,128,128], and will be upsampled in the next step
 
-## Segmentation in US data
+**Note: After finishing with training or/and inference with nnunet and cotr, go back project folder**
+   ```
+   cd ../../../..
+   ```
+   The current dir must be the project folder
 
-   Do the same as in CT data (or ct), but replace US (or us)
+
+### 15. Automatic segmentation post-processing
+Apply different post-processings (upsampling, meshing, splitCT) to the masks obtain in inference. Set the values of list_othermodels, list_training_target, upsampling, meshing, splitCT  in the file configs/ctsegconfig.yml, depending on what you have and want to post-process.
+Then run the command:
+   ```
+   python src/trusted_datapaper_ds/segmentation/autoseg_postprocess.py  --config_path configs/ctsegconfig.yml
+   ```
+
+### 16. Segmentation evaluation
+Set the values of segresults_folder, list_othermodels, list_UVnetmodels, list_training_target in the file configs/ctsegconfig.yml, depending on what you have and want to post-process.
+Then run the command:
+   ```
+   python src/trusted_datapaper_ds/segmentation/segmentation_evaluation.py  --config_path configs/ctsegconfig.yml
+   ```
+
+### 17. Segmentation statistical analysis
+Set the values of modality, refmodel, reftarget, list_segmodels, segresults_folder in thefile configs/seganalysis.yml, and run:
+
+   ```
+   python src/trusted_datapaper_ds/segmentation/segmentation_analysis.py  --config_path configs/seganalysis.yml
+   ```
 
 
-## Segmentation evaluation
-
+# Registration
 
 
 

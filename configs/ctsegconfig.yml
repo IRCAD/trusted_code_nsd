@@ -4,7 +4,7 @@ auto: "auto"
 data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
 img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_images/"
 
-output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
+output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
 
 # Cross validation splits
 cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
@@ -33,12 +33,18 @@ CT128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 # Location of the training weight
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CTseg_trained_models/"
 
-# In inference and evaluation
-list_segmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
+# For UNet and VNet inference
+list_UVnetmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
 list_training_target: ["single_target_training", "double_targets_training"]
 
-# Resized ([128-128-128])  output masks (just for nnunet and cotr) from trained models
+# Resized (into [128-128-128]) output masks from nnunet and cotr trained models
 seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask128/"
+
+# Automatic segmentation post-processing
+list_othermodels: ["nnunet", "cotr"]
+upsampling: True # just for nnunet and cotr
+meshing: True
+splitCT: True
 
 # Output masks from trained models with their original size, and the corresponding split masks, meshes and point clouds
 mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask/"

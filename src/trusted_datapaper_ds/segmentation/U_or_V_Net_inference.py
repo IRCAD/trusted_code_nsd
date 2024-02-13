@@ -154,33 +154,41 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     modality = config["modality"]
-    for cv in ["cv2", "cv3", "cv4", "cv5"]:
-        # for cv in ["cv1"]:
-        model_name = config["evalsegmodel"]
-        output_folder = join(
-            config["mask_seglocation"],
-            config["evalsegmodel"],
-            config["training_target"],
-        )  # Here the outputs are already upsampled
 
-        weight_file = join(
-            config["trained_models_location"],
-            model_name,
-            cv,
-            config["training_target"],
-            "best_metric_model.pth",
-        )
+    list_segmodel = config["list_UVnetmodels"]
+    list_training_target = config["list_training_target"]
 
-        img_folder = join(config["img_location"])
-        img_files = [
-            join(img_folder, i + config[modality + "img_end"]) for i in config[cv]
-        ]
-        print(len(img_files))
+    for segmodel in list_segmodel:
+        for training_target in list_training_target:
+            print(segmodel)
+            print(training_target)
 
-        nib_val_output = segmentor(
-            model_name,
-            weight_file,
-            img_files,
-            output_folder,
-            maskinterpolmode="trilinear",
-        )
+            for cv in ["cv1", "cv2", "cv3", "cv4", "cv5"]:
+                model_name = segmodel
+                output_folder = join(
+                    config["mask_seglocation"],
+                    segmodel,
+                    training_target,
+                )  # Here the outputs are already upsampled
+
+                weight_file = join(
+                    config["trained_models_location"],
+                    model_name,
+                    cv,
+                    training_target,
+                    "best_metric_model.pth",
+                )
+
+                img_folder = join(config["img_location"])
+                img_files = [
+                    join(img_folder, i + config[modality + "img_end"])
+                    for i in config[cv]
+                ]
+
+                nib_val_output = segmentor(
+                    model_name,
+                    weight_file,
+                    img_files,
+                    output_folder,
+                    maskinterpolmode="trilinear",
+                )

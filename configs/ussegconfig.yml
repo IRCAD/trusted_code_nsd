@@ -4,7 +4,7 @@ modality: "US"
 data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
 img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/US_DATA/US_images/"
 
-output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA"
+output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
 
 # Cross validation splits
 cv1: ['84R', '84L', '116R', '116L', '114R', '98R', '98L', '118R', '118L', '04L', '44R', '44L']
@@ -33,12 +33,18 @@ US128magtfol: "US_DATA/USmask128/GT_estimated_masksUS/"
 # Location of the training weight
 trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USseg_trained_models/"
 
-# In inference and evaluation
-list_segmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
+# For UNet and VNet inference
+list_UVnetmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
 list_training_target: ["single_target_training", "double_targets_training"]
 
-# Resized ([128-128-128])  output masks (just for nnunet and cotr) from trained models
+# Resized (into [128-128-128]) output masks from nnunet and cotr trained models
 seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask128/"
+
+# Automatic segmentation post-processing
+list_othermodels: ["nnunet", "cotr"]
+upsampling: True # just for nnunet and cotr
+meshing: True
+splitCT: True
 
 # Output masks from trained models with their original size, and the corresponding split masks, meshes and point clouds
 mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/US_DATA/USoutput_mask/"
@@ -51,32 +57,3 @@ gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DAT
 
 # Segmentation evaluation results
 segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/US/"
-
-
-
-# nnUNet SECTION
-# The dataset ID.
-ntarget: "1"
-dataset_id: 05
-nnunet_data: "nnunet_seg_usdata128"
-channel_names:
-          0: "US"
-# The labels to be used. The background must always be represented by '0' pixels, as recommended by nnUNet.
-labels:
-    "background": 0
-    "kidney": 1
-
-# The image file's extension
-file_ending: ".nii.gz"
-# The description of the task.
-description: "kidney seg"
-# NnUNet image reader that will be used.
-image_reader_writer: "NibabelIOWithReorient"
-# The dataset reference.
-reference: "none"
-# The name of the dataset.
-task_name: "kidney128_seg"
-# The image prefix
-img_prefix: "kidney_"
-# The channel names are required by nnUNet for image file name formatting
-channel: "0000"

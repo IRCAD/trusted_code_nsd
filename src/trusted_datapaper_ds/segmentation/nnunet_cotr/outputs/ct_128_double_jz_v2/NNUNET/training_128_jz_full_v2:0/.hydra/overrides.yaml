@@ -1,0 +1,4 @@
+- model=nnunet
+- dataset=ct_128_double_jz_v2
+- training=training_128_jz_v2
+- dataset.cv=cv1

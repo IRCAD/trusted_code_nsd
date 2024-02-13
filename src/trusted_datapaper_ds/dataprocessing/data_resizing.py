@@ -125,8 +125,6 @@ if __name__ == "__main__":
     ctlist = allct
     uslist = allus
 
-    resizing = 0
-
     main(
         config,
         ctlist,

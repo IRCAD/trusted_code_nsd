@@ -2,7 +2,7 @@ name: training_128_jz_full_v2
 dbg: True
 gpu: 0
 use_gpu: True
-only_val: True
+only_val: False
 
 
 optim: sgd
@@ -41,6 +41,6 @@ inference:
 
 checkpoint:
   save: 2
-  load: True
+  load: True # If only_val==True, the "best.pt" file is loaded for evaluation, else the "latest.pt" file is loaded to continue the training
   load_path: ${model.pth}/${model.name}/checkpoint/latest.pt
   path: ${model.pth}/${model.name}/checkpoint
