@@ -1,8 +1,6 @@
 name: COTR
 model: cotr
 
-# pth: /etudiants/siscol/t/themyr_l/US
-
 
 net_num_pool_op_kernel_sizes: [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]]
 net_conv_kernel_sizes: [[3, 3, 3], [3, 3, 3], [3, 3, 3], [3, 3, 3]]

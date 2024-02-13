@@ -95,7 +95,6 @@ def gteval(
             "dice2": dice2,
         }
         df_dice = df_dice.append(values, ignore_index=True)
-        print(df_dice)
 
     df_dice.to_csv(csv_dice_file, index=False)
 
@@ -176,7 +175,6 @@ def gteval(
             "lm7_dist": lm_dist1[6],
         }
         df_othermetric = df_othermetric.append(values, ignore_index=True)
-        print(df_othermetric)
 
     df_othermetric.to_csv(csv_othermetric_file, index=False)
 

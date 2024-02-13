@@ -1,6 +1,6 @@
 name: ct_128_double_jz_v2
 path:
-  pth: /gpfsscratch/rech/arf/unm89rb/Trusted_v1_Loic/CT_DATA
+  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/CT_DATA
   im: ${dataset.path.pth}/CTimg_128_t
   seg2: ${dataset.path.pth}/CTmask_a2_128
   seg3: ${dataset.path.pth}/CTmask_a3_128

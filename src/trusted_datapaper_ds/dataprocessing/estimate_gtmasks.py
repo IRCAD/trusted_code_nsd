@@ -14,41 +14,6 @@ def main(
     fuse_USmask,
     fuse_CTmask,
 ):
-    if fuse_CTmask:
-        fused_dirname = config["myCT_fusedmasks_location"]
-        makedir(fused_dirname)
-        for ind in ctlist:
-            individual = ind
-            print("PROCESSING: ", ind)
-            imgpath = join(
-                config["data_location"],
-                config["CTimgfol"],
-                individual + config["CTimg_end"],
-            )
-            mask1path = join(
-                config["data_location"],
-                config["CTma" + config["annotator1"] + "fol"],  # config["CTma1fol"],
-                individual + "_" + config["annotator1"] + config["CTma_end"],
-            )
-            mask2path = join(
-                config["data_location"],
-                config["CTma2fol"],  # or config["CTma" + config["annotator2"] + "fol"],
-                individual + "_" + config["annotator2"] + config["CTma_end"],
-            )
-            img = dt.Image(imgpath)
-            mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
-            mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
-            list_of_masks = [mask1, mask2]
-
-            dt.fuse_masks(
-                list_of_trusted_masks=list_of_masks,
-                trusted_img=img,
-                npmaxflow_lamda=2.5,
-                img_intensity_scaling="normal",  # "normal" or "scale"
-                resizing=None,  # I reduce the data shape to increase the speed of the process. Can be None
-                fused_dirname=fused_dirname,
-            )
-
     # Fuse list of masks from annotator1 and annotator2 (here US masks) ###
     # Note: "fused_dirname" is the directory to save the fused mask.
     if fuse_USmask:
@@ -65,17 +30,17 @@ def main(
             )
             mask1path = join(
                 config["data_location"],
-                config["USma1fol"],  # or config["USma" + config["annotator1"] + "fol"]
-                individual + k_side + config["annotator1"] + config["USma_end"],
+                config["USma1fol"],  # or config["USma" + "1" + "fol"]
+                individual + k_side + "1" + config["USma_end"],
             )
             mask2path = join(
                 config["data_location"],
-                config["USma2fol"],  # or config["USma" + config["annotator2"] + "fol"]
-                individual + k_side + config["annotator2"] + config["USma_end"],
+                config["USma2fol"],  # or config["USma" + "2" + "fol"]
+                individual + k_side + "2" + config["USma_end"],
             )
             img = dt.Image(imgpath)
-            mask1 = dt.Mask(mask1path, annotatorID=config["annotator1"])
-            mask2 = dt.Mask(mask2path, annotatorID=config["annotator2"])
+            mask1 = dt.Mask(mask1path, annotatorID="1")
+            mask2 = dt.Mask(mask2path, annotatorID="2")
             list_of_masks = [mask1, mask2]
 
             dt.fuse_masks(
@@ -84,10 +49,45 @@ def main(
                 npmaxflow_lamda=2.5,
                 img_intensity_scaling="normal",  # "normal" or "scale"
                 resizing=[
+                    512,
                     384,
-                    256,
-                    256,
+                    384,
                 ],  # I reduce the data shape to increase the speed of the process. Can be None
+                fused_dirname=fused_dirname,
+            )
+
+    if fuse_CTmask:
+        fused_dirname = config["myCT_fusedmasks_location"]
+        makedir(fused_dirname)
+        for ind in ctlist:
+            individual = ind
+            print("PROCESSING: ", ind)
+            imgpath = join(
+                config["data_location"],
+                config["CTimgfol"],
+                individual + config["CTimg_end"],
+            )
+            mask1path = join(
+                config["data_location"],
+                config["CTma" + "1" + "fol"],  # config["CTma1fol"],
+                individual + "_" + "1" + config["CTma_end"],
+            )
+            mask2path = join(
+                config["data_location"],
+                config["CTma2fol"],  # or config["CTma" + "2" + "fol"],
+                individual + "_" + "2" + config["CTma_end"],
+            )
+            img = dt.Image(imgpath)
+            mask1 = dt.Mask(mask1path, annotatorID="1")
+            mask2 = dt.Mask(mask2path, annotatorID="2")
+            list_of_masks = [mask1, mask2]
+
+            dt.fuse_masks(
+                list_of_trusted_masks=list_of_masks,
+                trusted_img=img,
+                npmaxflow_lamda=2.5,
+                img_intensity_scaling="normal",  # "normal" or "scale"
+                resizing=None,  # I reduce the data shape to increase the speed of the process. Can be None
                 fused_dirname=fused_dirname,
             )
 

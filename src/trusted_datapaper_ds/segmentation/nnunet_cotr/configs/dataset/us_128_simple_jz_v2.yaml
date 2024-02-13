@@ -1,6 +1,6 @@
 name: us_128_simple_jz_v2
 path:
-  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/loic/US_DATA
+  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/US_DATA
 
   im: ${dataset.path.pth}/USimg_128_t
   seg1: ${dataset.path.pth}/USmask_a1_128

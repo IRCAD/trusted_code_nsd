@@ -456,8 +456,7 @@ def main(config, modality, segmodel, lr, wdecay, nb_epochs):
     output_location = config["output_location"]
     double_targets_training = config["training_target"] == "double_targets_training"
 
-    # for cv in ['cv1', 'cv2', 'cv3', 'cv4', 'cv5']:
-    for cv in ["cv1"]:
+    for cv in config["cv_list"]:
         training(
             config,
             modality,

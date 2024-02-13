@@ -15,7 +15,7 @@
 
 A longer description of your project goes here...
 
-## Installation
+# Installation
 
 1. Clone the repo:
    ```
@@ -32,13 +32,14 @@ A longer description of your project goes here...
    pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
    pip install monai[all]==0.9.0
+   pip install SimpleITK==2.3.0
    pip install pandas==1.3.0
    pip install lxml
    pip install connected-components-3d==3.12.4
    pip install statsmodels==0.14.1
    pip install natsort==8.4.0
-   pip install vtk==9.3.0
-   pip install jupyterlab (lastest version)
+   pip install vtk==9.1.0
+   pip install jupyterlab
    pip install open3d==0.15.2
    pip install opencv-contrib-python==4.9.0.80
    pip install plyfile==1.0.3
@@ -48,21 +49,31 @@ A longer description of your project goes here...
 
    ```
 
-3. Note about the naming convension
+# Data checking
+   - Download the data folder "TRUSTED_submission"
+   - Check the folder structure which is given in the file README.txt in the folder "TRUSTED_submission"
 
-   An annotator could be: "1", "2" or "gt" for data analysis, and: "1", "2", "gt" or "auto" for the other modules
+# Data processing and analysis
 
-4. Estimate the ground-truth masks
+3. Notes:
+
+   - The config file used i this section is "configs/anaconfig.yml"
+   - In this file, set "data_location" properly
+   - Check that the structure of the folder "TRUSTED_submission" and the convension naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
+   - In out python scripts, an annotator is represented by the values: "1" for annotator 1, "2" for annotator 2, "gt" for ground-truth segmentations, and "auto" for automatic segmentations
+
+
+4. To estimate the ground-truth masks
 
    In the file configs/anaconfig.yml, set the values of:
    myUS_fusedmasks_location, myCT_fusedmasks_location, fuse_USmask, fuse_CTmask, as you want, and run the command
    ```
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py --config_path configs/anaconfig.yml
    ```
-   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [384, 256, 256] just for the US data which are quite big. Depending to your memory, you can set different values.
+   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending to your memory, you can set different values.
 
 
-5. Estimate the ground-truth landmarks
+5. To estimate the ground-truth landmarks
 
    In the file configs/anaconfig.yml, set the values of:
    myUS_fusedlandmarks_location, myCT_fusedlandmarks_location, fuse_USlandmark, fuse_CTlandmark, as you want, and run the command
@@ -70,7 +81,7 @@ A longer description of your project goes here...
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtldks.py --config_path configs/anaconfig.yml
    ```
 
-6. Convert masks to meshes
+6. To convert masks to meshes
 
    In the file configs/anaconfig.yml, set the values of:
    myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh, as you want, and run the command
@@ -79,7 +90,7 @@ A longer description of your project goes here...
    ```
 
 
-7. Split CT masks
+7. To split CT masks
 
    In the file configs/anaconfig.yml, set the values of:
    myDATA, splitCTmask, annotator_splitCTmask, as you want, and run the command
@@ -88,7 +99,7 @@ A longer description of your project goes here...
    ```
 
 
-8. Ground-truth comparison with annotators
+8. To compare ground-truth estimated masks with annotator segmentations
 
    In the file configs/anaconfig.yml, set the values of:
    US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis, as you want, and run the command
@@ -97,22 +108,119 @@ A longer description of your project goes here...
    python src/trusted_datapaper_ds/dataprocessing/groundtruth_eval.py --config_path configs/anaconfig.yml
    ```
 
-9. Ground-truth statistical analysis
-   ```
+9. To compute the statistical summary of the comparison in 8-
 
-   ```
-
-
-10.
    ```
 
    ```
 
+# Automatic segmentation
 
-11.
+10. Data resizing
+
+
    ```
 
    ```
+
+## Segmentation in CT data
+
+11. 3D UNet or VNet models training
+
+   In the file configs/ctsegconfig.yml, set properly the values of:
+   - data_location, the path to the folder "TRUSTED_submission"
+   - img_location, the path to the folder containing the original CT images
+   - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending to the modality, the models, ... etc
+   The other meanings are given as comments in that .yml file
+   - The learning rate, weight_decay, number of epochs are fixed in the file "src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py" (line 82-84)
+
+   Run the command:
+
+   ```
+   python src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py  --config_path configs/ctsegconfig.yml
+   ```
+
+12. 3D UNet or VNet inference
+
+   In the file configs/ctsegconfig.yml, set properly the values of:
+   - trained_models_location, where your training folders are located
+   - list_segmodels and list_training_target, depending on what you want to infer
+   - mask_seglocation, where the outputs masks in the original size are save by model and training target
+
+   Run the command:
+   ```
+   python src/trusted_datapaer_ds/segmentation/U_or_V_Net_inference.py  --config_path configs/ctsegconfig.yml
+   ```
+
+13. nnUNet or CoTr models training
+
+   - Manually create a specific folder to train the model: ~/MedSeg/CT_DATA
+   - Create 4 subfolders in ~/MedSeg/CT_DATA, named:
+      USimg_128_t, USmask_a1_128, USmask_a2_128 and USmask_mf_128,
+      containing respectively the resized images, resized masks from annotator1, resized masks from annotator2 and resized ground-truth masks
+   - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/dataset, there is four .yml to set properly depending on what you want to train. Particularly, set the values of:
+      . path.pth
+      . cv
+   corresponding to what you want
+   - In the folder src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training,, there is a single file "training_128_jz_v2.yaml" to set properly depending on how you want to train. Particularly, set the values of:
+      . only_val and checkpoint.load to False, to launch a training
+      . pth, to set the training results location
+
+
+   Run the command:
+   ```
+   cd src/trusted_datapaper_ds/segmentation/nnunet_cotr
+   ```
+
+   To launch the training of nnunet with single training target, with testing fold cv1, run the command:
+   ```
+   python mainV2.py -m model=nnunet dataset=us_128_simple_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
+   ```
+
+   To launch the training of nnunet with double training target, with testing fold cv1, run the command:
+   ```
+   python mainDoubleV2.py -m model=nnunet dataset=us_128_double_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
+   ```
+
+   In the command above, use: mainV2.py or mainDoubleV2.py, the model's value nnunet or cotr, and dataset's value ct_128_simple_jz_v2 or ct_128_double_jz_v2 depending on what you need
+
+
+13. nnUNet or CoTr models inference
+
+   For inference of these models, in the file "/src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml", set the values of only_val and checkpoint.load to True and run the same command as for training.
+   The segmentation masks with the size 128-128-128 will be located into the folder: "~/MedSeg/CT_DATA/medseg_results/~".
+   For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organized by thefollowing structure:
+
+   ```
+   ├── CT_DATA/
+   │   ├── CToutput_mask128s/
+   │   │   ├── nnunet/
+   │   │   │   ├── single_target_training/
+   │   │   │   │   ├── 01_maskCT.nii.gz
+   │   │   │   │   ├── 02_maskCT.nii.gz
+   │   │   │   │   ├── ...
+   │   │   │   ├── double_targets_training/
+   │   │   │   │   ├── 01_maskCT.nii.gz
+   │   │   │   │   ├── 02_maskCT.nii.gz
+   │   │   │   │   ├── ...
+   │   │   ├── cotr/
+   │   │   │   ├── single_target_training/
+   │   │   │   │   ├── 01_maskCT.nii.gz
+   │   │   │   │   ├── 02_maskCT.nii.gz
+   │   │   │   │   ├── ...
+   │   │   │   ├── double_targets_training/
+   │   │   │   │   ├── 01_maskCT.nii.gz
+   │   │   │   │   ├── 02_maskCT.nii.gz
+   │   │   │   │   ├── ...
+   ```
+
+## Segmentation in US data
+
+   Do the same as in CT data (or ct), but replace US (or us)
+
+
+## Segmentation evaluation
+
 
 
 

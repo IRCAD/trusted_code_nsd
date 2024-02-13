@@ -58,8 +58,8 @@ def build_analist(
                 'ld' for landmarks
         annotatorID:
                 'gt' for ground truth
-                'annotator1' for annotator1
-                'annotator2' for annotator2
+                '1' for annotator1
+                '2' for annotator2
         USlike_IDlist: list of kidneys ID in the format: individual+kidney_side (ex: ['01R', '02L'])
         CTlike_IDlist: list of kidneys ID in the format: individual+kidney_side (ex: ['01', '02'])
     OUTPUT:
@@ -74,9 +74,9 @@ def build_analist(
     ], " datatype must be 'US' or 'CT' in ['img', 'ma', 'me', 'ld'] "
     assert annotatorID in [
         "gt",
-        "annotator1",
-        "annotator2",
-    ], " annotatorID must be in ['gt', 'annotator1', 'annotator2'] "
+        "1",
+        "2",
+    ], " annotatorID must be in ['gt', '1', '2'] "
     assert (
         int(USlike_IDlist is None) + int(CTlike_IDlist is None)
     ) == 1, "one and only one IDlist must be empty"
@@ -88,11 +88,11 @@ def build_analist(
         me_middle = ""
     else:
         if modality == "CT":
-            ma_middle = "_" + config[annotatorID]
+            ma_middle = "_" + annotatorID
         if modality == "US":
-            ma_middle = config[annotatorID]
+            ma_middle = annotatorID
 
-        me_middle = config[annotatorID]
+        me_middle = annotatorID
 
     if datatype == "img":
         str_var_IDlist = modality.upper() + "like_IDlist"
@@ -128,14 +128,14 @@ def build_analist(
             data_path_list = [
                 join(
                     config["data_location"],
-                    config[start + config[annotatorID] + "fol"],
+                    config[start + annotatorID + "fol"],
                     individual + ma_middle + config[modality + "ma_end"],
                 )
                 for individual in IDlist
                 if isfile(
                     join(
                         config["data_location"],
-                        config[start + config[annotatorID] + "fol"],
+                        config[start + annotatorID + "fol"],
                         individual + ma_middle + config[modality + "ma_end"],
                     )
                 )
@@ -148,14 +148,14 @@ def build_analist(
             data_path_list = [
                 join(
                     config["data_location"],
-                    config["CTma" + config[annotatorID] + "fol"],
+                    config["CTma" + annotatorID + "fol"],
                     individual + ma_middle + config["CTma_end"],
                 )
                 for individual in IDlist
                 if isfile(
                     join(
                         config["data_location"],
-                        config["CTma" + config[annotatorID] + "fol"],
+                        config["CTma" + annotatorID + "fol"],
                         individual + ma_middle + config["CTma_end"],
                     )
                 )
@@ -169,14 +169,14 @@ def build_analist(
         data_path_list = [
             join(
                 config["data_location"],
-                config[modality + "me" + config[annotatorID] + "fol"],
+                config[modality + "me" + annotatorID + "fol"],
                 individual + me_middle + config[modality + "me_end"],
             )
             for individual in IDlist
             if isfile(
                 join(
                     config["data_location"],
-                    config[modality + "me" + config[annotatorID] + "fol"],
+                    config[modality + "me" + annotatorID + "fol"],
                     individual + me_middle + config[modality + "me_end"],
                 )
             )
@@ -190,14 +190,14 @@ def build_analist(
         data_path_list = [
             join(
                 config["data_location"],
-                config[modality + "ld" + config[annotatorID] + "fol"],
+                config[modality + "ld" + annotatorID + "fol"],
                 individual + me_middle + config[modality + "ld_end"],
             )
             for individual in IDlist
             if isfile(
                 join(
                     config["data_location"],
-                    config[modality + "ld" + config[annotatorID] + "fol"],
+                    config[modality + "ld" + annotatorID + "fol"],
                     individual + me_middle + config[modality + "ld_end"],
                 )
             )
@@ -211,7 +211,7 @@ def build_many_mask_analist(mod, config, USlike_IDlist, CTlike_IDlist):
         data_config=config,
         modality=mod,
         datatype="ma",
-        annotatorID="annotator1",
+        annotatorID="1",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=CTlike_IDlist,
     )
@@ -219,7 +219,7 @@ def build_many_mask_analist(mod, config, USlike_IDlist, CTlike_IDlist):
         data_config=config,
         modality=mod,
         datatype="ma",
-        annotatorID="annotator2",
+        annotatorID="2",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=CTlike_IDlist,
     )
@@ -240,7 +240,7 @@ def build_many_me_ld_analist(mod, config, USlike_IDlist, CTlike_IDlist=None):
         data_config=config,
         modality=mod,
         datatype="me",
-        annotatorID="annotator1",
+        annotatorID="1",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
@@ -248,7 +248,7 @@ def build_many_me_ld_analist(mod, config, USlike_IDlist, CTlike_IDlist=None):
         data_config=config,
         modality=mod,
         datatype="me",
-        annotatorID="annotator2",
+        annotatorID="2",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
@@ -264,7 +264,7 @@ def build_many_me_ld_analist(mod, config, USlike_IDlist, CTlike_IDlist=None):
         data_config=config,
         modality=mod,
         datatype="ld",
-        annotatorID="annotator1",
+        annotatorID="1",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
@@ -272,7 +272,7 @@ def build_many_me_ld_analist(mod, config, USlike_IDlist, CTlike_IDlist=None):
         data_config=config,
         modality=mod,
         datatype="ld",
-        annotatorID="annotator2",
+        annotatorID="2",
         USlike_IDlist=USlike_IDlist,
         CTlike_IDlist=None,
     )
