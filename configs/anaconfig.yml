@@ -125,3 +125,9 @@ ctdata_eval: True
 # Statistical summary
 usdata_analysis: True
 ctdata_analysis: True
+
+# Data resizing (in preparation to the segmentation step)
+usdata_resize: False
+ctdata_resize: True
+newsize: [128, 128, 128]
+annotator_dataresize: "1" # can be "1", "2", or "gt"

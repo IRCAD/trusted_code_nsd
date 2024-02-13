@@ -17,13 +17,14 @@ A longer description of your project goes here...
 
 # Installation
 
-1. Clone the repo:
+### 1. Clone the repo:
    ```
    git clone https://git.ircad.fr/wndzimbong/trusted_datapaper_ds.git
+
    cd trusted_datapaper_ds
    ```
 
-2. Environment setting:
+### 2. Environment setting:
    ```
    conda create -n trusted_env python=3.9
 
@@ -32,17 +33,29 @@ A longer description of your project goes here...
    pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
    pip install monai[all]==0.9.0
+
    pip install SimpleITK==2.3.0
+
    pip install pandas==1.3.0
+
    pip install lxml
+
    pip install connected-components-3d==3.12.4
+
    pip install statsmodels==0.14.1
+
    pip install natsort==8.4.0
+
    pip install vtk==9.1.0
+
    pip install jupyterlab
+
    pip install open3d==0.15.2
+
    pip install opencv-contrib-python==4.9.0.80
+
    pip install plyfile==1.0.3
+
    pip install numpymaxflow==0.0.6
 
    pip install -e .
@@ -55,7 +68,7 @@ A longer description of your project goes here...
 
 # Data processing and analysis
 
-3. Notes:
+### 3. Notes:
 
    - The config file used i this section is "configs/anaconfig.yml"
    - In this file, set "data_location" properly
@@ -63,7 +76,7 @@ A longer description of your project goes here...
    - In out python scripts, an annotator is represented by the values: "1" for annotator 1, "2" for annotator 2, "gt" for ground-truth segmentations, and "auto" for automatic segmentations
 
 
-4. To estimate the ground-truth masks
+### 4. To estimate the ground-truth masks
 
    In the file configs/anaconfig.yml, set the values of:
    myUS_fusedmasks_location, myCT_fusedmasks_location, fuse_USmask, fuse_CTmask, as you want, and run the command
@@ -73,7 +86,7 @@ A longer description of your project goes here...
    Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending to your memory, you can set different values.
 
 
-5. To estimate the ground-truth landmarks
+### 5. To estimate the ground-truth landmarks
 
    In the file configs/anaconfig.yml, set the values of:
    myUS_fusedlandmarks_location, myCT_fusedlandmarks_location, fuse_USlandmark, fuse_CTlandmark, as you want, and run the command
@@ -81,7 +94,7 @@ A longer description of your project goes here...
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtldks.py --config_path configs/anaconfig.yml
    ```
 
-6. To convert masks to meshes
+### 6. To convert masks to meshes
 
    In the file configs/anaconfig.yml, set the values of:
    myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh, as you want, and run the command
@@ -90,7 +103,7 @@ A longer description of your project goes here...
    ```
 
 
-7. To split CT masks
+### 7. To split CT masks
 
    In the file configs/anaconfig.yml, set the values of:
    myDATA, splitCTmask, annotator_splitCTmask, as you want, and run the command
@@ -99,33 +112,37 @@ A longer description of your project goes here...
    ```
 
 
-8. To compare ground-truth estimated masks with annotator segmentations
+### 8. To compare ground-truth estimated masks with annotator segmentations
 
    In the file configs/anaconfig.yml, set the values of:
-   US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis, as you want, and run the command
+   US_analysis_folder, CT_analysis_folder, usdata_eval and ctdata_eval, as you want, and run the command
 
    ```
    python src/trusted_datapaper_ds/dataprocessing/groundtruth_eval.py --config_path configs/anaconfig.yml
    ```
 
-9. To compute the statistical summary of the comparison in 8-
+### 9. To compute the statistical summary of the comparison in 8-
+
+   In the file configs/anaconfig.yml, set the values of:
+   US_analysis_folder, CT_analysis_folder, usdata_analysis and ctdata_analysis, as you want, and run the command
 
    ```
+   python src/trusted_datapaper_ds/dataprocessing/dataanalysis.py --config_path configs/anaconfig.yml
+   ```
 
+### 10. Data resizing
+   In the file configs/anaconfig.yml, set the values of:
+   usdata_resize, ctdata_resize, newsize, annotator_dataresize, as you want, and run the command
+
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/data_resizing.py --config_path configs/anaconfig.yml
    ```
 
 # Automatic segmentation
 
-10. Data resizing
-
-
-   ```
-
-   ```
-
 ## Segmentation in CT data
 
-11. 3D UNet or VNet models training
+### 11. 3D UNet or VNet models training
 
    In the file configs/ctsegconfig.yml, set properly the values of:
    - data_location, the path to the folder "TRUSTED_submission"
@@ -140,7 +157,7 @@ A longer description of your project goes here...
    python src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py  --config_path configs/ctsegconfig.yml
    ```
 
-12. 3D UNet or VNet inference
+### 12. 3D UNet or VNet inference
 
    In the file configs/ctsegconfig.yml, set properly the values of:
    - trained_models_location, where your training folders are located
@@ -152,7 +169,7 @@ A longer description of your project goes here...
    python src/trusted_datapaer_ds/segmentation/U_or_V_Net_inference.py  --config_path configs/ctsegconfig.yml
    ```
 
-13. nnUNet or CoTr models training
+### 13. nnUNet or CoTr models training
 
    - Manually create a specific folder to train the model: ~/MedSeg/CT_DATA
    - Create 4 subfolders in ~/MedSeg/CT_DATA, named:
@@ -185,7 +202,7 @@ A longer description of your project goes here...
    In the command above, use: mainV2.py or mainDoubleV2.py, the model's value nnunet or cotr, and dataset's value ct_128_simple_jz_v2 or ct_128_double_jz_v2 depending on what you need
 
 
-13. nnUNet or CoTr models inference
+### 14. nnUNet or CoTr models inference
 
    For inference of these models, in the file "/src/trusted_datapaper_ds/segmentation/nnunet_cotr/configs/training/training_128_jz_v2.yaml", set the values of only_val and checkpoint.load to True and run the same command as for training.
    The segmentation masks with the size 128-128-128 will be located into the folder: "~/MedSeg/CT_DATA/medseg_results/~".
@@ -224,30 +241,8 @@ A longer description of your project goes here...
 
 
 
-4. install [nbstripout] git hooks to remove the output cells of committed notebooks with:
-   ```bash
-   nbstripout --install --attributes notebooks/.gitattributes
-   ```
-   This is useful to avoid large diffs due to plots in your notebooks.
-   A simple `nbstripout --uninstall` will revert these changes.
 
 
-Then take a look into the `scripts` and `notebooks` folders.
-
-## Dependency Management & Reproducibility
-
-1. Always keep your abstract (unpinned) dependencies updated in `environment.yml` and eventually
-   in `setup.cfg` if you want to ship and install your package via `pip` later on.
-2. Create concrete dependencies as `environment.lock.yml` for the exact reproduction of your
-   environment with:
-   ```bash
-   conda env export -n trusted_datapaper_ds -f environment.lock.yml
-   ```
-   For multi-OS development, consider using `--no-builds` during the export.
-3. Update your current environment with respect to a new `environment.lock.yml` using:
-   ```bash
-   conda env update -f environment.lock.yml --prune
-   ```
 ## Project Organization
 
 ```

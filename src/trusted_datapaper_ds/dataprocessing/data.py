@@ -26,9 +26,7 @@ import torch
 from monai.transforms import (
     AsDiscrete,
     Compose,
-    EnsureChannelFirst,
     EnsureType,
-    LoadImage,
     NormalizeIntensity,
     Resize,
     ScaleIntensity,
@@ -89,53 +87,6 @@ class Image:
         self.spacing = np.array(self.itkimg.GetSpacing())
         self.nibaffine = self.nibimg.affine
         self.nparray = self.nibimg.get_fdata()
-
-    def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
-        """
-        Resizes the image to the specified new size.
-
-        Args:
-            newsize (tuple): New size of the image (width, height, depth).
-            interpolmode (str): Interpolation mode to use for resizing ("trilinear" is recommended).
-            resized_dirname (str, optional): Path to the folder where the resized images are saved (optional).
-
-        Returns:
-            np.ndarray: The resized NumPy array representation of the image data.
-        """
-        if interpolmode == "trilinear":
-            post_resiz = Compose(
-                [
-                    LoadImage(),
-                    EnsureChannelFirst(),
-                    Resize(
-                        spatial_size=newsize,
-                        mode=interpolmode,
-                        align_corners=True,
-                    ),
-                ]
-            )
-        else:
-            post_resiz = Compose(
-                [
-                    LoadImage(),
-                    EnsureChannelFirst(),
-                    Resize(
-                        spatial_size=newsize,
-                        mode=interpolmode,
-                    ),
-                ]
-            )
-        resized_nparray = post_resiz(self.path)
-        resized_nparray = np.asarray(resized_nparray).squeeze(0)
-
-        # Save the resized image if specified
-        if resized_dirname is not None:
-            resized_nibimg_path = join(resized_dirname, self.basename)
-            resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
-            nib.save(resized_nibimg, resized_nibimg_path)
-            print("resized image saved as: ", resized_nibimg_path)
-
-        return resized_nparray
 
     def shift_origin(self, new_origin=[0, 0, 0], shifted_dirname=None):
         assert self.modality == "CT", "Needed only for CT volume"
@@ -218,53 +169,6 @@ class Mask:
         self.spacing = np.array(self.itkmask.GetSpacing())
         self.nibaffine = self.nibmask.affine
         self.nparray = self.nibmask.get_fdata()
-
-    def resize(self, newsize, interpolmode="trilinear", resized_dirname=None):
-        """
-        Resizes the image to the specified new size.
-
-        Args:
-            ...
-        Returns:
-            ...
-        """
-        if interpolmode == "trilinear":
-            post_resiz = Compose(
-                [
-                    LoadImage(),
-                    EnsureChannelFirst(),
-                    Resize(
-                        spatial_size=newsize,
-                        mode=interpolmode,
-                        align_corners=True,
-                    ),
-                    AsDiscrete(threshold=0.5, threshold_values=True),
-                ]
-            )
-        else:
-            post_resiz = Compose(
-                [
-                    LoadImage(),
-                    EnsureChannelFirst(),
-                    Resize(
-                        spatial_size=newsize,
-                        mode=interpolmode,
-                    ),
-                    AsDiscrete(threshold=0.5, threshold_values=True),
-                ]
-            )
-        resized_nparray0 = post_resiz(self.path)
-        resized_nparray = np.asarray(resized_nparray0).squeeze(0)
-        del resized_nparray0
-
-        # Save the resized image if specified
-        if resized_dirname is not None:
-            resized_nibimg_path = join(resized_dirname, self.basename)
-            resized_nibimg = nib.Nifti1Image(resized_nparray, self.nibaffine)
-            nib.save(resized_nibimg, resized_nibimg_path)
-            print("resized mask saved as: ", resized_nibimg_path)
-
-        return resized_nparray
 
     def to_mesh_and_pcd(
         self,
