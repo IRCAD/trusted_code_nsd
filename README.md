@@ -345,11 +345,11 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
 
 ### 24. Boxplots of registration results statistical analysis
 
-   - config file:
-   - config variables to set:
+   - config file: configs/reganalysis.yml
+   - config variables to set: regresults_folder, list_regmethods, list_regtransforms, list_std
    - command:
    ```
-
+   python src/trusted_datapaper_ds/registration/analysis_of_noising_on_registration.py  --config_path configs/reganalysis.yml
    ```
 
 
