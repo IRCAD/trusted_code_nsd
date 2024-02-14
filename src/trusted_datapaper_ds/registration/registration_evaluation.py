@@ -53,7 +53,7 @@ def loader(
             - ldmov: Moving landmarks object.
     """
 
-    for Tfine_file in Tfine_files[:10]:
+    for Tfine_file in Tfine_files:
         Tfine_basename = os.path.basename(Tfine_file)
         a = re.search("Tfine", Tfine_basename).start()
         b = re.search("Tfine", Tfine_basename).end()
