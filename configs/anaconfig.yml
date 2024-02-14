@@ -63,6 +63,11 @@ USfold:
    cv5: ['125R', '125L', '20R', '42R', '99R', '02R', '02L', '87R', '87L', '37R', '38R', '38L']
 
 
+# WHERE YOU COULD SAVE YOUR CREATED DATA
+myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
+# myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
+
+
 ## ''' FOLDERS NO PROVIDED (Have to be created by used if need. Can be added)'''
 
 CTspma1fol: "CT_DATA/CTsplit_masks/Annotator1/" # CT split masks
@@ -91,9 +96,6 @@ CT128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 
 
 ## ''' MAIN PROCESSINGS '''
-
-myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
-# myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
 
 # Mask ground-truth estimation (STAPLE fusion)
 myUS_fusedmasks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA/US_DATA/US_masks/GT_estimated_masksUS/"
@@ -131,3 +133,7 @@ usdata_resize: False
 ctdata_resize: True
 newsize: [128, 128, 128]
 annotator_dataresize: "1" # can be "1", "2", or "gt"
+
+
+# Shift CT images so that their origins become [0,0,0]. That will be useful to assess the registration
+shiftCTimg_origin: True

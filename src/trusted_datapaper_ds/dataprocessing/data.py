@@ -105,10 +105,8 @@ class Image:
 
         if "img" in self.suffix:
             interpolator = sitk.sitkLinear
-        elif "mask" in self.suffix:
-            interpolator = sitk.sitkNearestNeighbor
         else:
-            raise ValueError("The suffix file basename must content 'img' or 'mask'.")
+            raise ValueError("The suffix file basename must content 'img' ")
 
         itk_shifted = sitk.Resample(
             itk_ref_img,

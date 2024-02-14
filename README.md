@@ -66,6 +66,8 @@ A longer description of your project goes here...
 
    pip install nnunet==1.7.1
 
+   pip install seaborn==0.12.2
+
    pip install -e .
 
    ```
@@ -296,14 +298,36 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
    ```
 
 ### 20. Landmarks registration (global) + Intensity-based registration (refinement)
-   - config file: configs/regconfig.yml
-   - config variables to set: similarity_metric, ldks_model, USldks_location, CTldks_location, noise_std, iternumb, refine_model, USimg_location, CTimg_location, transfo_location, regpack_dir, imf_temp_folder
+
+   **Install ImFusion Suite (You can use a trial version)**
+      - Get the installer file "BaseImFusionSuite-2.44.1-22.04.deb" and
+      the License key(s) for Base ImFusion Suite, from ImFusion,
+      - Open a terminal window and navigate to the directory containing the .deb file
+      - run the command: sudo apt-get install -f
+      - run the installation command: sudo dpkg --install BaseImFusionSuite-2.44.1-22.04.deb
+      - launch the ImFusionSuite interface with the command: ImFusionSuite
+      - activate your License by entering your License key
+      - now you can use ImFusionSuite by launching the interface (command: ImFusionSuite), of with our python script provided
+
+   **Running**
+      - config file: configs/regconfig.yml
+      - config variables to set: similarity_metric, ldks_model, USldks_location, CTldks_location, noise_std, iternumb, refine_model, USimg_location, CTimg_location, transfo_location, regpack_dir, imf_temp_folder
+      - command:
+      ```
+      python src/trusted_datapaper_ds/registration/intensity_registration.py  --config_path configs/regconfig.yml
+      ```
+
+### 21. Shift origin of CT images
+   This is needed to put the images and their corresponding meshes, point clouds and geometric landmarks, to the same physical space, then to be able to apply the transforms computed by one type of data (landmarks or meshes, for example) to the other type (image).
+
+   - config file: configs/anaconfig.yml
+   - config variables to set: shiftCTimg_origin, myDATA, data_location, CTimg_origin0_location
    - command:
    ```
-   python src/trusted_datapaper_ds/registration/intensity_registration.py  --config_path configs/regconfig.yml
+   python src/trusted_datapaper_ds/dataprocessing/shiftCT.py  --config_path configs/anaconfig.yml
    ```
 
-### 20. Registration evaluation
+### 22. Registration evaluation
    - config file: configs/regconfig.yml
    - config variables to set: CTimg_origin0_location, refinement_methods, transform_models, std_cases, transfo_location, CTgtmesh_location, USgtmesh_location, USldks_location, CTldks_location
    - command:
@@ -311,13 +335,15 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
    python src/trusted_datapaper_ds/registration/registration_evaluation.py  --config_path configs/regconfig.yml
    ```
 
-### 20. Registration results statistical analysis
+### 23. Registration results statistical analysis
    - config file: configs/reganalysis.yml
    - config variables to set: refmethod, reftransform, list_regmethods, list_regtransforms, regresults_folder
    - command:
    ```
     python src/trusted_datapaper_ds/registration/registration_analysis.py  --config_path configs/reganalysis.yml
    ```
+
+### 24. Boxplots of registration results statistical analysis
 
    - config file:
    - config variables to set:
