@@ -14,8 +14,19 @@ def main(
     fuse_USmask,
     fuse_CTmask,
 ):
-    # Fuse list of masks from annotator1 and annotator2 (here US masks) ###
-    # Note: "fused_dirname" is the directory to save the fused mask.
+    """
+    Fuses masks from two annotators for CT and US images based on configuration.
+
+    Args:
+        config (dict): Configuration dictionary containing paths and parameters.
+        ctlist (List[str]): List of individual IDs for CT images.
+        uslist (List[str]): List of individual IDs for US images.
+        fuse_USmask (bool): Flag indicating whether to fuse US masks.
+        fuse_CTmask (bool): Flag indicating whether to fuse CT masks.
+
+    Returns:
+        None
+    """
     if fuse_USmask:
         fused_dirname = config["myUS_fusedmasks_location"]
         makedir(fused_dirname)

@@ -1,10 +1,10 @@
 modality: "CT"
 auto: "auto"
 
-data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
-img_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_images/"
+data_location: "/home/TRUSTED_submission"
+img_location: "/home/TRUSTED_submission/CT_DATA/CT_images/"
 
-output_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
+output_location: "/home/TRUSTED_submission/myDATA"
 
 # Cross validation splits
 cv1: ['84', '116', '114', '98', '118', '04', '44', '101', '88']
@@ -31,14 +31,14 @@ CT128ma2fol: "CT_DATA/CTmask128/Annotator2/"
 CT128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 
 # Location of the training weight
-trained_models_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CTseg_trained_models/"
+trained_models_location: "/home/TRUSTED_submission/CT_DATA/CTseg_trained_models/"
 
 # For UNet and VNet inference
 list_UVnetmodels: ["vnet_lr1.0_epoch1001_batch2", "unet_lr1.0_epoch1001_batch2"]
 list_training_target: ["single_target_training", "double_targets_training"]
 
 # Resized (into [128-128-128]) output masks from nnunet and cotr trained models
-seg128location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask128/"
+seg128location: "/home/TRUSTED_submission/CT_DATA/CToutput_mask128/"
 
 # Automatic segmentation post-processing
 list_othermodels: ["nnunet", "cotr"]
@@ -47,15 +47,15 @@ meshing: True
 splitCT: True
 
 # Output masks from trained models with their original size, and the corresponding split masks, meshes and point clouds
-mask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mask/"
-splitmask_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CTsplit_output_mask/"
-mesh_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_mesh/"
-pcd_seglocation: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/CT_DATA/CToutput_pcdTXT/"
+mask_seglocation: "/home/TRUSTED_submission/CT_DATA/CToutput_mask/"
+splitmask_seglocation: "/home/TRUSTED_submission/CT_DATA/CTsplit_output_mask/"
+mesh_seglocation: "/home/TRUSTED_submission/CT_DATA/CToutput_mesh/"
+pcd_seglocation: "/home/TRUSTED_submission/CT_DATA/CToutput_pcdTXT/"
 
 # Ground-truth masks with their original size, split masks and meshes for evaluation
-gtmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_masks/GT_estimated_masksCT/"
-gtsplitmask_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CTsplit_masks/GT_estimated_masksCT/"
-gtmesh_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT"
+gtmask_location: "/home/TRUSTED_submission/CT_DATA/CT_masks/GT_estimated_masksCT/"
+gtsplitmask_location: "/home/TRUSTED_submission/CT_DATA/CTsplit_masks/GT_estimated_masksCT/"
+gtmesh_location: "/home/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT"
 
 # Segmentation evaluation results
-segresults_folder: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/segmentation_benchmarks/CT/"
+segresults_folder: "/home/TRUSTED_submission/segmentation_benchmarks/CT/"

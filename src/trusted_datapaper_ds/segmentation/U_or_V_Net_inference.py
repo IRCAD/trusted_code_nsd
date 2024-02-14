@@ -65,6 +65,26 @@ binarizing = Compose(
 def segmentor(
     model_name, weight_file, img_files, output_folder=None, maskinterpolmode="trilinear"
 ):
+    """
+    This function loads a UNet or VNet model, applies it to a list of input images,
+    and optionally saves the resulting segmentation masks.
+
+    Args:
+        model_name (str): Name of the model to use, either "unet" or "vnet".
+        weight_file (str): Path to the saved model weights file.
+        img_files (list): List of paths to input images to be segmented.
+        output_folder (str, optional): Path to a folder where segmentation masks will be saved.
+            Defaults to None, which means masks will not be saved.
+        maskinterpolmode (str, optional): Interpolation mode for resizing segmentation masks.
+            Defaults to "trilinear".
+
+    Returns:
+        nib.Nifti1Image: The predicted segmentation mask.
+
+    Raises:
+        AssertionError: If the provided model_name is not "unet" or "vnet".
+    """
+
     assert ("unet" in model_name) or (
         "vnet" in model_name
     ), " Cannot identify the name of the model. "

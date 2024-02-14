@@ -80,8 +80,28 @@ def reg_analysis(config, reg_evaluation_outputs_folder, std):
 
 def main(config, std=0.0):
     """
-    :param:
-    :return:
+    Analyzes registration evaluation results.
+
+    This function iterates through a given configuration and performs the following steps:
+
+    1. Reads the configuration file, specifying paths and parameters.
+    2. Defines empty DataFrames to store results for each metric (TRE, Dice, Hausdorff95, NND).
+    3. Processes the reference method (affine BCPD):
+        - Analyzes its evaluation results.
+        - Stores the mean and standard deviation for each metric for the reference method.
+    4. Iterates through other registration methods and transforms defined in the configuration:
+        - Analyzes their evaluation results using `reg_analysis`.
+        - Computes and stores mean, standard deviation, and various statistical tests
+          (t-test, Shapiro-Wilk test, sign test, Wilcoxon test) comparing the current
+          method with the reference method for each metric.
+    5. Saves the analysis results for each metric (TRE, Dice, Hausdorff95, NND) as separate CSV files.
+
+    Args:
+        config (dict): Configuration dictionary containing paths and parameters.
+        std (float, optional): Noise level used for the evaluated registrations. Defaults to 0.0.
+
+    Returns:
+        None
     """
 
     regresults_folder = config["regresults_folder"]

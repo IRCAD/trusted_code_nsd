@@ -15,6 +15,20 @@ def main(
     usdata_resize,
     ctdata_resize,
 ):
+    """
+    Main function to resize US and CT data.
+
+    Parameters:
+        config (dict): Configuration parameters.
+        ctlist (list): List of CT data.
+        uslist (list): List of US data.
+        usdata_resize (bool): Flag indicating whether to resize US data.
+        ctdata_resize (bool): Flag indicating whether to resize CT data.
+
+    Returns:
+        None
+    """
+
     ann = config["annotator_dataresize"]
 
     if ann == "gt" or ann == "auto":

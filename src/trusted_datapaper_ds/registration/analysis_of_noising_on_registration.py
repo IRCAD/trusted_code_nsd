@@ -51,6 +51,25 @@ def create_all_noisy_dataframes(config):
 def single_affine_rigid_box_plotting(
     figures_location: str, metric: str, metric_threshup: str
 ):
+    """
+    Generates and saves boxplot figures comparing metrics for affine and rigid
+    registration methods with different noise levels.
+
+    This function analyzes pre-computed registration results
+    with different noise levels (`list_std`) and compares
+    them. It excludes data points above a threshold (`metric_threshup`)
+    and creates boxplots showing the distribution
+    of metrics per registration method and transformation type (affine, rigid)
+    across different noise levels.
+
+    Args:
+        figures_location (str): Path to save the generated figure.
+        metric (str): The metric to use for comparison ("tre", "dice", "nndst", "h95mesh").
+        metric_threshup (float): Upper threshold for excluding data points.
+
+    Returns:
+        None
+    """
     global recap1, noise1_count_excluded, noise1_count_excluded_list
     recap1 = pd.DataFrame()
     noise1_count_excluded = []

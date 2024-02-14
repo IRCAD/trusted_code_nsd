@@ -54,8 +54,20 @@ def training(
     nb_epochs,
     double_targets_training,
 ):
-    """## out.txt is the text file containing the informations concerning the training events like
-    the training loss value, the validation metric value, ...
+    """
+    Purpose: Trains a segmentation model using specified configurations.
+
+    Parameters:
+        config: Configuration dictionary.
+        modality: Imaging modality (e.g., "CT", "US").
+        cv: Cross-validation fold.
+        segmodel: Segmentation model type (e.g., "unet", "vnet").
+        data_location: Path to data directory.
+        output_location: Path to output directory.
+        lr: Learning rate.
+        wdecay: Weight decay.
+        nb_epochs: Number of epochs.
+        double_targets_training: Flag for training with single or double targets.
     """
 
     print(data_location)

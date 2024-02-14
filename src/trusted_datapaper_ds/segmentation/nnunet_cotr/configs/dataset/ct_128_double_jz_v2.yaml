@@ -1,6 +1,6 @@
 name: ct_128_double_jz_v2
 path:
-  pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/CT_DATA
+  pth: /home/TRUSTED_submission/MedSeg/CT_DATA
 
   im: ${dataset.path.pth}/CTimg_128_t
   seg1: ${dataset.path.pth}/CTmask_a1_128

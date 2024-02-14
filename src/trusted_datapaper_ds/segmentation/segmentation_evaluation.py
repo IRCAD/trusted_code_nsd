@@ -41,6 +41,36 @@ def loader(maauto_files, magt_files, meauto_files, megt_files):
 
 
 def segeval(maauto, magt, megt, meauto):
+    """
+    Evaluates automatic segmentation against ground truth and saves results.
+
+    This function takes automatic segmentation mask (`mauto`), automatic segmentation mesh (`meauto`),
+    ground-truth mask (`magt`), ground-truth mesh (`meauto`). It performs the following evaluations:
+
+    - Dice score between ground truth and automatic segmentations (mask level)
+    - Hausdorff Distance (95th percentile) between ground truth and automatic meshes
+    - Mean surface-to-surface nearest neighbor distance between ground truth and automatic meshes
+
+    If any errors occur during the evaluation, an error message is printed, and `np.nan` is assigned
+    to the corresponding metric.
+
+    Args:
+        mauto: Automatic segmentation (mask level)
+        magt: Ground truth segmentation (mask level)
+        meauto: Automatic segmentation (mesh level)
+        megt: Ground truth segmentation (mesh level)
+
+    Returns:
+        dict: A dictionary containing the following keys:
+            - kidney_id (str): Individual ID
+            - dice (float): Dice score between automatic and ground truth masks
+            - h95mesh (float): Hausdorff distance (95th percentile) between meshes
+            - nndst (float): Mean surface-to-surface nearest neighbor distance between meshes
+
+    Raises:
+        ValueError: If any errors occur during the evaluation process.
+    """
+
     dice1 = np.nan
     hmesh1 = np.nan
     nndst1 = np.nan

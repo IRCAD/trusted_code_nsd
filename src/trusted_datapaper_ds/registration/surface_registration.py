@@ -25,6 +25,30 @@ def icp_transform(
     iteration,
     output_folder,
 ):
+    """
+    Computes the rigid or affine transformation between two point clouds using ICP.
+
+    This function performs Iterative Closest Point (ICP) registration on two
+    provided point clouds (moving and fixed). It performs random sub-sampling
+    of points for efficiency and allows selecting between rigid or affine
+    transformation models.
+
+    Args:
+        moving_pcd (open3d.geometry.PointCloud): Moving point cloud.
+        fix_pcd (open3d.geometry.PointCloud): Fixed point cloud.
+        max_number_pts (int): Maximum number of points to use for ICP.
+        model (str): Transformation model, either "rigid" or "affine".
+        max_iter (int): Maximum number of ICP iterations.
+        tol (float): Maximum mean distance tolerance for convergence.
+        iteration (int): Repetition number of the registration.
+        output_folder (str, optional): Folder to save the transformation matrix.
+
+    Returns:
+        numpy.ndarray: The computed transformation matrix (4x4).
+
+    Raises:
+        AssertionError: If the provided model is not valid ("rigid" or "affine").
+    """
     assert model in ["affine", "rigid"]
 
     if model == "rigid":
@@ -82,6 +106,30 @@ def bcpd_transform(
     temp_folder,
     output_folder,
 ):
+    """
+    Computes the rigid or affine transformation between point clouds using BCPD.
+
+    This function performs Bayesian Coherent Point Drift (BCPD) registration
+    on two provided point clouds (moving and fixed). It leverages the BCPD software
+    and allows selecting between rigid or affine transformation models.
+
+    Args:
+        regpack_dir (str): Path to the directory containing the BCPD software.
+        ID (str): Identifier for the current kidney processed.
+        moving_pcd (open3d.geometry.PointCloud): Moving point cloud.
+        fix_pcd (open3d.geometry.PointCloud): Fixed point cloud.
+        model (str): Transformation model, either "rigid" or "affine".
+        iteration (int): Repetition number of the registration.
+        temp_folder (str): Path to a temporary folder for intermediate files.
+        output_folder (str, optional): Folder to save the transformation matrix.
+
+    Returns:
+        numpy.ndarray: The computed transformation matrix (4x4).
+
+    Raises:
+        AssertionError: If the provided model is not valid ("rigid" or "affine").
+    """
+
     assert model in ["affine", "rigid"]
 
     print("Running BCPD ----------------")

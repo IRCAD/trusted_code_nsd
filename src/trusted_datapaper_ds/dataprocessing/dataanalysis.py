@@ -8,6 +8,25 @@ from trusted_datapaper_ds.utils import parse_args
 
 
 def stat_summary(config, modality, analysis_folder):
+    """
+    Calculates and summarizes statistics from multiple analysis results.
+
+    This function reads Dice and othermetric CSV files for a specific modality
+    and calculates various summary statistics (mean and standard
+    deviation) across different cross-validation folds, and returns two DataFrames
+    containing these statistics.
+
+    Args:
+        config (dict): Configuration dictionary.
+        modality (str): The modality of the data analyze (e.g., "CT", "US").
+        analysis_folder (str): The path to the CSV files.
+
+    Returns:
+        tuple: A tuple containing two pandas.DataFrame objects:
+            - The first DataFrame contains Dice and nearest neighbor distance statistics.
+            - The second DataFrame contains landmark distance statistics.
+    """
+
     csv_dice_file = join(analysis_folder, modality + "_dice.csv")
     dicedf = pd.read_csv(csv_dice_file, index_col=0)
     csv_othermetric_file = join(analysis_folder, modality + "_othermetric.csv")

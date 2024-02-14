@@ -11,13 +11,19 @@
 
 # trusted_datapaper_ds
 
-> Add a short description here!
-
-A longer description of your project goes here...
+This is the script developed to analyse the TRUSTED dataset, as well as to evaluate some baselines of deep-learning-based segmentations models, and registration models.
+Here is how to use it for "reproductibility".
+Each point is organized as:
+- config file: the configuration file to set before running the specific commands.
+   The main fields you will have to update, are the paths. I recommend to not change them too much
+- config variables to set: the fields to check in the configuration file before running the specific commands
+- command: the specific command to run
 
 # Installation
 
 ### 1. Clone the repo:
+   Commands:
+
    ```
    git clone https://git.ircad.fr/wndzimbong/trusted_datapaper_ds.git
 
@@ -25,6 +31,8 @@ A longer description of your project goes here...
    ```
 
 ### 2. Environment setting:
+   Commands:
+
    ```
    conda create -n trusted_env python=3.9
 
@@ -77,6 +85,7 @@ A longer description of your project goes here...
    - Check the folder structure which is given in the file README.txt in the folder "TRUSTED_submission"
 
 # Data processing and analysis
+This step describes the operations to run to estimate the ground-truth (GT) annotations, to quantitatively compare the estimated GT and the annotations provided by human experts, and to prepare the data used for baselines evaluation.
 
 ### 3. Notes:
    - config file: configs/anaconfig.yml
@@ -111,7 +120,6 @@ A longer description of your project goes here...
    python src/trusted_datapaper_ds/dataprocessing/convert_mask_to_mesh.py --config_path configs/anaconfig.yml
    ```
 
-
 ### 7. To split CT masks
    - config file: configs/anaconfig.yml
    - config variables to set: myDATA, splitCTmask, annotator_splitCTmask
@@ -119,7 +127,6 @@ A longer description of your project goes here...
    ```
    python src/trusted_datapaper_ds/dataprocessing/splitCTmask.py --config_path configs/anaconfig.yml
    ```
-
 
 ### 8. To compare ground-truth estimated masks with annotator segmentations
    - config file: configs/anaconfig.yml
@@ -318,7 +325,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
       ```
 
 ### 21. Shift origin of CT images
-   This is needed to put the images and their corresponding meshes, point clouds and geometric landmarks, to the same physical space, then to be able to apply the transforms computed by one type of data (landmarks or meshes, for example) to the other type (image).
+   This is needed to have, for a modality, the images and their corresponding meshes, point clouds and geometric landmarks, in the same space, then to be able to transfert the estimated transforms from landmarks/meshes to images and vice-versa
 
    - config file: configs/anaconfig.yml
    - config variables to set: shiftCTimg_origin, myDATA, data_location, CTimg_origin0_location

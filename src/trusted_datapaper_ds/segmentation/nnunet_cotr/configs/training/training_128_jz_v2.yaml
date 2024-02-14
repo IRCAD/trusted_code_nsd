@@ -19,8 +19,7 @@ do_clip: True
 do_schedul: True
 loss: CrossDice
 
-# pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/CT_DATA/medseg_results
-pth: /home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/MedSeg/US_DATA/medseg_results
+pth: /home/TRUSTED_submission/MedSeg/medseg_results
 
 augmentations:
   rotate:

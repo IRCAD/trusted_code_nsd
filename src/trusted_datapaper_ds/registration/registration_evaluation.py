@@ -29,6 +29,30 @@ def loader(
     ldmov_files,
     ldfix_files,
 ):
+    """
+    This function iteratively loads and yields data for registration evaluation.
+    Args:
+        refimg_files (list): List of paths to reference image files.
+        Tinit_files (list): List of paths to initial transformation files.
+        Tfine_files (list): List of paths to fine deformation field files.
+        megtfix_files (list): List of paths to fixed mesh files.
+        megtmov_files (list): List of paths to moving mesh files.
+        ldmov_files (list): List of paths to moving landmark files.
+        ldfix_files (list): List of paths to fixed landmark files.
+
+    Yields:
+        tuple: A tuple containing:
+            - ID: Subject ID.
+            - iteration: Registration iteration number.
+            - ref_itk: Reference image as ITK image.
+            - Tinit: Initial transformation matrix.
+            - Tfine: Refinement transformation matrix.
+            - megtfix : Fixed mesh object.
+            - megtmov : Moving mesh object.
+            - ldfix : Fixed landmarks object.
+            - ldmov: Moving landmarks object.
+    """
+
     for Tfine_file in Tfine_files[:10]:
         Tfine_basename = os.path.basename(Tfine_file)
         a = re.search("Tfine", Tfine_basename).start()
@@ -68,6 +92,42 @@ def loader(
 
 
 def regeval(ID, iteration, ref_itk, Tinit, Tfine, megtfix, megtmov, ldfix, ldmov):
+    """
+    Evaluates registration results and saves metrics.
+
+    This function takes various inputs related to a registration process and performs the following evaluations:
+
+    - Target Registration Error (TRE) between registered moving target point and fixed target point.
+    - Dice score between ground truth mask and registered moving mask.
+    - Hausdorff Distance (95th percentile) between ground truth and registered meshes.
+    - Mean surface-to-surface nearest neighbor distance between ground truth and registered meshes.
+
+    If any errors occur during the evaluation, an error message is printed, and `np.nan` is assigned
+    to the corresponding metric.
+
+    Args:
+        ID (str): Identifier of the individual being processed.
+        iteration (int): Repetition number of the registration process.
+        ref_itk (sitk.Image): Reference image used for registration.
+        Tinit (np.ndarray): Initial transformation matrix obtained from registration.
+        Tfine (np.ndarray): Refinement transformation matrix obtained from registration.
+        megtfix: Ground truth fixed mesh.
+        megtmov: Ground truth moving mesh.
+        ldfix: Ground truth fixed mask.
+        ldmov: Ground truth moving mask.
+
+    Returns:
+        dict: A dictionary containing the following keys:
+            - kidney_id (str): Individual ID.
+            - iteration (int): Repetition number.
+            - tre (float): Target Registration Error.
+            - dice (float): Dice score between registered and ground truth masks.
+            - h95mesh (float): Hausdorff distance (95th percentile) between meshes.
+            - nndst (float): Mean surface-to-surface nearest neighbor distance between meshes.
+
+    Raises:
+        ValueError: If any errors occur during the evaluation process.
+    """
     tre1 = np.nan
     dice1 = np.nan
     hmesh1 = np.nan

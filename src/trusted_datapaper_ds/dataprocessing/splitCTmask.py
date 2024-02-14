@@ -12,6 +12,27 @@ def main(
     ctlist,
     splitCTmask,
 ):
+    """
+    Splits CT segmentation masks.
+
+    This function reads a list of individual IDs for CT images (`ctlist`). If the
+    `splitCTmask` flag is True and an annotator is specified in the configuration,
+    it performs the following:
+
+    1. Identifies mask files for the specified annotator (`annotator_splitCTmask`)
+    2. Creates a directory to store the split masks.
+    3. Splits each mask into left and right kidney segmentations.
+    4. Saves the split masks in the designated directory with appropriate naming.
+
+    Args:
+        config (dict): Configuration dictionary containing paths and parameters.
+        ctlist (List[str]): List of individual IDs for CT images.
+        splitCTmask (bool): Flag indicating whether to split CT masks.
+
+    Returns:
+        None
+    """
+
     if splitCTmask:
         ann = config["annotator_splitCTmask"]
 

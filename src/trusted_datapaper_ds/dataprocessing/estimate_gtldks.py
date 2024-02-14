@@ -14,6 +14,19 @@ def main(
     fuse_CTlandmark,
     fuse_USlandmark,
 ):
+    """
+    Fuses landmark sets for CT and US images based on configuration settings.
+
+    Args:
+        config (dict): Configuration dictionary containing paths and parameters.
+        ctlist (List[str]): List of individual IDs for CT images.
+        uslist (List[str]): List of individual IDs for US images.
+        fuse_CTlandmark (bool): Flag indicating whether to fuse CT landmarks.
+        fuse_USlandmark (bool): Flag indicating whether to fuse US landmarks.
+
+    Returns:
+        None
+    """
     if fuse_CTlandmark:
         fused_dirname = config["myCT_fusedlandmarks_location"]
         makedir(fused_dirname)

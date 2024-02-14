@@ -59,7 +59,23 @@ def create_pointcloud_polydata(points, colors=None):
 
 
 def resample_itk(img_itk, transform_matrix):
-    # Build the proper matrix for that
+    """
+    Resamples an ITK image using a given transformation matrix.
+
+    This function applies a RIGID transformation to an ITK image:
+
+    1. Adjusts the transformation matrix to account for scaling.
+    2. Extracts image information (origin, direction, spacing).
+    3. Constructs a reference image with adjusted origin, direction, and spacing.
+    4. Resamples the image using the reference image and transform.
+
+    Args:
+        img_itk (SimpleITK.Image): Input ITK image to be resampled.
+        transform_matrix (numpy.ndarray): 4x4 RIGID transformation matrix representing spatial transformation.
+
+    Returns:
+        SimpleITK.Image: Resampled ITK image.
+    """
     trans = transform_matrix.copy()
     scale_matrix = np.diag(
         [
@@ -138,6 +154,21 @@ def voxel2array(grid_index_array, array_shape):
 
 
 def voxelization(o3dpcd, ref_itk):
+    """
+    Voxelizes a point cloud using the resolution of a reference image.
+
+    This function converts a 3D point cloud into a voxelized representation,
+    aligning its voxel size and spatial bounds to a provided reference image.
+
+    Args:
+        o3dpcd (open3d.geometry.PointCloud): Input point cloud to be voxelized.
+        ref_itk (SimpleITK.Image): Reference image defining voxel size and bounds.
+
+    Returns:
+        numpy.ndarray: 3D voxelized representation of the point cloud,
+                        with shape matching the reference image dimensions.
+    """
+
     ref_voxelsize = np.max(np.array(ref_itk.GetSpacing()))
     ref_size = np.array(ref_itk.GetSize())
 
@@ -160,6 +191,19 @@ def voxelization(o3dpcd, ref_itk):
 
 
 def array_to_itkmask(nparray: np.int32, ref_itk):
+    """
+    This function creates an ITK image mask from a NumPy array, ensuring it matches
+    the spacing, direction, and origin of a provided reference image. Additionally,
+    it performs morphological operations to refine the mask's boundaries.
+
+    Args:
+        nparray (numpy.ndarray): Input NumPy array representing the mask.
+        ref_itk (SimpleITK.Image): Reference image to align the mask with.
+
+    Returns:
+        SimpleITK.Image: ITK image mask with refined boundaries.
+    """
+
     ref_spacing = np.array(ref_itk.GetSpacing())
     voxel_size = np.max(ref_spacing)
 

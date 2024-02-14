@@ -1,14 +1,3 @@
-"""
-Here you can see some examples (NOT EXHAUSTIVE) of
-running common data processings you could have to do with a list of individuals the TRUSTED dataset.
-Based on them, you could run those you want.
-
-IMPORTANT: You could adapt the config_file.yml file
-
-# Example of command to run the tutorial ####
-# python src/trusted_datapaper_ds/dataprocessing/tutorial_for_list.py --config_path configs/config_file.yml
-
-"""
 from os.path import join
 
 import yaml
@@ -23,8 +12,25 @@ def main(
     ctlist,
     shiftCTimg_origin,
 ):
-    # Shift the origin of list of images or masks (here CT images) ###
-    # Note: "shifted_dirname" is the directory to save the shifted data.
+    """
+    Shifts the origin of CT images.
+
+    This function reads a list of individual IDs for CT images (`ctlist`). If the
+    `shiftCTimg_origin` flag is True, it iterates through each ID and:
+
+    1. Loads the corresponding CT image using the provided configuration paths.
+    2. Shifts the image origin to the specified location ([0,0,0]).
+    3. Saves the shifted image in a designated directory provided in the configuration.
+
+    Args:
+        config (dict): Configuration dictionary containing paths and parameters.
+        ctlist (List[str]): List of individual IDs for CT images.
+        shiftCTimg_origin (bool): Flag indicating whether to shift the origin of CT images.
+
+    Returns:
+        None
+    """
+
     if shiftCTimg_origin:
         shifted_dirname = join(config["myDATA"], config["CT0imgfol"])
         makedir(shifted_dirname)

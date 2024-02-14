@@ -11,6 +11,22 @@ from trusted_datapaper_ds.utils import makedir, parse_args
 
 
 def reupsampling_nib(imgnib, prednib, modality, clean=True):
+    """
+    This function takes a predicted segmentation (prednib) and resizes it to match the
+    resolution and affine matrix of a reference image (imgnib). Additionally, it can
+    perform modality-specific cleaning on the segmentation (e.g., removing small islands of false positive).
+
+    Args:
+        imgnib: Reference image (CT or US).
+        prednib: Predicted segmentation mask.
+        modality: Modality of the image (either "CT" or "US").
+        clean: Whether to perform modality-specific cleaning on the segmentation. Defaults to True.
+
+    Returns:
+        Reupsampled and optionally cleaned segmentation mask.
+
+    """
+
     squared_diff_affine_matrix = (imgnib.affine - prednib.affine) ** 2
 
     assert (
@@ -75,6 +91,20 @@ def reupsampling_and_save_nii_list(config, predpath_list, output_folder, clean=T
 def meshing_pcding_and_saving_nii_mask_list(
     annotatorID, maskpath_list, mesh_folder, pcd_folder
 ):
+    """
+    This function iterates through a list of mask paths
+    and create meshes and point clouds for each mask.
+    The results are saved in specified mesh and point cloud folders.
+
+    Args:
+        annotatorID: Identifier of the annotator who created the masks.
+        maskpath_list: List of paths to the masks to be processed.
+        mesh_folder: Path to the folder where meshes will be saved.
+        pcd_folder: Path to the folder where point clouds will be saved.
+
+    Returns:
+        None
+    """
     makedir(mesh_folder)
     makedir(pcd_folder)
 

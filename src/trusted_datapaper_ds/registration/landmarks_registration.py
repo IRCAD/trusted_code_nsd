@@ -9,10 +9,25 @@ from natsort import natsorted
 from trusted_datapaper_ds.dataprocessing import data as dt
 from trusted_datapaper_ds.utils import makedir, parse_args
 
-# np.random.seed(42)
-
 
 def compute_landmarks_transform(mov, fix, model):
+    """
+    Computes 3D transformation matrix between two sets of landmarks.
+
+    This function calculates a transformation matrix (4x4) that aligns one set of
+    3D landmarks (`mov`) to another (`fix`) using a specified transformation model.
+
+    Args:
+        mov (np.ndarray): Array of moving landmark coordinates (n x 3).
+        fix (np.ndarray): Array of fixed landmark coordinates (n x 3).
+        model (str): Transformation model ("affine", "similarity", or "rigid").
+
+    Returns:
+        np.ndarray: The 4x4 transformation matrix aligning `mov` to `fix`.
+
+    Raises:
+        AssertionError: If an invalid `model` is provided.
+    """
     assert model in ["affine", "similarity", "rigid"]
     n = fix.shape[0]
     fix_point = vtk.vtkPoints()
@@ -55,6 +70,32 @@ def ldks_transform(
     iteration=0,
     output_folder=None,
 ):
+    """
+    Estimates a 3D transformation matrix using landmark-based registration.
+
+    This function performs landmark-based image registration to estimate a
+    transformation matrix (4x4) aligning a moving landmark set (`dt_mov`) to a
+    fixed landmark set (`dt_fix`). It uses a specified transformation model
+    ("affine", "similarity", or "rigid").
+
+    Args:
+        dt_mov (dt.Landmarks): Moving landmark object.
+        dt_fix (dt.Landmarks): Fixed landmark object.
+        model (str): Transformation model used for registration ("similarity").
+        use234 (bool, optional): Whether to use only landmarks 2, 3, and 4
+            (default: True).
+        mov_noise_std (float, optional): Standard deviation of noise added to
+            moving landmarks (default: 0.0).
+        iteration (int, optional): Repetition number of the registration.
+        output_folder (str, optional): Path to save the transformation matrix
+            (default: None).
+
+    Returns:
+        np.ndarray: The 4x4 transformation matrix aligning `dt_mov` to `dt_fix`.
+
+    Raises:
+        AssertionError: If the moving and fixed sets have different numbers of landmarks.
+    """
     assert (
         dt_fix.number_of_ldks == dt_mov.number_of_ldks
     ), "mov and fix must have the same number of points."

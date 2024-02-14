@@ -1,6 +1,6 @@
 
-## ''' My personnal example of location (TO BE REMOVED)'''
-data_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/"
+
+data_location: "/home/TRUSTED_submission/"
 
 ## ''' US data FOLDERS PROVIDED'''
 USimgfol: "US_DATA/US_images/"
@@ -64,9 +64,7 @@ USfold:
 
 
 # WHERE YOU COULD SAVE YOUR CREATED DATA
-myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA"
-# myDATA: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission"
-
+myDATA: "/home/TRUSTED_submission/myDATA"
 
 ## ''' FOLDERS NO PROVIDED (Have to be created by used if need. Can be added)'''
 
@@ -98,14 +96,14 @@ CT128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 ## ''' MAIN PROCESSINGS '''
 
 # Mask ground-truth estimation (STAPLE fusion)
-myUS_fusedmasks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA/US_DATA/US_masks/GT_estimated_masksUS/"
-myCT_fusedmasks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA/CT_DATA/CT_masks/GT_estimated_maskCT/"
+myUS_fusedmasks_location: "/home/TRUSTED_submission/myDATA/US_DATA/US_masks/GT_estimated_masksUS/"
+myCT_fusedmasks_location: "/home/TRUSTED_submission/myDATA/CT_DATA/CT_masks/GT_estimated_maskCT/"
 fuse_USmask: True
 fuse_CTmask: False
 
 # Landmarks ground-truth estimation
-myUS_fusedlandmarks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA/US_DATA/US_landmarks/GT_estimated_ldksUS/"
-myCT_fusedlandmarks_location: "/home/wndzimbong/IRCAD_DOSSIER/2022_2023/DOUBLE_ANNOTATION_DATA/TRUSTED_submission/myDATA/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
+myUS_fusedlandmarks_location: "/home/TRUSTED_submission/myDATA/US_DATA/US_landmarks/GT_estimated_ldksUS/"
+myCT_fusedlandmarks_location: "/home/TRUSTED_submission/myDATA/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 fuse_USlandmark: True
 fuse_CTlandmark: True
 

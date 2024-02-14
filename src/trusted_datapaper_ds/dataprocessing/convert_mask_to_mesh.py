@@ -14,6 +14,20 @@ def main(
     CTmask_to_mesh,
     USmask_to_mesh,
 ):
+    """
+    Main function to convert CT and US masks to meshes and point clouds.
+
+    Parameters:
+        config (dict): Configuration parameters.
+        ctlist (list): List of CT data.
+        uslist (list): List of US data.
+        CTmask_to_mesh (bool): Flag indicating whether to convert CT masks to meshes.
+        USmask_to_mesh (bool): Flag indicating whether to convert US masks to meshes.
+
+    Returns:
+        None
+    """
+
     ann = config["annotator_mask_to_mesh"]
 
     if CTmask_to_mesh:
@@ -46,9 +60,6 @@ def main(
                 mask_cleaning=False,
             )
 
-    # Convert list of Masks to Meshes and PCDs (here US ground truth)###
-    # Note: "mesh_dirname" is the directory to save the mesh,
-    #       "pcd_dirname" is the directory to save the point cloud
     if USmask_to_mesh:
         USlike_IDlist = uslist
         CTlike_IDlist = None

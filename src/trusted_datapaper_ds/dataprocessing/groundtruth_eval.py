@@ -31,6 +31,35 @@ def gteval(
     ld2_files,
     ldgt_files,
 ):
+    """
+    Evaluates and saves metrics for masks, meshes, and landmarks in an analysis.
+
+    The function performs the following:
+
+    - **Dice score** calculation for masks between each annotator and ground truth.
+    - **Hausdorff distance (95th percentile)** between meshes for each annotator and ground truth.
+    - **Mean surface-to-surface nearest neighbor distance** between meshes for each annotator and ground truth.
+    - **Landmark inter-annotator agreement** by calculating Euclidean distance between each landmark and the
+    ground truth.
+
+    It then saves the calculated metrics for each individual and modality in separate CSV files.
+
+    Args:
+        modality (str): The modality of the analysis ("CT" or "US").
+        analysis_folder (str): The path to the folder containing the analysis data.
+        ma1_files (List[str]): List of paths to mask files from annotator 1.
+        ma2_files (List[str]): List of paths to mask files from annotator 2.
+        magt_files (List[str]): List of paths to ground truth mask files.
+        me1_files (List[str]): List of paths to mesh files from annotator 1.
+        me2_files (List[str]): List of paths to mesh files from annotator 2.
+        megt_files (List[str]): List of paths to ground truth mesh files.
+        ld1_files (List[str]): List of paths to landmark files from annotator 1.
+        ld2_files (List[str]): List of paths to landmark files from annotator 2.
+        ldgt_files (List[str]): List of paths to ground truth landmark files.
+
+    Returns:
+        None
+    """
     assert (
         len(magt_files) == len(ma1_files)
         and len(magt_files) == len(ma2_files)

@@ -73,8 +73,36 @@ def seg_analysis(config, seg_evaluation_outputs_folder: str):
 
 def main(config):
     """
-    :param:
-    :return:
+    Evaluate various segmentation methods and generate summary results.
+
+    This function reads a configuration dictionary containing settings and iterates
+    through a list of segmentation models and training targets. For each combination,
+    it performs the following steps:
+
+    1. **Process reference methods:** Calculates mean Dice, Hausdorff 95, and nearest neighbor
+       distance metrics for the specified reference model and target.
+    2. **Calculate metrics for each method:** Evaluates the segmentation results for the current
+       model and target, computing the same metrics as for the reference.
+    3. **Perform statistical significance tests:** Conducts Shapiro-Wilk normality tests, paired t-tests,
+       and Wilcoxon tests to compare the metrics of the current method with the reference's.
+    4. **Save summary results to CSV files:** Generates separate CSV files for Dice, Hausdorff 95,
+       and nearest neighbor distance summary results, including mean, standard deviation,
+       p-values from various tests, and outlier information.
+
+    Args:
+        config (dict): Configuration dictionary containing experiment settings. Must include
+                       the following keys:
+                           - `segresults_folder`: Path to the folder containing segmentation results.
+                           - `modality`: Imaging modality (e.g., "CT", "US").
+                           - `refmodel`: Reference segmentation model name.
+                           - `reftarget`: Reference segmentation target name.
+                           - `list_segmodels`: List of segmentation models to evaluate.
+                           - `list_training_target`: List of training targets for each model.
+                           - `seg_evaluation_outputs_folder`: Path to the folder containing
+                                                          segmentation evaluation outputs.
+
+    Returns:
+        None
     """
 
     segresults_folder = join(config["segresults_folder"], config["modality"])

@@ -27,6 +27,29 @@ def single_trials_imfusion_transform(
     mov0_temp_path,
     mov1_temp_path,
 ):
+    """
+    Performs single trial image registration using ImFusionSuite.
+
+    This function performs rigid or affine image registration between two images
+    using ImFusionSuite based on a provided workspace file (`imfusion_workspace_file`).
+    It requires temporary paths for the fixed image (`fix_temp_path`), moving image
+    (`mov0_temp_path`), and registered image (`mov1_temp_path`).
+
+    Args:
+        imfusion_workspace_file (str): Path to the ImFusionSuite workspace file.
+        model (str): Registration model ("affine" or "rigid").
+        similarity_metric (str): Similarity metric used for registration.
+        time_sleep (int): Seconds to wait for ImFusionSuite processing.
+        fix_temp_path (str): Temporary path for the fixed image.
+        mov0_temp_path (str): Temporary path for the moving image.
+        mov1_temp_path (str): Temporary path for the registered image.
+
+    Returns:
+        np.ndarray: The estimated transformation matrix (4x4).
+
+    Raises:
+        AssertionError: If an invalid `model` is provided.
+    """
     assert model in ["affine", "rigid"]
 
     if model == "rigid":
@@ -155,6 +178,34 @@ def many_trials_imfusion_transform(
 
 
 if __name__ == "__main__":
+    """
+    Performs landmark-based + intensity-based image registration for multiple subjects.
+
+    This script performs two-step image registration for multiple subjects specified
+    in a configuration file. First, it uses a landmark-based
+    algorithm to estimate an initial transformation and then
+    refines it using an intensity-based method with ImFusionSuite.
+
+    The script iterates through each subject ID, loads corresponding landmark and image
+    files, applies the transformations, and saves the results in specified folders.
+    It handles multiple iterations for the landmark-based step and multiple trials
+    for the intensity-based step.
+
+    Configuration options include:
+        * `ldks_model`: Transform model for landmark-based registration.
+        * `movldk_location`: Location of moving landmark files.
+        * `fixldk_location`: Location of fixed landmark files.
+        * `movimg_location`: Location of moving image files.
+        * `fiximg_location`: Location of fixed image files.
+        * `transfo_location`: Optional folder for saving transformation matrices.
+        * `imf_temp_folder`: Temporary folder for ImFusionSuite processing.
+        * `noise_std`: Standard deviation of noise applied (optional).
+        * `iternumb`: Number of repetitions of the registration.
+        * `refine_model`: Transform model for intensity-based refinement (affine/rigid).
+        * `similarity_metric`: Similarity metric used for intensity-based refinement.
+
+    """
+
     np.random.seed(0)
 
     args = parse_args()

@@ -89,6 +89,17 @@ class Image:
         self.nparray = self.nibimg.get_fdata()
 
     def shift_origin(self, new_origin=[0, 0, 0], shifted_dirname=None):
+        """
+        Shifts the origin of the CT data to a new position.
+
+        Args:
+            new_origin (list, optional): The new origin coordinates (default is [0, 0, 0]).
+            shifted_dirname (str, optional): The directory to save the shifted data (default is None).
+
+        Returns:
+            SimpleITK.Image: The shifted CT data.
+        """
+
         assert self.modality == "CT", "Needed only for CT volume"
 
         print("CT data origin shifting to ", new_origin, " for ", self.basename)
@@ -125,14 +136,33 @@ class Image:
 
 
 class Mask:
+
+    """
+    Represents a medical mask.
+
+    Attributes:
+        path (str): The path to the mask file (.nii.gz).
+        itkmask (SimpleITK.Image): The SimpleITK image object.
+        nibmask (nibabel.Nifti1Image): The NiBabel image object.
+        modality (str): The modality of the mask (e.g., "US", "CT").
+        basename (str): The base name of the mask file.
+        size (np.ndarray): The size of the mask (width, height, depth).
+        origin (np.ndarray): The origin of the mask in voxel coordinates.
+        orientation (np.ndarray): The orientation of the mask as a 3x3 matrix.
+        spacing (np.ndarray): The voxel spacing of the mask.
+        nibaffine (np.ndarray): The affine transform of the mask.
+        nparray (np.ndarray): The NumPy array representation of the mask data.
+    """
+
     def __init__(self, maskpath, annotatorID, split=False):
         """
-        Initializes an Mask object from an mask file (.nii.gz).
+        Initializes a Mask object from a mask file (.nii.gz).
 
         Args:
-            maskpath (str): The pathmask to the mask file (.nii.gz).
+            maskpath (str): The path to the mask file (.nii.gz).
+            annotatorID (str): The annotator ID.
+            split (bool, optional): Whether the mask is split or not. Specific to CT masks (default is False).
         """
-
         assert maskpath[-7:] == ".nii.gz"
 
         self.path = maskpath
@@ -174,6 +204,18 @@ class Mask:
         pcd_dirname=None,
         mask_cleaning=True,
     ):
+        """
+        Converts the mask to a mesh(es) and point cloud (s).
+
+        Args:
+            mesh_dirname (str, optional): The directory to save the mesh (default is None).
+            pcd_dirname (str, optional): The directory to save the point cloud (default is None).
+            mask_cleaning (bool, optional): Whether to clean the mask (default is True).
+
+        Returns:
+            tuple or o3d.geometry.PointCloud: Tuple of meshes and point clouds
+        """
+
         nib_data = self.nibmask
         modality = self.modality
         individual_name = self.individual_name
@@ -216,6 +258,15 @@ class Mask:
             return o3d_meshUS, o3d_pcdUS, mask_cleaned_nib
 
     def split(self, split_dirname=None):
+        """
+        Splits the mask. This is for CT masks
+
+        Args:
+            split_dirname (str, optional): The directory to save the split masks (default is None).
+
+        Returns:
+            tuple: Tuple of split masks.
+        """
         nib_data = self.nibmask
         modality = self.modality
         individual_name = self.individual_name
@@ -229,7 +280,27 @@ class Mask:
 
 
 class Landmarks:
+    """
+    Represents landmarks associated with an image.
+
+    Attributes:
+        path (str): The path to the landmarks file (.txt).
+        nparray (np.ndarray): NumPy array containing landmark coordinates.
+        number_of_ldks (int): Number of landmarks.
+        modality (str): The modality of the associated image (e.g., "US", "CT").
+        basename (str): The base name of the landmarks file.
+        individual_name (str): The name of the individual associated with the landmarks.
+    """
+
     def __init__(self, ldkspath, annotatorID) -> None:
+        """
+        Initializes a Landmarks object from a landmarks file (.txt).
+
+        Args:
+            ldkspath (str): The path to the landmarks file (.txt).
+            annotatorID (str): The annotator ID.
+        """
+
         assert ldkspath[-4:] == ".txt"
         self.path = ldkspath
         self.basename = os.path.basename(self.path)
@@ -254,6 +325,15 @@ class Landmarks:
         self.individual_name = self.basename[:a]
 
     def to_o3d(self, ply_dirname=None):
+        """
+        Converts landmarks to Open3D point cloud format.
+
+        Args:
+            ply_dirname (str, optional): The directory to save the converted landmarks (default is None).
+
+        Returns:
+            o3d.geometry.PointCloud: Open3D point cloud object representing the landmarks.
+        """
         if len(self.nparray.shape) == 1:
             self.nparray = self.nparray.reshape(1, self.nparray.shape[0])
 
@@ -265,6 +345,15 @@ class Landmarks:
         return o3dldks
 
     def noising(self, std):
+        """
+        Adds noise to the landmarks.
+
+        Args:
+            std (float): The standard deviation of the noise to add.
+
+        Returns:
+            None: Modifies the internal `nparray` attribute with the noise added.
+        """
         noised_ldks = np.random.normal(
             loc=self.nparray, scale=std * np.ones_like(self.nparray), size=None
         )
@@ -273,6 +362,21 @@ class Landmarks:
 
 
 class Mesh:
+    """
+    Represents a mesh loaded from an OBJ file.
+
+    This class provides methods to load, convert, and access information about the mesh.
+
+    Attributes:
+        path (str): The path to the mesh OBJ file.
+        basename (str): The base name of the mesh file.
+        o3dmesh (o3d.geometry.TriangleMesh): The Open3D representation of the mesh.
+        modality (str): The modality of the image associated with the mesh (e.g., "CT", "US").
+        suffix (str): A suffix string used to identify the mesh based on modality and annotator ID.
+        individual_name (str): The name of the individual associated with the mesh.
+        annotatorID (str, optional): The annotator ID (default is "").
+    """
+
     def __init__(self, meshpath, annotatorID) -> None:
         assert meshpath[-4:] == ".obj"
         self.path = meshpath
@@ -316,6 +420,42 @@ def convert_to_mesh_and_pcd(
     pcd_dirname=None,
     mask_cleaning=True,
 ):
+    """
+    Converts a Nifti mask object to meshes and point clouds for each major connected component.
+
+    This function performs marching cubes on each connected component of the input mask
+    and optionally saves the resulting meshes and point clouds to specified directories.
+    For CT data, it generates separate meshes and point clouds for the left and right sides.
+
+    Args:
+        nib_data (nib.Nifti1Image): The Nifti data object to be converted.
+        modality (str): The modality of the data (e.g., "CT", "US").
+        individual_name (str): The name of the individual associated with the data.
+        annotatorID (str): The annotator ID.
+        mesh_dirname (str, optional): The directory to save the meshes (default is None).
+        pcd_dirname (str, optional): The directory to save the point clouds (default is None).
+        mask_cleaning (bool, optional): Whether to perform mask cleaning (default is True).
+
+    Returns:
+        tuple: A tuple containing the following elements (depending on modality):
+
+            * For CT modality:
+                - o3d_meshCT_L (o3d.geometry.TriangleMesh): The left mesh
+                - o3d_meshCT_R (o3d.geometry.TriangleMesh): The right mesh
+                - o3d_pcdCT_L (o3d.geometry.PointCloud): The left point cloud.
+                - o3d_pcdCT_R (o3d.geometry.PointCloud): The right point cloud.
+                - mask_cleaned_nib (Optional[nib.Nifti1Image]): The mask after cleaning
+                (None if `mask_cleaning` is False).
+            * For US modality:
+                - o3d_meshUS (o3d.geometry.TriangleMesh): The mesh.
+                - o3d_pcdUS (o3d.geometry.PointCloud): The point cloud.
+                - mask_cleaned_nib (Optional[nib.Nifti1Image]): The mask after cleaning
+                (None if `mask_cleaning` is False).
+
+    Raises:
+        NotImplementedError: If the modality is not supported.
+    """
+
     affine = nib_data.affine
     new_affine = np.linalg.solve(np.sign(affine), affine)
     sign_affine = np.sign(affine)
@@ -328,8 +468,6 @@ def convert_to_mesh_and_pcd(
 
     if annotatorID == "gt" or annotatorID == "auto":
         annotatorID = ""
-
-    # print("*** mesh and pcd creation for: ", self.basename, " ***")
 
     out = cc3d.connected_components(nib_data.get_fdata())
     bins_origin = np.bincount(out.flatten())
@@ -494,6 +632,28 @@ def convert_to_mesh_and_pcd(
 def convert_to_split(
     nib_data, modality, individual_name, annotatorID, split_dirname=None
 ):
+    """
+    Splits a CT mask into left and right side Nifti objects.
+
+    This function performs a simple mid-sagittal split on a CT mask Nifti mask and saves the
+    resulting left and right sides as separate Nifti objects.
+
+    Args:
+        nib_data (nib.Nifti1Image): The Nifti object containing the CT mask.
+        modality (str): The modality of the corresponding image (must be "CT").
+        individual_name (str): The name of the individual associated with the data.
+        annotatorID (str): The annotator ID.
+        split_dirname (str, optional): The directory to save the split files (default is None).
+
+    Returns:
+        tuple: A tuple containing the following elements:
+            - splitL_nib (nib.Nifti1Image): The left side mask as a Nifti object.
+            - splitR_nib (nib.Nifti1Image): The right side mask as a Nifti object.
+
+    Raises:
+        AssertionError: If the modality is not "CT".
+    """
+
     assert modality == "CT", "Applicable only on a CT mask"
 
     if annotatorID == "gt" or annotatorID == "auto":
@@ -541,6 +701,28 @@ def fuse_masks(
     img_intensity_scaling="normal",  # "normal" or "scale"
     fused_dirname=None,
 ):
+    """
+    Fuses a list of trusted masks.
+
+    This function combines multiple trusted masks using the Simultaneous Truth and Performance Level Estimation(STAPLE).
+
+    Args:
+        list_of_trusted_masks (list[Mask]): A list of trusted mask objects as input.
+        trusted_img (Image): The reference image object containing the intensity information.
+        resizing (Optional[List[int]], optional): A list of 3 integers representing the desired output size
+            for resizing images and probabilities (default is None). Useful to avoid memory overflow.
+        npmaxflow_lamda (float, optional): The lambda parameter for the Maxflow algorithm.
+        img_intensity_scaling (str, optional): The intensity scaling method for the image ("normal" or "scale",
+            default is "normal").
+        fused_dirname (Optional[str], optional): The directory to save the fused mask (default is None).
+
+    Returns:
+        nib.Nifti1Image: The fused mask as a Nifti image object.
+
+    Raises:
+        ValueError: If the `img_intensity_scaling` argument is not either "normal" or "scale".
+    """
+
     print(
         "*** Fusion of masks with staple (from Sitk) + maxflow (from numpymaxflow) ***"
     )
@@ -625,6 +807,23 @@ def fuse_landmarks(
     list_of_trusted_ldks: list[Landmarks],
     fused_dirname=None,
 ):
+    """
+    Fuses a list of trusted landmarks by averaging their coordinates.
+
+    This function takes a list of trusted landmark objects and calculates the average
+    of their coordinates. The resulting fused landmarks are returned as a NumPy array.
+
+    Args:
+        list_of_trusted_ldks (list[Landmarks]): A list of trusted landmark objects as input.
+        fused_dirname (str, optional): The directory to save the fused landmarks (default is None).
+
+    Returns:
+        np.ndarray: A NumPy array containing the fused landmarks (7 landmarks, 3 coordinates each).
+
+    Raises:
+        ValueError: If the input list of landmarks is empty.
+    """
+
     print("*** Fusion of landmarks ***")
     sum_nparray = np.zeros((7, 3))
 
@@ -650,6 +849,19 @@ def fuse_landmarks(
 
 
 def plot_arrays(arrays):
+    """
+    Plots a list of 2D arrays as separate images in a single figure.
+
+    This function creates a figure with subplots arranged horizontally and displays each
+    input array as an image on its own subplot.
+
+    Args:
+        arrays (List[np.ndarray]): A list of 2D NumPy arrays representing images to be plotted.
+
+    Raises:
+        ValueError: If the input arrays have inconsistent dimensions or are not 2D.
+    """
+
     # Create a figure and subplots
     fig, axes = plt.subplots(1, len(arrays), figsize=(15, 5))
 
@@ -665,12 +877,24 @@ def plot_arrays(arrays):
 
 def resiz_nparray(input_nparray, newsize, interpolmode, binary):
     """
-    Resize a numpy array into a specified new size.
+    Resizes a NumPy array to a new size using specified interpolation.
+
+    This function takes a NumPy array and resizes it to the specified `newsize` using
+    the given `interpolmode`. Optionally, it can binarize the resized array based on
+    a threshold of 0.5.
 
     Args:
-        ...
+        input_nparray (np.ndarray): The input NumPy array to be resized.
+        newsize (Tuple[int, int, int]): The desired new size of the array (width, height, depth).
+        interpolmode (str): The interpolation mode to use for resizing (e.g., "nearest", "bilinear", "trilinear").
+        binary (bool): Whether to binarize the resized array after resizing (default: False).
+
     Returns:
-        ...
+        np.ndarray: The resized and optionally binarized NumPy array.
+
+    Raises:
+        ValueError: If the `newsize` is not a tuple of 3 integers.
+        ValueError: If the `interpolmode` is not a valid interpolation mode.
     """
     binarizing = Compose(
         [
@@ -704,12 +928,25 @@ def resiz_nparray(input_nparray, newsize, interpolmode, binary):
 
 def resiz_nib_data(input_nib, newsize, interpolmode, binary):
     """
-    Resize a nibabel object a specified new size.
+    Resizes a Nifti1Image object to a new size using specified interpolation.
+
+    This function takes a Nifti1Image object and resizes its underlying data array
+    to the specified `newsize` using the given `interpolmode`. Optionally, it can
+    binarize the resized array based on a threshold of 0.5. The resized data and
+    original affine transformation are kept in the output Nifti1Image object.
 
     Args:
-        ...
+        input_nib (nib.Nifti1Image): The input Nifti1Image object to be resized.
+        newsize (Tuple[int, int, int]): The desired new size of the data array (width, height, depth).
+        interpolmode (str): The interpolation mode to use for resizing (e.g., "nearest", "bilinear", "trilinear").
+        binary (bool): Whether to binarize the resized data array after resizing (default: False).
+
     Returns:
-        ...
+        nib.Nifti1Image: The resized Nifti1Image object with the new data array.
+
+    Raises:
+        ValueError: If the `newsize` is not a tuple of 3 integers.
+        ValueError: If the `interpolmode` is not a valid interpolation mode.
     """
     input_nparray = input_nib.get_fdata()
     affine = input_nib.affine
@@ -722,6 +959,24 @@ def resiz_nib_data(input_nib, newsize, interpolmode, binary):
 
 
 def clean_nibmask(nib_mask, number_of_kidney):
+    """
+    Cleans a Nifti mask image containing multiple kidney objects.
+
+    This function takes a Nifti1Image object representing a mask of possibly multiple
+    kidneys and cleans it to keep the specified number of kidneys. Cleaning involves
+    identifying the largest connected components and keeping only the specified number.
+
+    Args:
+        nib_mask (nib.Nifti1Image): The input Nifti1Image representing the kidney mask.
+        number_of_kidney (int): The desired number of kidneys to keep (must be 1 or 2).
+
+    Returns:
+        nib.Nifti1Image: The cleaned Nifti1Image with the specified number of kidneys.
+
+    Raises:
+        AssertionError: If `number_of_kidney` is not 1 or 2.
+    """
+
     assert number_of_kidney in [1, 2], " number_of_kidney must be 1 or 2"
 
     affine = nib_mask.affine
