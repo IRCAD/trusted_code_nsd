@@ -45,7 +45,7 @@ CTimg_location: "/home/TRUSTED_submission/CT_DATA/CT_images/"
 
 imf_temp_folder: "/home/TRUSTED_submission/imf_temp_folder"
 
-# For evaluation
+# For registration evaluation
 USgtmesh_location: "/home/TRUSTED_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
 CTgtmesh_location: "/home/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
 
