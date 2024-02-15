@@ -45,7 +45,7 @@ def single_trials_imfusion_transform(
         mov1_temp_path (str): Temporary path for the registered image.
 
     Returns:
-        np.ndarray: The estimated transformation matrix (4x4).
+        np.ndarray: The ImFusion (refinement) estimated transformation matrix (4x4).
 
     Raises:
         AssertionError: If an invalid `model` is provided.

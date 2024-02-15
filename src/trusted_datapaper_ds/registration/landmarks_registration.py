@@ -23,7 +23,7 @@ def compute_landmarks_transform(mov, fix, model):
         model (str): Transformation model ("affine", "similarity", or "rigid").
 
     Returns:
-        np.ndarray: The 4x4 transformation matrix aligning `mov` to `fix`.
+        np.ndarray: The landmarks (global or initial) 4x4 transformation matrix aligning `mov` to `fix`.
 
     Raises:
         AssertionError: If an invalid `model` is provided.

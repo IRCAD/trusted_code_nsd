@@ -13,27 +13,30 @@ def main(
     shiftCTimg_origin,
 ):
     """
-    Shifts the origin of CT images.
+    This function execute CT image origin shifting operations.
+    It handles the following tasks:
 
-    This function reads a list of individual IDs for CT images (`ctlist`). If the
-    `shiftCTimg_origin` flag is True, it iterates through each ID and:
-
-    1. Loads the corresponding CT image using the provided configuration paths.
-    2. Shifts the image origin to the specified location ([0,0,0]).
-    3. Saves the shifted image in a designated directory provided in the configuration.
+    1. Checks if CT image origin shifting is enabled based on the `shiftCTimg_origin` flag.
+    2. Creates necessary directories to store shifted images and transformation matrices for shifting back.
+    3. Iterates through a list of CT images.
+    4. For each CT image:
+        a. Loads the image using the `Image` class.
+        b. Shifts the origin of the image using the `shift_origin` method.
+        c. Optionally saves the shifted image and transformation matrixfor shifting back.
 
     Args:
-        config (dict): Configuration dictionary containing paths and parameters.
-        ctlist (List[str]): List of individual IDs for CT images.
-        shiftCTimg_origin (bool): Flag indicating whether to shift the origin of CT images.
+    config (dict): A configuration dictionary containing relevant paths and settings.
+    ctlist (list): A list of individual identifiers for the CT images to be processed.
+    shiftCTimg_origin (bool): A flag indicating whether to perform CT image origin shifting.
 
     Returns:
-        None
+    None
     """
-
     if shiftCTimg_origin:
         shifted_dirname = join(config["myDATA"], config["CT0imgfol"])
         makedir(shifted_dirname)
+        shiftback_transforms_dirname = join(config["myDATA"], config["CT0tbackfol"])
+        makedir(shiftback_transforms_dirname)
         for ind in ctlist:
             individual = ind
             imgpath = join(
@@ -42,7 +45,10 @@ def main(
                 individual + config["CTimg_end"],
             )
             ctimg = dt.Image(imgpath)
-            ctimg.shift_origin(shifted_dirname=shifted_dirname)
+            ctimg.shift_origin(
+                shifted_dirname=shifted_dirname,
+                shiftback_transforms_dirname=shiftback_transforms_dirname,
+            )
     return
 
 

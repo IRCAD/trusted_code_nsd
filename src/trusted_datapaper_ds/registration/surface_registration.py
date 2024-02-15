@@ -44,7 +44,7 @@ def icp_transform(
         output_folder (str, optional): Folder to save the transformation matrix.
 
     Returns:
-        numpy.ndarray: The computed transformation matrix (4x4).
+        numpy.ndarray: The ICP (refinement) computed transformation matrix (4x4) .
 
     Raises:
         AssertionError: If the provided model is not valid ("rigid" or "affine").
@@ -124,7 +124,7 @@ def bcpd_transform(
         output_folder (str, optional): Folder to save the transformation matrix.
 
     Returns:
-        numpy.ndarray: The computed transformation matrix (4x4).
+        numpy.ndarray: The BCPD (refinement) computed transformation matrix (4x4).
 
     Raises:
         AssertionError: If the provided model is not valid ("rigid" or "affine").

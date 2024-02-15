@@ -42,7 +42,7 @@ __license__ = "MIT"
 
 class Image:
     """
-    Represents a medical image.
+    Represents a TRUSTED image data.
 
     Attributes:
         path (str): The path to the image file (.nii.gz).
@@ -88,19 +88,41 @@ class Image:
         self.nibaffine = self.nibimg.affine
         self.nparray = self.nibimg.get_fdata()
 
-    def shift_origin(self, new_origin=[0, 0, 0], shifted_dirname=None):
+    def shift_origin(
+        self,
+        new_origin=[0, 0, 0],
+        shifted_dirname=None,
+        shiftback_transforms_dirname=None,
+    ):
         """
-        Shifts the origin of the CT data to a new position.
+        Shifts the origin of the image data, primarily used for CT volumes.
 
         Args:
-            new_origin (list, optional): The new origin coordinates (default is [0, 0, 0]).
-            shifted_dirname (str, optional): The directory to save the shifted data (default is None).
+            new_origin (list, optional): The new origin to set for the image data. Defaults to [0, 0, 0].
+            shifted_dirname (str, optional): The directory to save the shifted image data. If not provided,
+            the data is not saved.
+            shiftback_transforms_dirname (str, optional): The directory to save the transformation matrix for
+            shifting back the origin. If not provided, the matrix is not saved.
 
         Returns:
-            SimpleITK.Image: The shifted CT data.
+            sitk.Image: The shifted image as a SimpleITK image object.
+
+        Raises:
+            AssertionError: If the modality of the image is not "CT".
+            ValueError: If the suffix of the image file basename does not contain "img".
         """
 
         assert self.modality == "CT", "Needed only for CT volume"
+
+        if shiftback_transforms_dirname is not None:
+            toras = np.diag([-1, -1, 1, 1])
+            tback = np.eye(4)
+            tback[:3, 3] = self.origin
+            tback = toras @ tback
+            tback_path = join(
+                shiftback_transforms_dirname, self.individual_name + "tback.txt"
+            )
+            np.savetxt(tback_path, tback)
 
         print("CT data origin shifting to ", new_origin, " for ", self.basename)
 
@@ -138,7 +160,7 @@ class Image:
 class Mask:
 
     """
-    Represents a medical mask.
+    Represents a TRUSTED mask data.
 
     Attributes:
         path (str): The path to the mask file (.nii.gz).
@@ -281,7 +303,7 @@ class Mask:
 
 class Landmarks:
     """
-    Represents landmarks associated with an image.
+    Represents TRUSTED landmarks data associated with an image.
 
     Attributes:
         path (str): The path to the landmarks file (.txt).
@@ -363,7 +385,7 @@ class Landmarks:
 
 class Mesh:
     """
-    Represents a mesh loaded from an OBJ file.
+    Represents a TRUSTED mesh data loaded from an OBJ file.
 
     This class provides methods to load, convert, and access information about the mesh.
 
