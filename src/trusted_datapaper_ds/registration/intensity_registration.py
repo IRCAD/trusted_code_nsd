@@ -1,3 +1,10 @@
+"""
+    Copyright (C) 2022-2024 IRCAD France - All rights reserved. *
+    This file is part of Disrumpere. *
+    Disrumpere can not be copied, modified and/or distributed without
+    the express permission of IRCAD France.
+"""
+
 import os
 import signal
 import subprocess

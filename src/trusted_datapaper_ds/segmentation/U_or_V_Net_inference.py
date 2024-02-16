@@ -1,15 +1,10 @@
 """
-Run the trained VNet models on our 5 folds to produce the automatic segmentation of our US data
-
-Parameters:
-----------
-    data_root : string
-                images folder
-    models_folder : string
-                    trained models folder
-    out_root: string
-                where to save the predicted masks
+    Copyright (C) 2022-2024 IRCAD France - All rights reserved. *
+    This file is part of Disrumpere. *
+    Disrumpere can not be copied, modified and/or distributed without
+    the express permission of IRCAD France.
 """
+
 import os
 from os.path import join
 from sys import maxsize

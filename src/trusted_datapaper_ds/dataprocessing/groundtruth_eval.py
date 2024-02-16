@@ -1,6 +1,10 @@
 """
-In this file, we analyse the fused manual segmentations versus each annotator.
+    Copyright (C) 2022-2024 IRCAD France - All rights reserved. *
+    This file is part of Disrumpere. *
+    Disrumpere can not be copied, modified and/or distributed without
+    the express permission of IRCAD France.
 """
+
 from os.path import join
 
 import numpy as np
