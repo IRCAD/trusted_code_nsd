@@ -20,34 +20,38 @@ def main(
     shiftCTimg_origin,
 ):
     """
-    This function execute CT image origin shifting operations.
-    It handles the following tasks:
-
-    1. Checks if CT image origin shifting is enabled based on the `shiftCTimg_origin` flag.
-    2. Creates necessary directories to store shifted images and transformation matrices for shifting back.
-    3. Iterates through a list of CT images.
-    4. For each CT image:
-        a. Loads the image using the `Image` class.
-        b. Shifts the origin of the image using the `shift_origin` method.
-        c. Optionally saves the shifted image and transformation matrixfor shifting back.
+    This function executes CT image origin shifting operations based on the provided configuration and settings.
 
     Args:
-    config (dict): A configuration dictionary containing relevant paths and settings.
-    ctlist (list): A list of individual identifiers for the CT images to be processed.
-    shiftCTimg_origin (bool): A flag indicating whether to perform CT image origin shifting.
+        config (dict): A dictionary containing configuration parameters, including:
+            - `myDATA`: The base directory for data storage.
+            - `CTimgfol`: The subdirectory containing CT images.
+            - `CT0imgfol`: The subdirectory to save shifted CT images (if enabled).
+            - `CT_tbackmesh_transforms`: The subdirectory to save transformation matrices for shifting meshes to
+            the CT coordinate system (if enabled).
+            - `CT_tbackldk_transforms`: The subdirectory to save transformation matrices for shifting landmarks to
+            the CT coordinate system (if enabled).
+            - `data_location`: The main data location.
+            - `CTimg_end`: The file extension for CT images.
+        ctlist (list[str]): A list of individual identifiers for the CT images to be processed.
+        shift_ct_origin (bool): A flag indicating whether to perform CT image origin shifting.
+
+    Raises:
+        ValueError: If `shift_ct_origin` is True and any essential configuration values are missing.
 
     Returns:
-    None
+        None
     """
+
     if shiftCTimg_origin:
         shifted_dirname = join(config["myDATA"], config["CT0imgfol"])
         makedir(shifted_dirname)
         shiftback_mesh_transforms_dirname = join(
-            config["myDATA"], config["CT0tbackmeshfol"]
+            config["myDATA"], config["CT_tbackmesh_transforms"]
         )
         makedir(shiftback_mesh_transforms_dirname)
         shiftback_ldks_transforms_dirname = join(
-            config["myDATA"], config["CT0tbackldkfol"]
+            config["myDATA"], config["CT_tbackldk_transforms:"]
         )
         makedir(shiftback_ldks_transforms_dirname)
         for ind in ctlist:

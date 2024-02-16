@@ -96,15 +96,18 @@ class Image:
             new_origin (list, optional): The new origin to set for the image data. Defaults to [0, 0, 0].
             shifted_dirname (str, optional): The directory to save the shifted image data. If not provided,
             the data is not saved.
-            shiftback_transforms_dirname (str, optional): The directory to save the transformation matrix for
-            shifting back the origin. If not provided, the matrix is not saved.
-
-        Returns:
-            sitk.Image: The shifted image as a SimpleITK image object.
+            shiftback_mesh_transforms_dirname (str, optional): The directory to save the transformation matrix
+            for shifting meshes to the CT coordinate system. If not provided, the matrix is not saved.
+            shiftback_ldks_transforms_dirname (str, optional): The directory to save the transformation matrix
+            for shifting landmarks to the CT coordinate system. If not provided, the matrix is not saved.
 
         Raises:
             AssertionError: If the modality of the image is not "CT".
             ValueError: If the suffix of the image file basename does not contain "img".
+
+        Returns:
+            sitk.Image: The shifted image as a SimpleITK image object.
+
         """
 
         assert self.modality == "CT", "Needed only for CT volume"

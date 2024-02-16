@@ -8,11 +8,11 @@
 # trusted_datapaper_ds
 
 ### The goal of the python project
-This is the script developed to analyse the TRUSTED dataset, as well as to evaluate some baselines of deep-learning-based segmentations models, and registration models.
-Here is how to use it for "reproductibility".
+This is the script developed to analyze the TRUSTED dataset, as well as to evaluate some baselines of deep-learning-based segmentations models, and registration models.
+Here is how to use it for "reproducibility".
 Each point is organized as:
 - config file: the configuration file to set before running the specific commands.
-   The main fields you will have to update, are the paths. I recommend to not change them too much
+   The main fields you will have to update, are the paths. I recommend to not changing them too much
 - config variables to set: the fields to check in the configuration file before running the specific commands
 - command: the specific command to run
 
@@ -83,12 +83,12 @@ Each point is organized as:
    - Check the folder structure which is given in the file README.txt in the folder "TRUSTED_submission"
 
 # Data processing and analysis
-This step describes the operations to run to estimate the ground-truth (GT) annotations, to quantitatively compare the estimated GT and the annotations provided by human experts, and to prepare the data used for baselines evaluation.
+This step describes the operations to run to estimate the ground-truth (GT) annotations, to quantitatively compare the estimated GT and the annotations provided by human experts, and to prepare the data used for baseline methods evaluation.
 
 ### 3. Notes:
    - config file: configs/anaconfig.yml
    - config variables to set: data_location
-   - Check that the structure of the folder "TRUSTED_submission" and the convension naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
+   - Check that the structure of the folder "TRUSTED_submission" and the convention naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
    - In out python scripts, an annotator is represented by the values: "1" for annotator 1, "2" for annotator 2, "gt" for ground-truth segmentations, and "auto" for automatic segmentations
 
 
@@ -99,7 +99,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    ```
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py --config_path configs/anaconfig.yml
    ```
-   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending to your memory, you can set different values.
+   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending on your memory, you can set different values.
 
 
 ### 5. To estimate the ground-truth landmarks
@@ -175,7 +175,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    - config variables to set:
       - data_location, the path to the folder "TRUSTED_submission"
       - img_location, the path to the folder containing the original CT images
-      - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending to the modality, the models, ... etc
+      - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending on the modality, the models, ... etc
    - Note: the learning rate, weight_decay, number of epochs are fixed in the file "src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py" (line 82-84)
    - command:
    ```
@@ -211,7 +211,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    - **Important note about only_val and checkpoint.load:**
       - when only_val==False and checkpoint.load==False , a new training is launched
       - when only_val==False and checkpoint.load==True , the last training continues using the "latest.pt", if it exists
-      - when only_val==True, the evaluation in run using the "best.pt" if it exists
+      - when only_val==True, the evaluation is run using the "best.pt" if it exists
    - command:
    ```
    cd src/trusted_datapaper_ds/segmentation/nnunet_cotr
@@ -227,7 +227,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    python mainDoubleV2.py -m model=nnunet dataset=ct_128_double_jz_v2 training=training_128_jz_v2 dataset.cv=cv1
    ```
 
-   In the command above, use: mainV2.py or mainDoubleV2.py, the model's value nnunet or cotr, and dataset's value ct_128_simple_jz_v2 or ct_128_double_jz_v2 depending on what you need
+   In the command above, use: mainV2.py or mainDoubleV2.py, the model's value nnunet or cotr, and the dataset's value ct_128_simple_jz_v2 or ct_128_double_jz_v2 depending on what you need
 
 
 ### 14. nnUNet or CoTr models inference
@@ -235,8 +235,8 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    - config variables to set: only_val and checkpoint.load to True
    - command: same command as for training
 
-   The segmentation masks with the size 128-128-128 will be located into the folder: "~/MedSeg/CT_DATA/medseg_results/~".
-   For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organized in the following structure:
+   The segmentation masks with the size 128-128-128 will be located in the folder: "~/MedSeg/CT_DATA/medseg_results/~".
+   For evaluation, you should move them into a folder corresponding to "seg128location" into "src/trusted_datapaper_ds/segmentation/configs/ctsegconfig.yml" and organize in the following structure:
 
    ```
    ├── CT_DATA/
@@ -270,7 +270,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
 
 
 ### 15. Automatic segmentation post-processing
-Apply different post-processings (upsampling, meshing, splitCT) to the masks obtain in inference.
+Apply different post-processings (upsampling, meshing, splitCT) to the masks obtained in inference.
    - config file: configs/ctsegconfig.yml
    - config variables to set: ist_othermodels, list_training_target, upsampling, meshing, splitCT
    - command:
@@ -330,7 +330,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
       - run the installation command: sudo dpkg --install BaseImFusionSuite-2.44.1-22.04.deb
       - launch the ImFusionSuite interface with the command: ImFusionSuite
       - activate your License by entering your License key
-      - now you can use ImFusionSuite by launching the interface (command: ImFusionSuite), of with our python script provided
+      - now you can use ImFusionSuite by launching the interface (command: ImFusionSuite), with our python script provided
 
    **Running**
       - config file: configs/regconfig.yml
@@ -343,16 +343,20 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
 
 
 ### 21. Shift origin of CT images
-   I explained above that the CT image origins are not [0,0,0], while CT mesh origins are always [0,0,0] because of the Marching Cubes implementation used to create them, which does not keep their initial location (it just keeps their orientation). So, to have the CT images (particularly) and their corresponding meshes, point clouds and landmarks, in the same space, then to be able to transfert the estimated transforms by landmarks or point clouds registration to the images, and vice-versa, one way is to also applied this localization (origin) shifting to the CT images, so translate them from their original origin to the [0,0,0] origin in the RAS coordinates system. This is what I describe here.
-   **Note:**  Another way to have CT images and meshes (landmarks and point clouds) in the same coordinates system is to keep the CT images in their initial location, and apply the specific transform located in "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_tback_transforms/", to the US moving data AFTER the registration (first apply the registration transform, second apply the shiftback transform).
+   The meshes and landmarks have been saved in different coordinate systems depending on the algorithm used (Marching Cubes implementation for meshes), and the landmarks annotation protocol.
+   So, to have the CT images and their corresponding meshes and landmarks in the same coordinate system (here the mesh coordinate system), and then be able to transfer the estimated transforms by landmarks or point clouds registration to the images, I choose the easy option
+   to translate the CT images from their initial origins to [0,0,0] (mesh coordinate system origin).
 
-   For CT origin shifting:
    - config file: configs/anaconfig.yml
-   - config variables to set: shiftCTimg_origin, myDATA, data_location, CTimg_origin0_location
+   - config variables to set: shiftCTimg_origin, myDATA, data_location, CTimg_origin0_location, CT_tbackldk_transforms,
+      CT_tbackmesh_transforms
    - command:
    ```
    python src/trusted_datapaper_ds/dataprocessing/shiftCT.py  --config_path configs/anaconfig.yml
    ```
+
+   **Note:** There is certainly a more elegant way to do manage this transforms transfert between different coordinate systems, for example using the provided transforms to have landmarks and meshes in the US or CT device coordinate sytems. The creation of those transforms is given in option in the code of shifting origin.
+
 
 ### 22. Registration evaluation
    - config file: configs/regconfig.yml
