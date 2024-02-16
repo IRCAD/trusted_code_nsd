@@ -215,11 +215,11 @@ def main(config):
     ctdata_eval = bool(config["ctdata_eval"])
 
     allct = natsorted(
-        config["CTfold"]["cv1"]
-        + config["CTfold"]["cv2"]
-        + config["CTfold"]["cv3"]
-        + config["CTfold"]["cv4"]
-        + config["CTfold"]["cv5"]
+        config["CTfoldmask"]["cv1"]
+        + config["CTfoldmask"]["cv2"]
+        + config["CTfoldmask"]["cv3"]
+        + config["CTfoldmask"]["cv4"]
+        + config["CTfoldmask"]["cv5"]
     )
     allct_with_side = natsorted([j + "L" for j in allct] + [j + "R" for j in allct])
     allus = natsorted(

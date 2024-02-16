@@ -1,6 +1,6 @@
 name: ct_128_simple_jz_v2
 path:
-  pth: /home/TRUSTED_submission/MedSeg/CT_DATA
+  pth: /home/TRUSTED_dataset_for_submission/MedSeg/CT_DATA
 
   im: ${dataset.path.pth}/CTimg_128_t
   seg1: ${dataset.path.pth}/CTmask_a1_128

@@ -1,16 +1,3 @@
-"""
-This file defines the TRUSTED data processing main classes and methods:
-    - Image
-    - Mask
-    - Landmarks
-    - Mesh
-
-    - fuse_masks()
-    - fuse_landmarks()
-    - plot_arrays()
-    - resiz_nparray()
-"""
-
 import os
 import re
 from os.path import join
@@ -92,7 +79,8 @@ class Image:
         self,
         new_origin=[0, 0, 0],
         shifted_dirname=None,
-        shiftback_transforms_dirname=None,
+        shiftback_mesh_transforms_dirname=None,
+        shiftback_ldks_transforms_dirname=None,
     ):
         """
         Shifts the origin of the image data, primarily used for CT volumes.
@@ -114,15 +102,29 @@ class Image:
 
         assert self.modality == "CT", "Needed only for CT volume"
 
-        if shiftback_transforms_dirname is not None:
-            toras = np.diag([-1, -1, 1, 1])
-            tback = np.eye(4)
-            tback[:3, 3] = self.origin
-            tback = toras @ tback
-            tback_path = join(
-                shiftback_transforms_dirname, self.individual_name + "tback.txt"
+        toras = np.diag([-1, -1, 1])
+        imgorigin_ras = self.origin
+        imgorigin_lps = (toras @ np.array(imgorigin_ras).T).T
+
+        if shiftback_mesh_transforms_dirname is not None:
+            tbackmesh = np.eye(4)
+            tbackmesh[:3, 3] = imgorigin_lps
+            tbackmesh[:3, :3] = toras
+
+            tbackmesh_path = join(
+                shiftback_mesh_transforms_dirname,
+                self.individual_name + "tbackmesh.txt",
             )
-            np.savetxt(tback_path, tback)
+            np.savetxt(tbackmesh_path, tbackmesh)
+
+        if shiftback_ldks_transforms_dirname is not None:
+            tbackldk = np.eye(4)
+            tbackldk[:3, 3] = imgorigin_lps
+
+            tbackldk_path = join(
+                shiftback_ldks_transforms_dirname, self.individual_name + "tbackldk.txt"
+            )
+            np.savetxt(tbackldk_path, tbackldk)
 
         print("CT data origin shifting to ", new_origin, " for ", self.basename)
 

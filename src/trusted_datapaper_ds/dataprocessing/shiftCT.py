@@ -35,8 +35,14 @@ def main(
     if shiftCTimg_origin:
         shifted_dirname = join(config["myDATA"], config["CT0imgfol"])
         makedir(shifted_dirname)
-        shiftback_transforms_dirname = join(config["myDATA"], config["CT0tbackfol"])
-        makedir(shiftback_transforms_dirname)
+        shiftback_mesh_transforms_dirname = join(
+            config["myDATA"], config["CT0tbackmeshfol"]
+        )
+        makedir(shiftback_mesh_transforms_dirname)
+        shiftback_ldks_transforms_dirname = join(
+            config["myDATA"], config["CT0tbackldkfol"]
+        )
+        makedir(shiftback_ldks_transforms_dirname)
         for ind in ctlist:
             individual = ind
             imgpath = join(
@@ -47,7 +53,8 @@ def main(
             ctimg = dt.Image(imgpath)
             ctimg.shift_origin(
                 shifted_dirname=shifted_dirname,
-                shiftback_transforms_dirname=shiftback_transforms_dirname,
+                shiftback_mesh_transforms_dirname=shiftback_mesh_transforms_dirname,
+                shiftback_ldks_transforms_dirname=shiftback_ldks_transforms_dirname,
             )
     return
 

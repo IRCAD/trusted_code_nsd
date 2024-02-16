@@ -1,6 +1,6 @@
 
 
-data_location: "/home/TRUSTED_submission/"
+data_location: "/home/TRUSTED_dataset_for_submission/"
 
 ## ''' US data FOLDERS PROVIDED'''
 USimgfol: "US_DATA/US_images/"
@@ -14,6 +14,10 @@ USld1fol: "US_DATA/US_landmarks/Annotator1/"
 USld2fol: "US_DATA/US_landmarks/Annotator2/"
 USldgtfol: "US_DATA/US_landmarks/GT_estimated_ldksUS/"
 
+USme1_inimg_fol: "US_DATA/US_meshes_inimg/Annotator1/"
+USme2_inimg_fol: "US_DATA/US_meshes_inimg/Annotator2/"
+USmegt_inimg_fol: "US_DATA/US_meshes_inimg/GT_estimated_meshesUS/"
+
 
 ## ''' CT data FOLDERS PROVIDED'''
 CTimgfol: "CT_DATA/CT_images/"
@@ -26,6 +30,14 @@ CTmegtfol: "CT_DATA/CT_meshes/GT_estimated_meshesCT/"
 CTld1fol: "CT_DATA/CT_landmarks/Annotator1/"
 CTld2fol: "CT_DATA/CT_landmarks/Annotator2/"
 CTldgtfol: "CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
+
+CTld1_inimg_fol: "CT_DATA/CT_landmarks_inimg/Annotator1/"
+CTld2_inimg_fol: "CT_DATA/CT_landmarks_inimg/Annotator2/"
+CTldgt_inimg_fol: "CT_DATA/CT_landmarks_inimg/GT_estimated_ldksCT/"
+
+CTme1_inimg_fol: "CT_DATA/CT_meshes_inimg/Annotator1/"
+CTme2_inimg_fol: "CT_DATA/CT_meshes_inimg/Annotator2/"
+CTmegt_inimg_fol: "CT_DATA/CT_meshes_inimg/GT_estimated_meshesCT/"
 
 
 ## ''' Data name suffixes '''
@@ -64,7 +76,7 @@ USfold:
 
 
 # WHERE YOU COULD SAVE YOUR CREATED DATA
-myDATA: "/home/TRUSTED_submission/myDATA"
+myDATA: "/home/TRUSTED_dataset_for_submission/myDATA"
 
 ## ''' FOLDERS NO PROVIDED (Have to be created by used if need. Can be added)'''
 
@@ -77,6 +89,17 @@ CT0spma2fol: "CT_DATA/CTsplit_masks_origin0/Annotator2/"
 CT0spmagtfol: "CT_DATA/CTsplit_masks_origin0/GT_estimated_masksCT/"
 
 CT0imgfol: "CT_DATA/CT_images_origin0/" # CT images shifted to origin [0,0,0]
+
+CT_tbackldk_transforms: "CT_DATA/CT_tbackldk_transforms/"
+CT_tbackmesh_transforms: "CT_DATA/CT_tbackmesh_transforms/"
+
+CTldks_over_images: True
+annotator_mov_ldks: "gt"  # can be "1", "2", or "gt"
+
+CTmesh_over_images: False
+USmesh_over_images: True
+annotator_mov_mesh: "2"  # can be "1", "2", or "gt"
+
 
 CT0ma1fol: "CT_DATA/CT_masks_origin0/Annotator1/" # CT masks shifted to origin [0,0,0]
 CT0ma2fol: "CT_DATA/CT_masks_origin0/Annotator2/"
@@ -96,14 +119,14 @@ CT128magtfol: "CT_DATA/CTmask128/GT_estimated_masksCT/"
 ## ''' MAIN PROCESSINGS '''
 
 # Mask ground-truth estimation (STAPLE fusion)
-myUS_fusedmasks_location: "/home/TRUSTED_submission/myDATA/US_DATA/US_masks/GT_estimated_masksUS/"
-myCT_fusedmasks_location: "/home/TRUSTED_submission/myDATA/CT_DATA/CT_masks/GT_estimated_maskCT/"
+myUS_fusedmasks_location: "/home/TRUSTED_dataset_for_submission/myDATA/US_DATA/US_masks/GT_estimated_masksUS/"
+myCT_fusedmasks_location: "/home/TRUSTED_dataset_for_submission/myDATA/CT_DATA/CT_masks/GT_estimated_maskCT/"
 fuse_USmask: True
 fuse_CTmask: False
 
 # Landmarks ground-truth estimation
-myUS_fusedlandmarks_location: "/home/TRUSTED_submission/myDATA/US_DATA/US_landmarks/GT_estimated_ldksUS/"
-myCT_fusedlandmarks_location: "/home/TRUSTED_submission/myDATA/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
+myUS_fusedlandmarks_location: "/home/TRUSTED_dataset_for_submission/myDATA/US_DATA/US_landmarks/GT_estimated_ldksUS/"
+myCT_fusedlandmarks_location: "/home/TRUSTED_dataset_for_submission/myDATA/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 fuse_USlandmark: True
 fuse_CTlandmark: True
 

@@ -65,11 +65,11 @@ if __name__ == "__main__":
         config = yaml.safe_load(yaml_file)
 
     allct = natsorted(
-        config["CTfold"]["cv1"]
-        + config["CTfold"]["cv2"]
-        + config["CTfold"]["cv3"]
-        + config["CTfold"]["cv4"]
-        + config["CTfold"]["cv5"]
+        config["CTfoldmask"]["cv1"]
+        + config["CTfoldmask"]["cv2"]
+        + config["CTfoldmask"]["cv3"]
+        + config["CTfoldmask"]["cv4"]
+        + config["CTfoldmask"]["cv5"]
     )
 
     ctlist = allct

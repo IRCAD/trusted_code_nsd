@@ -7,7 +7,7 @@ reftarget: "double_targets_training"
 list_segmodels: ["unet_lr1.0_epoch1001_batch2", "vnet_lr1.0_epoch1001_batch2", "nnunet", "cotr"]
 list_training_target: ["single_target_training", "double_targets_training"]
 
-segresults_folder: "/home/TRUSTED_submission/segmentation_benchmarks/"
+segresults_folder: "/home/TRUSTED_dataset_for_submission/segmentation_benchmarks/"
 
 ctcv1: ['84R', '116R', '114R', '98R', '118R', '04R', '44R', '101R', '88R', '84L', '116L', '114L', '98L', '118L', '04L', '44L', '101L', '88L']
 ctcv2: ['47R', '01R', '74R', '14R', '33R', '24R', '72R', '51R', '64R', '47L', '01L', '74L', '14L', '33L', '24L', '72L', '51L', '64L']

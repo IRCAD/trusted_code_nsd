@@ -19,7 +19,7 @@ do_clip: True
 do_schedul: True
 loss: CrossDice
 
-pth: /home/TRUSTED_submission/MedSeg/medseg_results
+pth: /home/TRUSTED_dataset_for_submission/MedSeg/medseg_results
 
 augmentations:
   rotate:

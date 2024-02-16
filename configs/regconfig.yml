@@ -1,13 +1,13 @@
 
 # The folder where the GT landmarks in .txt are located
-USldks_location: "/home/TRUSTED_submission/US_DATA/US_landmarks/GT_estimated_ldksUS/"
-CTldks_location: "/home/TRUSTED_submission/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
+USldks_location: "/home/TRUSTED_dataset_for_submission/US_DATA/US_landmarks/GT_estimated_ldksUS/"
+CTldks_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_landmarks/GT_estimated_ldksCT/"
 
 # Where you like to create the folders that will content the estimated transformations
-transfo_location: "/home/TRUSTED_submission/"
+transfo_location: "/home/TRUSTED_dataset_for_submission/"
 
 # Where you like to create the folders that will content the different results csv files
-regresults: "/home/TRUSTED_submission/reg_results"
+regresults: "/home/TRUSTED_dataset_for_submission/reg_results"
 
 # The transform model for landmarks (global) registration
 ldks_model: "similarity"
@@ -30,26 +30,26 @@ similarity_metric: "LNCC" # or "LC2"
 iternumb: 1
 
 # For surface-based refinement
-USautomesh_location: "/home/TRUSTED_submission/US_DATA/USoutput_mesh/"
-CTautomesh_location: "/home/TRUSTED_submission/CT_DATA/CToutput_mesh/"
+USautomesh_location: "/home/TRUSTED_dataset_for_submission/US_DATA/USoutput_mesh/"
+CTautomesh_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CToutput_mesh/"
 
 segmodel: "nnunet"  # ALWAYS (in our case)
 training_target: "double_targets_training"  # ALWAYS (in our case)
 
-bcpd_temp_folder: "/home/TRUSTED_submission/bcdp_temp_folder"
+bcpd_temp_folder: "/home/TRUSTED_dataset_for_submission/bcdp_temp_folder"
 regpack_dir: "src/trusted_datapaper_ds/registration"
 
 # For intensity-based refinement
-USimg_location: "/home/TRUSTED_submission/US_DATA/US_images/"
-CTimg_location: "/home/TRUSTED_submission/CT_DATA/CT_images/"
+USimg_location: "/home/TRUSTED_dataset_for_submission/US_DATA/US_images/"
+CTimg_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_images/"
 
-imf_temp_folder: "/home/TRUSTED_submission/imf_temp_folder"
+imf_temp_folder: "/home/TRUSTED_dataset_for_submission/imf_temp_folder"
 
 # For registration evaluation
-USgtmesh_location: "/home/TRUSTED_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
-CTgtmesh_location: "/home/TRUSTED_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
+USgtmesh_location: "/home/TRUSTED_dataset_for_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
+CTgtmesh_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
 
-CTimg_origin0_location: "/home/TRUSTED_submission/CT_DATA/CTimg_origin0/"
+CTimg_origin0_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CTimg_origin0/"
 
 refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2"]
 transform_models: ["affine", "rigid"]

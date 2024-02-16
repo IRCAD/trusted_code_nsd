@@ -11,29 +11,6 @@
 
 # trusted_datapaper_ds
 
-### Quickly visualization of the data with 3D Slicer (Version 4.11.20210226)
-- The images (US and CT) and masks can be load just by a simple drag and drop.
-Note: the visualizations is given in the RAS (Right, Anterior, Superior) coordinates system
-
-- For meshes and landmarks from CT images:
-   * set their coordinates system into RAS when loading (over the 3D Slicer interface)
-   * apply the specific translation in the RAS coordinates space.
-   This is because the CT image origins are not [0,0,0], while CT mesh origins are always [0,0,0] as the Marching Cubes implementation used to create them does not keep their initial location (it just keeps their orientation).
-   Those specific translations are saved into the folder "/home/TRUSTED_submission/CT_DATA/CT_tback_transforms/".
-
-   **Note about transform loading on 3D Slicer:**
-   It is possible to load a transform with one drag and drop of a transform file, but I was not able to well set the structure of this kind of file.
-   There are some ways to get around this (more or less). What I suggest is:
-      * open the .txt file containing the transform matrix
-      * copy all the text and paste it on an empty VSCode text file
-      * copy all the text again from the VSCode text file
-      * create a 3D slicer linear transform and paste the text copied using the dedicated button for that in the Transform Edition window.
-   (PLEASE, LET ME KNOW IF YOU HAVE A MORE ELEGANT WAY TO DO IT)
-
--  For US meshes and landmarks:
-   * set the coordinates system into RAS when loading (over the 3D Slicer interface)
-   * no specific translation to apply (the US images and meshes origin are both equal to [0,0,0] )
-
 ### The goal of the python project
 This is the script developed to analyse the TRUSTED dataset, as well as to evaluate some baselines of deep-learning-based segmentations models, and registration models.
 Here is how to use it for "reproductibility".
@@ -137,6 +114,14 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtldks.py --config_path configs/anaconfig.yml
    ```
 
+   **Note:** To obtain CT landmarks in the CT device coordinate systems (US landmarks are in the US device coordinate system)
+   - config file: configs/anaconfig.yml
+   - config variables to set: CTldks_over_images, annotator_mov_ldks
+   - command:
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/put_landmarks_in_image_space.py --config_path configs/anaconfig.yml
+   ```
+
 ### 6. To convert masks to meshes
    - config file: configs/anaconfig.yml
    - config variables to set: myDATA, CTmask_to_mesh, USmask_to_mesh, annotator_mask_to_mesh
@@ -144,6 +129,14 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    ```
    python src/trusted_datapaper_ds/dataprocessing/convert_mask_to_mesh.py --config_path configs/anaconfig.yml
    ```
+   **Note:** To obtain CT Meshes in the CT or US device coordinate systems
+   - config file: configs/anaconfig.yml
+   - config variables to set: CTmesh_over_images, USmesh_over_images, annotator_mov_mesh
+   - command:
+   ```
+   python src/trusted_datapaper_ds/dataprocessing/put_meshes_in_image_space.py --config_path configs/anaconfig.yml
+   ```
+
 
 ### 7. To split CT masks
    - config file: configs/anaconfig.yml
@@ -355,7 +348,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
 
 ### 21. Shift origin of CT images
    I explained above that the CT image origins are not [0,0,0], while CT mesh origins are always [0,0,0] because of the Marching Cubes implementation used to create them, which does not keep their initial location (it just keeps their orientation). So, to have the CT images (particularly) and their corresponding meshes, point clouds and landmarks, in the same space, then to be able to transfert the estimated transforms by landmarks or point clouds registration to the images, and vice-versa, one way is to also applied this localization (origin) shifting to the CT images, so translate them from their original origin to the [0,0,0] origin in the RAS coordinates system. This is what I describe here.
-   **Note:**  Another way to have CT images and meshes (landmarks and point clouds) in the same coordinates system is to keep the CT images in their initial location, and apply the specific transform located in "/home/TRUSTED_submission/CT_DATA/CT_tback_transforms/", to the US moving data AFTER the registration (first apply the registration transform, second apply the shiftback transform).
+   **Note:**  Another way to have CT images and meshes (landmarks and point clouds) in the same coordinates system is to keep the CT images in their initial location, and apply the specific transform located in "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_tback_transforms/", to the US moving data AFTER the registration (first apply the registration transform, second apply the shiftback transform).
 
    For CT origin shifting:
    - config file: configs/anaconfig.yml
