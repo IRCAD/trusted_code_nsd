@@ -706,13 +706,15 @@ def convert_to_split(
 
     nparrayL = np.zeros_like(nparray)
     nparrayL[mid0:, :, :] = nparray[mid0:, :, :].copy()
+    
+    splitR_nib = nib.Nifti1Image(nparrayR, nib_data.affine)
+    splitL_nib = nib.Nifti1Image(nparrayL, nib_data.affine)
 
     if split_dirname is not None:
         splitR_path = join(
             split_dirname,
             individual_name + "R" + annotatorID + suffix,
         )
-        splitR_nib = nib.Nifti1Image(nparrayR, nib_data.affine)
         nib.save(splitR_nib, splitR_path)
         print("splitR_nib saved as: ", splitR_path)
 
@@ -720,7 +722,6 @@ def convert_to_split(
             split_dirname,
             individual_name + "L" + annotatorID + suffix,
         )
-        splitL_nib = nib.Nifti1Image(nparrayL, nib_data.affine)
         nib.save(splitL_nib, splitL_path)
         print("splitL_nib saved as: ", splitL_path)
 
