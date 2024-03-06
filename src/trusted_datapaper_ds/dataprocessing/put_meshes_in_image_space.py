@@ -110,7 +110,7 @@ def main(
             print("Processing: ", ID)
 
             Identity4 = np.eye(4)
-            tbackmesh = tbackmesh = put_transform_into_ras @ Identity4
+            tbackmesh = put_transform_into_ras @ Identity4
 
             new_o3d_meshUS = copy.deepcopy(o3dmesh).transform(tbackmesh)
 
