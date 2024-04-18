@@ -271,7 +271,7 @@ if __name__ == "__main__":
         else:
             bcpdspecific_output_folder = None
 
-        bcpd_temp_folder = config["BCPD_temp_folder"]
+        bcpd_temp_folder = config["bcpd_temp_folder"]
         makedir(bcpd_temp_folder)
 
     for movmesh_file in movmesh_files:

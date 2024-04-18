@@ -79,8 +79,8 @@ Each point is organized as:
    ```
 
 # Data checking
-   - Download the data folder "TRUSTED_submission"
-   - Check the folder structure which is given in the file README.txt in the folder "TRUSTED_submission"
+   - Download the data folder "TRUSTED_dataset_for_submission"
+   - Check the folder structure which is given in the file README.txt in the folder "TRUSTED_dataset_for_submission"
 
 # Data processing and analysis
 This step describes the operations to run to estimate the ground-truth (GT) annotations, to quantitatively compare the estimated GT and the annotations provided by human experts, and to prepare the data used for baseline methods evaluation.
@@ -88,7 +88,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
 ### 3. Notes:
    - config file: configs/anaconfig.yml
    - config variables to set: data_location
-   - Check that the structure of the folder "TRUSTED_submission" and the convention naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
+   - Check that the structure of the folder "TRUSTED_dataset_for_submission" and the convention naming used matches with the one used in "configs/anaconfig.yml" for the "PROVIDED" subfolders
    - In out python scripts, an annotator is represented by the values: "1" for annotator 1, "2" for annotator 2, "gt" for ground-truth segmentations, and "auto" for automatic segmentations
 
 
@@ -173,7 +173,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
 ### 11. 3D UNet or VNet models training
    - config file: configs/ctsegconfig.yml
    - config variables to set:
-      - data_location, the path to the folder "TRUSTED_submission"
+      - data_location, the path to the folder "TRUSTED_dataset_for_submission"
       - img_location, the path to the folder containing the original CT images
       - output_location, the main folder where you want to save your different training outputs (models weight, training graphs, ...), depending on the modality, the models, ... etc
    - Note: the learning rate, weight_decay, number of epochs are fixed in the file "src/trusted_datapaer_ds/segmentation/U_or_V_Net_training.py" (line 82-84)

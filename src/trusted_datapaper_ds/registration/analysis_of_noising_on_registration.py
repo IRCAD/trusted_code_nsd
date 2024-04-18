@@ -180,7 +180,7 @@ def single_affine_rigid_box_plotting(
         ax_bis = ax.twiny()
         ax_bis.set(xlim=(-0.6, len(noise1_count_excluded_i) - 0.4))
         sns.lineplot(range(len(noise1_count_excluded_i)), visible=False)
-        ax_bis.set_xticks(range(len(noise1_count_excluded_i)), size=1)
+        ax_bis.set_xticks(range(len(noise1_count_excluded_i)))
         ax_bis.set_xticklabels([j for j in noise1_count_excluded_i])
         ax_bis.tick_params(axis="both", which="both", length=0)
 

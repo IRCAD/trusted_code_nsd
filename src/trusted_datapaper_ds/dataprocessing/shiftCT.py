@@ -51,7 +51,7 @@ def main(
         )
         makedir(shiftback_mesh_transforms_dirname)
         shiftback_ldks_transforms_dirname = join(
-            config["myDATA"], config["CT_tbackldk_transforms:"]
+            config["myDATA"], config["CT_tbackldk_transforms"]
         )
         makedir(shiftback_ldks_transforms_dirname)
         for ind in ctlist:
