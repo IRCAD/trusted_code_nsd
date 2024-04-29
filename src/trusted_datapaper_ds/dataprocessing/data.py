@@ -374,8 +374,9 @@ class Landmarks:
         o3dldks = o3d.geometry.PointCloud()
         o3dldks.points = o3d.utility.Vector3dVector(self.nparray)
 
-        plymark_path = join(ply_dirname, self.basename)
-        o3d.io.write_point_cloud(plymark_path.replace(".txt", ".ply"), o3dldks)
+        if ply_dirname is not None:
+            plymark_path = join(ply_dirname, self.basename)
+            o3d.io.write_point_cloud(plymark_path.replace(".txt", ".ply"), o3dldks)
         return o3dldks
 
     def noising(self, std):
