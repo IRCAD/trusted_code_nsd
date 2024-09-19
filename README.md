@@ -99,7 +99,7 @@ This step describes the operations to run to estimate the ground-truth (GT) anno
    ```
    python src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py --config_path configs/anaconfig.yml
    ```
-   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 89, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending on your memory, you can set different values.
+   Note: in the file "src/trusted_datapaper_ds/dataprocessing/estimate_gtmasks.py", line 69, there are some resizing option parameters, to avoid memory overload. I choose by default [512, 384, 384] just for the US data which are quite big. Depending on your memory, you can set different values.
 
 
 ### 5. To estimate the ground-truth landmarks
