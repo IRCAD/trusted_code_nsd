@@ -45,12 +45,15 @@ CTimg_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_images/"
 
 imf_temp_folder: "/home/TRUSTED_dataset_for_submission/imf_temp_folder"
 
+# For TransMorph refinement (model training, then running on test sets),
+# refer to the authors Github repo:  https://github.com/junyuchen245/TransMorph_Transformer_for_Medical_Image_Registration
+
 # For registration evaluation
 USgtmesh_location: "/home/TRUSTED_dataset_for_submission/US_DATA/US_meshes/GT_estimated_meshesUS/"
 CTgtmesh_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CT_meshes/GT_estimated_meshesCT/"
 
 CTimg_origin0_location: "/home/TRUSTED_dataset_for_submission/CT_DATA/CTimg_origin0/"
 
-refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2"]
+refinement_methods: ["BCPD", "ICP", "imfLNCC", "imfLC2", "TransMorph"]
 transform_models: ["affine", "rigid"]
 std_cases: ["0.0", "2.0", "4.0", "6.0", "8.0", "10.0"]

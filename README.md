@@ -342,7 +342,12 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
       It produces the refinement registration matrices computed with intensity-based methods
 
 
-### 21. Shift origin of CT images
+### 21. Landmarks registration (global) + TransMorph (refinement)
+For TransMorph_Affine and TransMorph_Rigid refinement (model training, then running on test sets), refer to the description made in our paper (the TRUSTED datapaper), and use TransMorph authors Github repo:  
+https://github.com/junyuchen245/TransMorph_Transformer_for_Medical_Image_Registration
+
+
+### 22. Shift origin of CT images
    The meshes and landmarks have been saved in different coordinate systems depending on the algorithm used (Marching Cubes implementation for meshes), and the landmarks annotation protocol.
    So, to have the CT images and their corresponding meshes and landmarks in the same coordinate system (here the mesh coordinate system), and then be able to transfer the estimated transforms by landmarks or point clouds registration to the images, I choose the easy option
    to translate the CT images from their initial origins to [0,0,0] (mesh coordinate system origin).
@@ -358,7 +363,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
    **Note:** There is certainly a more elegant way to do manage this transforms transfert between different coordinate systems, for example using the provided transforms to have landmarks and meshes in the US or CT device coordinate sytems. The creation of those transforms is given in option in the code of shifting origin.
 
 
-### 22. Registration evaluation
+### 23. Registration evaluation
    - config file: configs/regconfig.yml
    - config variables to set: CTimg_origin0_location, refinement_methods, transform_models, std_cases, transfo_location, CTgtmesh_location, USgtmesh_location, USldks_location, CTldks_location
    - command:
@@ -366,7 +371,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
    python src/trusted_datapaper_ds/registration/registration_evaluation.py  --config_path configs/regconfig.yml
    ```
 
-### 23. Registration results statistical analysis
+### 24. Registration results statistical analysis
    - config file: configs/reganalysis.yml
    - config variables to set: refmethod, reftransform, list_regmethods, list_regtransforms, regresults_folder
    - command:
@@ -374,7 +379,7 @@ Apply different post-processings (upsampling, meshing, splitCT) to the masks obt
     python src/trusted_datapaper_ds/registration/registration_analysis.py  --config_path configs/reganalysis.yml
    ```
 
-### 24. Boxplots of registration results statistical analysis
+### 25. Boxplots of registration results statistical analysis
 
    - config file: configs/reganalysis.yml
    - config variables to set: regresults_folder, list_regmethods, list_regtransforms, list_std
